@@ -633,11 +633,11 @@ $html = '
     <br>
 <div id="details" class="clearfix">
   <div id="client">
-    <div class="address"> <b>  Consignee:  </b> '.$NOMBRECONSIGNATARIO.'  </div>
-    <div class="address"> <b>  Address Consignee:  </b> '.$DIRECCIONCONSIGNATARIO.'  </div>
-    <div class="address"> <b> Tributary id Consignee: </b>'.$EORICONSIGNATARIO.'  </div>
-    <div class="address"> <b> Phone / Fax Consignee: </b>'.$TELEFONOCONSIGNATARIO.'  </div>
-    <div class="address"> <b>  Email Consignee:  </b> '.$EMAIL1CONSIGNATARIO.'  </div>
+    <div class="address"> <b>  Consigne:  </b> '.$NOMBRECONSIGNATARIO.'  </div>
+    <div class="address"> <b>  Address Consigne:  </b> '.$DIRECCIONCONSIGNATARIO.'  </div>
+    <div class="address"> <b> Tributary id Consigne: </b>'.$EORICONSIGNATARIO.'  </div>
+    <div class="address"> <b> Phone / Fax Consigne: </b>'.$TELEFONOCONSIGNATARIO.'  </div>
+    <div class="address"> <b>  Email Consigne:  </b> '.$EMAIL1CONSIGNATARIO.'  </div>
     <div class="address">&nbsp;  </div>
 
     ';
@@ -677,7 +677,7 @@ $html = $html . '
   </div>
   <div id="client"> 
   
-    <div class="address"> <b> Date Invoice:  </b> '.$FECHAETD.'  </div>
+    <div class="address"> <b> Date Inovice:  </b> '.$FECHAETD.'  </div>
     <div class="address"> <b>  Sales method:  </b>  '.$NOMBREMVENTA.' </div>
     <div class="address"> <b>  Incoterm:  </b>   '.$NOMBRECVENTA.'</div>
     <div class="address"> <b>  BL/AWB/CRT:  </b> '.$BOLAWBCRTINSTRUCTIVO.'  </div>
@@ -713,9 +713,9 @@ $html = $html . '
         <div class="address">&nbsp;  </div>
         <div class="address">&nbsp;  </div>
         <div class="address"> <b>  Shipping company name:  </b> '.$NOMBRETRANSPORTE.'  </div>
-        <div class="address"> <b>  Vessel:   </b>'.$NAVE.' - <b>Voyage: </b>'.$NVIAJE.' </div>
+        <div class="address"> <b>  Vessel:   </b>'.$NAVE.' - <b>Number Travel: </b>'.$NVIAJE.' </div>
         <div class="address"> <b>  Port of Shipment:   </b>'.$NOMBREORIGEN.'  </div>
-        <div class="address"> <b>  Delivery:  </b> '.$NOMBREDESTINO.'  </div>
+        <div class="address"> <b>  Port of Destination:  </b> '.$NOMBREDESTINO.'  </div>
         <div class="address"> <b>  Loading place:   </b>'.$LUGARDECARGA.'  </div>
     
         ';
@@ -732,17 +732,16 @@ $html = $html . '
         <table border="0" cellspacing="0" cellpadding="0">
           <thead>
             <tr>
-              <th colspan="8" class="center">DETAIL.</th>
+              <th colspan="10" class="center">DETAIL.</th>
             </tr>
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
-              <th class="color center ">Handling </th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
               <th class="color center ">Type of currency </th>
               <th class="color center ">Price Box</th>
-              <th class="color center ">Total Price</th>
+              <th class="color center ">Total Price</th>    
             </tr>
           </thead>
            <tbody>
@@ -754,9 +753,8 @@ $html = $html . '
               <tr class="">
                     <td class="center">'.$s['ENVASE'].'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
-                    <td class="center">'.$s['TMANEJO'].'</td>
                     <td class="center">'.$s['NETO'].'</td>
-                    <td class="center">'.$s['BRUTOF'].'</td>
+                    <td class="center">'.$s['BRUTO'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
                     <td class="center">'.$s['US'].'</td>
                     <td class="center">'.$s['TOTALUS'].'</td>
@@ -764,7 +762,7 @@ $html = $html . '
             ';
             $TOTALENVASEV+=$s['ENVASESF'];
             $TOTALNETOV+=$s['NETOSF'];
-            $TOTALBRUTOV+=$s['BRUTOSRF'];
+            $TOTALBRUTOV+=$s['BRUTOSF'];
             $TOTALUSV+=$s['TOTALUSSF'];
             endforeach;
 
@@ -775,7 +773,6 @@ if($COSTOFLETEICARGA!=""){
               <tr class="">
                   <td class="center"> - </td>
                     <td class="center">Freight cost </td>
-                    <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"></td>
@@ -796,7 +793,6 @@ if($COSTOFLETEICARGA!=""){
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
                           <th class="color right">Overall Kilogram </td>
-                          <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
                           <td class="color center">&nbsp;</td>
@@ -818,6 +814,8 @@ $html = $html . '
         <div id="client">
           <div class="address"><b>Invoice Note</b></div>
           <div class="address">  ' . $OBSERVACIONESI . ' </div>
+          <div class="address"> <b>“The exporter of the products covered by this document (77.223.122-9) declares that, except where otherwise clearly indicated,
+           <br>these products are of CHILE preferential origin Product Description: Fresh Blueberries 0810.40”</b></div>
         </div>
         
       </div>
