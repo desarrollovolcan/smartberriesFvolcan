@@ -287,7 +287,7 @@ $html = '
           <div class="address"><b>Tipo Recepción: </b>' . $NOMBRETIPO . '</div>
           <div class="address"><b>Estado Recepción: </b> ' . $ESTADO . ' </div>
           <div class="address"><b>Número Guía: </b>' . $NUMEROGUIA . ' </div>
-          <div class="address"><b>Kilos Guía: </b>' . $TOTALGUIA . '  </div>          ';
+          <div class="address"><b>Envases Guía: </b>' . $TOTALGUIA . '  </div>          ';
           if ($TIPORECEPCION == "2") {
             $html .= '
                                 <div class="address"><b> Planta Origen:  </b>' . $PLANTAORIGEN . '</div>
