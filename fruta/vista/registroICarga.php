@@ -5183,7 +5183,7 @@ if (isset($_POST)) {
                                                         <button type="button" class="btn btn-info  btn-sm" data-toggle="tooltip" title="Report Invoice v2" id="defecto" name="tarjas" Onclick="abrirPestana('../../assest/documento/informeIcargaInvoicev2.php?parametro=<?php echo $IDOP; ?>&&usuario=<?php echo $IDUSUARIOS; ?>');">
                                                             <i class="fa fa-file-pdf-o"></i><br> Invoice 2
                                                         </button>
-                                                        <button type="button" class="btn btn-info  btn-sm" data-toggle="tooltip" title="Report Invoice EU" id="defecto" name="tarjas" Onclick="abrirPestana('../../assest/documento\informeIcargaInvoiceEU.php?parametro=<?php echo $IDOP; ?>&&usuario=<?php echo $IDUSUARIOS; ?>');">
+                                                        <button type="button" class="btn btn-info  btn-sm" data-toggle="tooltip" title="Report Invoice EU" id="defecto" name="tarjas" Onclick="abrirPestana('../../assest/documento/informeIcargaInvoiceEU.php?parametro=<?php echo $IDOP; ?>&&usuario=<?php echo $IDUSUARIOS; ?>');">
                                                             <i class="fa fa-file-pdf-o"></i><br> Invoice EU
                                                         </button>
                                                         <button type="button" class="btn btn-info  btn-sm" data-toggle="tooltip" title="Informe Carga Real" id="defecto" name="tarjas" Onclick="abrirPestana('../../assest/documento/informeICargaReal.php?parametro=<?php echo $IDOP; ?>&&usuario=<?php echo $IDUSUARIOS; ?>');">
