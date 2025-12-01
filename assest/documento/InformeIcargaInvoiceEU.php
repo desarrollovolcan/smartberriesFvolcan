@@ -814,8 +814,10 @@ $html = $html . '
         <div id="client">
           <div class="address"><b>Invoice Note</b></div>
           <div class="address">  ' . $OBSERVACIONESI . ' </div>
+          <div class="address">&nbsp;  </div>
+          <div class="address">&nbsp;  </div>
           <div class="address"> <b>“The exporter of the products covered by this document (77.223.122-9) declares that, except where otherwise clearly indicated,
-           <br>these products are of CHILE preferential origin Product Description: Fresh Blueberries 0810.40”</b></div>
+          <br>these products are of CHILE preferential origin Product Description: Fresh Blueberries 0810.40”</b></div>
         </div>
         
       </div>
