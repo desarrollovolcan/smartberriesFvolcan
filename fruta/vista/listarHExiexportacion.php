@@ -252,7 +252,7 @@ if ($EMPRESAS  && $TEMPORADAS) {
         .detalle-resumen-table .detalle-table {
             table-layout: fixed;
             display: flex;
-            justify-content: space-between;  /* o space-around / space-evenly */
+           
             align-items: center;
         }
 
