@@ -84,7 +84,7 @@ class DFINAL_ADO
     {
         try {
 
-            $datos = $this->conexion->prepare("SELECT * FROM  fruta_dfinal  WHERE  ESTADO_REGISTRO  = 0;	");
+            $datos = $this->conexion->prepare("SELECT * FROM  fruta_dfinal  WHERE  ESTADO_REGISTRO  = 1;	");
             $datos->execute();
             $resultado = $datos->fetchAll();
             $datos=null;
