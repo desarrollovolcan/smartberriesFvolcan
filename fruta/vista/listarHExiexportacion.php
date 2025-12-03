@@ -251,7 +251,7 @@ if ($EMPRESAS  && $TEMPORADAS) {
 
         .detalle-resumen-table .detalle-table {
             table-layout: fixed;
-            display: flex;
+            
            
             align-items: center;
         }
