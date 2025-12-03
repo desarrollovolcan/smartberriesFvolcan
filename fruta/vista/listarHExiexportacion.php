@@ -193,18 +193,18 @@ if ($EMPRESAS  && $TEMPORADAS) {
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             /* color: #d6e4f9; */
             color: #5a6f86;
             margin-bottom: 2px;
-            opacity: 0.95;
+            opacity: 0.9;
         }
 
         .detalle-modal .close {
             /* color: #f2f6fb; */
             color: #0f4a7a;
             opacity: 1;
-            font-weight: 800;
+            /* font-weight: 800; */
         }
 
         .detalle-hero {
@@ -228,13 +228,16 @@ if ($EMPRESAS  && $TEMPORADAS) {
         }
 
         .detalle-modal .modal-body {
-            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 28%, #ffffff 100%);
-            padding: 12px 14px 8px;
+            /* background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 28%, #ffffff 100%); */
+            background: #ffffffff;
+            /* padding: 12px 14px 8px; */
+             padding: 10px;
         }
 
         .detalle-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 2fr));
+            /* grid-template-columns: repeat(auto-fit, minmax(320px, 2fr)); */
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             /* gap: 10px; */
             gap: 6px;
             align-items: stretch;
@@ -257,19 +260,21 @@ if ($EMPRESAS  && $TEMPORADAS) {
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.4px;
-            font-weight: 800;
+            /* font-weight: 800; */
+            font-weight: 700;
         }
 
         .detalle-resumen-table tbody td {
             font-size: 14px;
-            font-weight: 800;
+            font-weight: 700;
+            /* font-weight: 800; */
             /* background: #f9fbff; */
         }
 
         .detalle-card {
             background: #fff;
             border: 1px solid #d3deef;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 0;
             /* box-shadow: 0 10px 18px rgba(12, 57, 114, 0.08); */
             box-shadow: 0 1px 4px rgba(15, 62, 91, 0.05);
@@ -288,8 +293,9 @@ if ($EMPRESAS  && $TEMPORADAS) {
             align-items: center; /* cambio */
             gap: 8px; /* cambio */
             text-transform: uppercase;/* cambio */
-            letter-spacing: 0.3px;
-            padding: 10px 12px;
+            /* letter-spacing: 0.3px; */
+            /* padding: 10px 12px; */
+            padding: 8px 10px;
             /* background: linear-gradient(90deg, #eef3fb 0%, #dfe9f7 100%); */
             border-bottom: 1px solid #d6e1f3;
         }
@@ -303,7 +309,8 @@ if ($EMPRESAS  && $TEMPORADAS) {
 
         .detalle-card th,
         .detalle-card td {
-            padding: 7px 12px;
+            /* padding: 7px 12px; */
+            padding: 6px 10px;
             border-bottom: 1px solid #eef2f7;
             vertical-align: top;
             word-wrap: break-word;
@@ -394,24 +401,7 @@ if ($EMPRESAS  && $TEMPORADAS) {
             font-weight: 700;
         }
         
-        /* Ancho y centrado del modal */
-        .detalle-modal .modal-dialog {
-            max-width: 1100px;          
-            width: calc(100% - 40px);   
-            margin: 1.75rem auto;
-        }
-
-        @media (max-width: 992px) {
-            .detalle-modal .modal-dialog {
-                max-width: 95vw;
-                margin: 10px auto;
-            }
-
-            .detalle-grid {
-                grid-template-columns: 1fr; /* en pantallas chicas, 1 columna */
-            }
-        }
-
+       
     </style>
         <!- FUNCIONES BASES -!>
             <script type="text/javascript">
