@@ -174,17 +174,21 @@ if ($EMPRESAS  && $TEMPORADAS) {
         }
 
         .detalle-modal .modal-header {
-            background: linear-gradient(120deg, #0b559f 0%, #0c3972 100%);
-            color: #f6f9ff;
-            border: none;
+            background: #ffffffff;
+            /* background: linear-gradient(120deg, #0b559f 0%, #0c3972 100%); */
+            /* color: #f6f9ff; */
+            color: #0f4a7a;
+            border-bottom: 1px solid #d0d7e3;
+            /* border: none; */
             padding: 14px 18px;
         }
 
         .detalle-modal .modal-title {
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: 0.25px;
             margin: 0;
-            color: #f6f9ff;
+            /* color: #f6f9ff; */
+            color: #0f4a7a;
         }
 
         .detalle-modal .modal-subtitle {
@@ -326,28 +330,30 @@ if ($EMPRESAS  && $TEMPORADAS) {
         }
 
         .detalle-modal .modal-footer {
+            border-top: 1px solid #d0d7e3;
             padding: 12px 14px;
-            border-top: 1px solid #d3deef;
-            background: #e8f0fb;
+            background: #fff;
         }
 
         .detalle-modal .btn-primary {
-            background: #0b559f;
-            border-color: #0b559f;
-            color: #ffffff;
-            font-weight: 800;
+             background: #0d6efd;
+            border: 1px solid #0b5ed7;
+            box-shadow: none;
+            font-weight: 700;
         }
 
         .detalle-modal .btn-secondary {
-            background: #ffffff;
-            color: #0c3972;
-            border-color: #0c3972;
-            font-weight: 800;
+            color: #0a2f57 !important;
+            border: 1px solid #c5d3e6;
+            background: #e7eef7;
+            font-weight: 700;
+            box-shadow: none;
         }
 
         .detalle-modal .btn {
-            min-width: 170px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
         }
 
         .mov-link {
