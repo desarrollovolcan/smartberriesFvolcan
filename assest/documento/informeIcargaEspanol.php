@@ -925,7 +925,7 @@ $html=$html.'
       $html = $html . '
       
       <tr>
-      <th class="color2 left">: </th>     
+      <th class="color2 left">Lugar Carga: </th>     
       <td class="color2 left">'.$LUGARDECARGA.'</td>  
       <th class="color2 left">Puerto Carga: </th>     
       <td class="color2 left">'.$NOMBREORIGEN.'</td>  
