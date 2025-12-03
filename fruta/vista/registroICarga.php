@@ -5743,7 +5743,7 @@ if (isset($_POST)) {
                 
 
                 echo '<script>
-                        alert("'.$_REQUEST['EMISIONBL'].'-'.$_REQUEST['LCARGA'].'");
+                        alert("'.$_REQUEST['EMISIONBL'].'emision bl-'.$_REQUEST['LCARGA'].' lugar carga recibidos");
                     </script>';
 
                 $PUBLICAINSTRUCTIVO = $_REQUEST['NETOINSTRUCTIVO'] + $_REQUEST['REBATEINSTRUCTIVO'];
