@@ -197,6 +197,8 @@ $OBSERVACIONINSTRUCTIVO = "";
 $OBSERVACIONIINSTRUCTIVO = "";
 $ESTADO = "";
 $PAIS = "";
+$PAIS_PUERTO = "";
+$PAIS_FINAL = "";
 
 
 $PUBLICA = "";
@@ -513,6 +515,8 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONINSTRUCTIVO = $r['OBSERVACION_ICARGA'];
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
+            $PAIS_PUERTO = $PAIS;
+            $PAIS_FINAL = $PAIS;
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -611,6 +615,8 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONINSTRUCTIVO = $r['OBSERVACION_ICARGA'];
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
+            $PAIS_PUERTO = $PAIS;
+            $PAIS_FINAL = $PAIS;
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -701,6 +707,8 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONINSTRUCTIVO = $r['OBSERVACION_ICARGA'];
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
+            $PAIS_PUERTO = $PAIS;
+            $PAIS_FINAL = $PAIS;
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -802,6 +810,8 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONINSTRUCTIVO = $r['OBSERVACION_ICARGA'];
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
+            $PAIS_PUERTO = $PAIS;
+            $PAIS_FINAL = $PAIS;
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -962,6 +972,12 @@ if (isset($_POST)) {
     }
     if (isset($_REQUEST['PAIS'])) {
         $PAIS = $_REQUEST['PAIS'];
+    }
+    if (isset($_REQUEST['PAIS_PUERTO'])) {
+        $PAIS_PUERTO = $_REQUEST['PAIS_PUERTO'];
+    }
+    if (isset($_REQUEST['PAIS_FINAL'])) {
+        $PAIS_FINAL = $_REQUEST['PAIS_FINAL'];
     }
     //DATOS EMBARQUE 
     if (isset($_REQUEST['FECHAETD'])) {
@@ -2852,7 +2868,7 @@ if (isset($_POST)) {
                                                 <div class="form-group">
                                                     <label>Pais Destino</label>
                                                     <input type="hidden" class="form-control" placeholder="PAISE" id="PAISE" name="PAISE" value="<?php echo $PAIS; ?>" />
-                                                    <select class="form-control select2" id="PAIS" name="PAIS" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2 pais-destino" id="PAIS" name="PAIS" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
                                                         <option></option>
                                                         <?php foreach ($ARRAYPAIS as $r) : ?>
                                                             <?php if ($ARRAYPAIS) {    ?>
@@ -3313,8 +3329,7 @@ if (isset($_POST)) {
                                             <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                                                 <div class="form-group">
                                                     <label>Pais Destino</label>
-                                                    <input type="hidden" class="form-control" placeholder="PAISE" id="PAISE" name="PAISE" value="<?php echo $PAIS; ?>" />
-                                                    <select class="form-control select2" id="PAIS" name="PAIS" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2 pais-destino" id="PAIS_EMBARQUE" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
                                                         <option></option>
                                                         <?php foreach ($ARRAYPAIS as $r) : ?>
                                                             <?php if ($ARRAYPAIS) {    ?>
@@ -4122,12 +4137,11 @@ if (isset($_POST)) {
                                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                                                 <div class="form-group">
                                                     <label>Pais Destino</label>
-                                                    <input type="hidden" class="form-control" placeholder="PAISE" id="PAISE" name="PAISE" value="<?php echo $PAIS; ?>" />
-                                                    <select class="form-control select2" id="PAIS" name="PAIS" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2 pais-destino" id="PAIS_PUERTO" name="PAIS_PUERTO" style="width: 100%;" value="<?php echo $PAIS_PUERTO; ?>" <?php echo $DISABLED; ?>>
                                                         <option></option>
                                                         <?php foreach ($ARRAYPAIS as $r) : ?>
                                                             <?php if ($ARRAYPAIS) {    ?>
-                                                                <option value="<?php echo $r['ID_PAIS']; ?>" <?php if ($PAIS == $r['ID_PAIS']) { echo "selected"; } ?>>
+                                                                <option value="<?php echo $r['ID_PAIS']; ?>" <?php if ($PAIS_PUERTO == $r['ID_PAIS']) { echo "selected"; } ?>>
                                                                     <?php echo $r['NOMBRE_PAIS'] ?>
                                                                 </option>
                                                             <?php } else { ?>
@@ -4141,12 +4155,11 @@ if (isset($_POST)) {
                                              <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                                                 <div class="form-group">
                                                     <label>Pais Destino Final</label>
-                                                    <input type="hidden" class="form-control" placeholder="PAISE" id="PAISE" name="PAISE" value="<?php echo $PAIS; ?>" />
-                                                    <select class="form-control select2" id="PAIS" name="PAIS" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2 pais-destino" id="PAIS_FINAL" name="PAIS_FINAL" style="width: 100%;" value="<?php echo $PAIS_FINAL; ?>" <?php echo $DISABLED; ?>>
                                                         <option></option>
                                                         <?php foreach ($ARRAYPAIS as $r) : ?>
                                                             <?php if ($ARRAYPAIS) {    ?>
-                                                                <option value="<?php echo $r['ID_PAIS']; ?>" <?php if ($PAIS == $r['ID_PAIS']) { echo "selected"; } ?>>
+                                                                <option value="<?php echo $r['ID_PAIS']; ?>" <?php if ($PAIS_FINAL == $r['ID_PAIS']) { echo "selected"; } ?>>
                                                                     <?php echo $r['NOMBRE_PAIS'] ?>
                                                                 </option>
                                                             <?php } else { ?>
@@ -5637,8 +5650,53 @@ if (isset($_POST)) {
     </div>
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const paisSelects = document.querySelectorAll('.pais-destino');
+                const paisHidden = document.getElementById('PAISE');
+
+                if (paisSelects.length > 0) {
+                    const syncPais = (origin, value) => {
+                        paisSelects.forEach((other) => {
+                            if (other !== origin) {
+                                other.value = value;
+                                if (window.$ && typeof window.$ === 'function') {
+                                    window.$(other).trigger('change.select2');
+                                }
+                            }
+                        });
+                        if (paisHidden) {
+                            paisHidden.value = value;
+                        }
+                    };
+
+                    paisSelects.forEach((select) => {
+                        select.addEventListener('change', function () {
+                            syncPais(this, this.value);
+                        });
+                    });
+                }
+            });
+        </script>
         <?php
             //OPERACIONES
+            $PAISSELECCIONADO = $PAIS;
+            if (isset($_REQUEST['PAIS_FINAL']) && $_REQUEST['PAIS_FINAL'] !== '') {
+                $PAISSELECCIONADO = $_REQUEST['PAIS_FINAL'];
+            } elseif (isset($_REQUEST['PAIS_PUERTO']) && $_REQUEST['PAIS_PUERTO'] !== '') {
+                $PAISSELECCIONADO = $_REQUEST['PAIS_PUERTO'];
+            } elseif (isset($_REQUEST['PAIS']) && $_REQUEST['PAIS'] !== '') {
+                $PAISSELECCIONADO = $_REQUEST['PAIS'];
+            } elseif (isset($_REQUEST['PAISE']) && $_REQUEST['PAISE'] !== '') {
+                $PAISSELECCIONADO = $_REQUEST['PAISE'];
+            }
+            if ($PAIS_PUERTO === "") {
+                $PAIS_PUERTO = $PAISSELECCIONADO;
+            }
+            if ($PAIS_FINAL === "") {
+                $PAIS_FINAL = $PAISSELECCIONADO;
+            }
+            $PAIS = $PAISSELECCIONADO;
             //OPERACION DE REGISTRO DE FILA
             if (isset($_REQUEST['CREAR'])) {
 
@@ -5715,7 +5773,7 @@ if (isset($_POST)) {
                         $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO']);
                     }
                 }
-                $ICARGA->__SET('ID_PAIS',  $_REQUEST['PAIS']);
+                $ICARGA->__SET('ID_PAIS',  $PAISSELECCIONADO);
                 $ICARGA->__SET('ID_EMPRESA',  $_REQUEST['EMPRESA']);
                 $ICARGA->__SET('ID_PLANTA',  $_REQUEST['PLANTA']);
                 $ICARGA->__SET('ID_TEMPORADA',  $_REQUEST['TEMPORADA']);
@@ -5826,7 +5884,7 @@ if (isset($_POST)) {
                         $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO']);
                     }
                 }
-                $ICARGA->__SET('ID_PAIS',  $_REQUEST['PAIS']);
+                $ICARGA->__SET('ID_PAIS',  $PAISSELECCIONADO);
                 $ICARGA->__SET('ID_EMPRESA',  $_REQUEST['EMPRESA']);
                 $ICARGA->__SET('ID_PLANTA',  $_REQUEST['PLANTA']);
                 $ICARGA->__SET('ID_TEMPORADA',  $_REQUEST['TEMPORADA']);
@@ -5864,86 +5922,84 @@ if (isset($_POST)) {
             //OPERACION EDICION DE FILA
             if (isset($_REQUEST['GUARDAR'])) {
 
-                $PUBLICAINSTRUCTIVO = $_REQUEST['NETOINSTRUCTIVO'] + $_REQUEST['REBATEINSTRUCTIVO'];
-                $ICARGA->__SET('FECHA_ICARGA', $_REQUEST['FECHAINSTRUCTIVO']);
-                $ICARGA->__SET('FECHA_CDOCUMENTAL_ICARGA', $_REQUEST['FECHACDOCUMENTALICARGA']);
-                $ICARGA->__SET('BOOKING_ICARGA', $_REQUEST['BOOKINGINSTRUCTIVO']);
-                $ICARGA->__SET('NREFERENCIA_ICARGA', $_REQUEST['NUMEROREFERENCIAINSTRUCTIVO']);
-                $ICARGA->__SET('FECHAETD_ICARGA', $_REQUEST['FECHAETD']);
-                $ICARGA->__SET('FECHAETA_ICARGA', $_REQUEST['FECHAETA']);
-                $ICARGA->__SET('FECHAETAREAL_ICARGA', $_REQUEST['FECHAETAREAL']);
-                $ICARGA->__SET('FECHAETDREAL_ICARGA', $_REQUEST['FECHAETDREAL']);
-                $ICARGA->__SET('NCONTENEDOR_ICARGA', $_REQUEST['NCONTENEDOR']); 
-                $ICARGA->__SET('NCOURIER_ICARGA', $_REQUEST['NCOURIER']); 
-                $ICARGA->__SET('FDA_ICARGA', $_REQUEST['FDA']);
-                $ICARGA->__SET('TEMBARQUE_ICARGA', $_REQUEST['TEMBARQUE']);
-                $ICARGA->__SET('FUMIGADO_ICARGA', $_REQUEST['FUMIGADO']);
-                $ICARGA->__SET('T_ICARGA', $_REQUEST['TINSTRUCTIVO']);
-                $ICARGA->__SET('O2_ICARGA', $_REQUEST['O2INSTRUCTIVO']);
-                $ICARGA->__SET('C02_ICARGA', $_REQUEST['CO2INSTRUCTIVO']);
-                $ICARGA->__SET('ALAMPA_ICARGA', $_REQUEST['ALAMPAINSTRUCTIVO']);
-                $ICARGA->__SET('COSTO_FLETE_ICARGA', $_REQUEST['COSTOFLETE']);
-                $ICARGA->__SET('DUS_ICARGA', $_REQUEST['DUSINSTRUCTIVO']);
-                $ICARGA->__SET('BOLAWBCRT_ICARGA', $_REQUEST['BOLAWBCRTINSTRUCTIVO']);
-                $ICARGA->__SET('NETO_ICARGA', $_REQUEST['NETOINSTRUCTIVO']);
-                $ICARGA->__SET('REBATE_ICARGA', $_REQUEST['REBATEINSTRUCTIVO']);
+                $PUBLICAINSTRUCTIVO = ($_REQUEST['NETOINSTRUCTIVO'] ?? 0) + ($_REQUEST['REBATEINSTRUCTIVO'] ?? 0);
+                $ICARGA->__SET('FECHA_ICARGA', $_REQUEST['FECHAINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('FECHA_CDOCUMENTAL_ICARGA', $_REQUEST['FECHACDOCUMENTALICARGA'] ?? null);
+                $ICARGA->__SET('BOOKING_ICARGA', $_REQUEST['BOOKINGINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('NREFERENCIA_ICARGA', $_REQUEST['NUMEROREFERENCIAINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('FECHAETD_ICARGA', $_REQUEST['FECHAETD'] ?? null);
+                $ICARGA->__SET('FECHAETA_ICARGA', $_REQUEST['FECHAETA'] ?? null);
+                $ICARGA->__SET('FECHAETAREAL_ICARGA', $_REQUEST['FECHAETAREAL'] ?? null);
+                $ICARGA->__SET('FECHAETDREAL_ICARGA', $_REQUEST['FECHAETDREAL'] ?? null);
+                $ICARGA->__SET('NCONTENEDOR_ICARGA', $_REQUEST['NCONTENEDOR'] ?? null);
+                $ICARGA->__SET('NCOURIER_ICARGA', $_REQUEST['NCOURIER'] ?? null);
+                $ICARGA->__SET('FDA_ICARGA', $_REQUEST['FDA'] ?? null);
+                $ICARGA->__SET('TEMBARQUE_ICARGA', $_REQUEST['TEMBARQUE'] ?? null);
+                $ICARGA->__SET('FUMIGADO_ICARGA', $_REQUEST['FUMIGADO'] ?? null);
+                $ICARGA->__SET('T_ICARGA', $_REQUEST['TINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('O2_ICARGA', $_REQUEST['O2INSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('C02_ICARGA', $_REQUEST['CO2INSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('ALAMPA_ICARGA', $_REQUEST['ALAMPAINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('COSTO_FLETE_ICARGA', $_REQUEST['COSTOFLETE'] ?? null);
+                $ICARGA->__SET('DUS_ICARGA', $_REQUEST['DUSINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('BOLAWBCRT_ICARGA', $_REQUEST['BOLAWBCRTINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('NETO_ICARGA', $_REQUEST['NETOINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('REBATE_ICARGA', $_REQUEST['REBATEINSTRUCTIVO'] ?? null);
                 $ICARGA->__SET('PUBLICA_ICARGA', $PUBLICAINSTRUCTIVO);
-                $ICARGA->__SET('OBSERVACION_ICARGA', $_REQUEST['OBSERVACIONINSTRUCTIVO']);
-                $ICARGA->__SET('OBSERVACIONI_ICARGA', $_REQUEST['OBSERVACIONIINSTRUCTIVO']);
-                $ICARGA->__SET('TOTAL_ENVASE_ICAGRA', $_REQUEST['TOTALENVASE']);
-                $ICARGA->__SET('TOTAL_NETO_ICARGA', $_REQUEST['TOTALKILONETO']);
-                $ICARGA->__SET('TOTAL_BRUTO_ICARGA', $_REQUEST['TOTALKILOBRUTO']);
-                $ICARGA->__SET('TOTAL_US_ICARGA', $_REQUEST['TOTALUS']);
-                $ICARGA->__SET('ID_EXPPORTADORA', $_REQUEST['EXPORTADORA']);
-                $ICARGA->__SET('ID_CONSIGNATARIO', $_REQUEST['CONSIGNATARIO']);
-                $ICARGA->__SET('ID_EMISIONBL', $_REQUEST['EMISIONBL']);
-                $ICARGA->__SET('ID_NOTIFICADOR', $_REQUEST['NOTIFICADOR']);
-                $ICARGA->__SET('ID_BROKER', $_REQUEST['BROKER']);
-                $ICARGA->__SET('ID_RFINAL', $_REQUEST['RFINAL']);
-                $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO']);
-                $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
-                $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
-                $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL']);
-                $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA']);
-                
+                $ICARGA->__SET('OBSERVACION_ICARGA', $_REQUEST['OBSERVACIONINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('OBSERVACIONI_ICARGA', $_REQUEST['OBSERVACIONIINSTRUCTIVO'] ?? null);
+                $ICARGA->__SET('TOTAL_ENVASE_ICAGRA', $_REQUEST['TOTALENVASE'] ?? null);
+                $ICARGA->__SET('TOTAL_NETO_ICARGA', $_REQUEST['TOTALKILONETO'] ?? null);
+                $ICARGA->__SET('TOTAL_BRUTO_ICARGA', $_REQUEST['TOTALKILOBRUTO'] ?? null);
+                $ICARGA->__SET('TOTAL_US_ICARGA', $_REQUEST['TOTALUS'] ?? null);
+                $ICARGA->__SET('ID_EXPPORTADORA', $_REQUEST['EXPORTADORA'] ?? null);
+                $ICARGA->__SET('ID_CONSIGNATARIO', $_REQUEST['CONSIGNATARIO'] ?? null);
+                $ICARGA->__SET('ID_EMISIONBL', $_REQUEST['EMISIONBL'] ?? null);
+                $ICARGA->__SET('ID_NOTIFICADOR', $_REQUEST['NOTIFICADOR'] ?? null);
+                $ICARGA->__SET('ID_BROKER', $_REQUEST['BROKER'] ?? null);
+                $ICARGA->__SET('ID_RFINAL', $_REQUEST['RFINAL'] ?? null);
+                $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO'] ?? null);
+                $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA'] ?? null);
+                $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA'] ?? null);
+                $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL'] ?? null);
+                $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA'] ?? null);
+
                 if (isset($_REQUEST['TEMBARQUE'])) {
                     if ($_REQUEST['TEMBARQUE'] == "1") {
-                        $ICARGA->__SET('ID_TRANSPORTE', $_REQUEST['TRANSPORTE']);
-                        $ICARGA->__SET('CRT_ICARGA', $_REQUEST['CRT']);
-                       
-                        $ICARGA->__SET('ID_LDESTINO', $_REQUEST['LDESTINO']);
+                        $ICARGA->__SET('ID_TRANSPORTE', $_REQUEST['TRANSPORTE'] ?? null);
+                        $ICARGA->__SET('CRT_ICARGA', $_REQUEST['CRT'] ?? null);
+
+                        $ICARGA->__SET('ID_LDESTINO', $_REQUEST['LDESTINO'] ?? null);
                     }
                     if ($_REQUEST['TEMBARQUE'] == "2") {
-                        $ICARGA->__SET('ID_LAREA', $_REQUEST['LAEREA']);
-                        $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE']);
-                        $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE']);
-                        $ICARGA->__SET('ID_ACARGA', $_REQUEST['ACARGA']);
-                        $ICARGA->__SET('ID_ADESTINO', $_REQUEST['ADESTINO']);
-                    
-                        echo $_REQUEST['ADESTINO'];
+                        $ICARGA->__SET('ID_LAREA', $_REQUEST['LAEREA'] ?? null);
+                        $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE'] ?? null);
+                        $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE'] ?? null);
+                        $ICARGA->__SET('ID_ACARGA', $_REQUEST['ACARGA'] ?? null);
+                        $ICARGA->__SET('ID_ADESTINO', $_REQUEST['ADESTINO'] ?? null);
                     }
                     if ($_REQUEST['TEMBARQUE'] == "3") {
-                        $ICARGA->__SET('ID_NAVIERA', $_REQUEST['NAVIERA']);
-                        $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE']);
-                        $ICARGA->__SET('FECHASTACKING_ICARGA', $_REQUEST['FECHASTACKING']);
-                        $ICARGA->__SET('FECHASTACKINGF_ICARGA', $_REQUEST['FECHASTACKINGF']);
-                        $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE']);
-                        $ICARGA->__SET('ID_PCARGA', $_REQUEST['PCARGA']);
-                        $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO']);
-                    
+                        $ICARGA->__SET('ID_NAVIERA', $_REQUEST['NAVIERA'] ?? null);
+                        $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE'] ?? null);
+                        $ICARGA->__SET('FECHASTACKING_ICARGA', $_REQUEST['FECHASTACKING'] ?? null);
+                        $ICARGA->__SET('FECHASTACKINGF_ICARGA', $_REQUEST['FECHASTACKINGF'] ?? null);
+                        $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE'] ?? null);
+                        $ICARGA->__SET('ID_PCARGA', $_REQUEST['PCARGA'] ?? null);
+                        $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO'] ?? null);
+
                     }
                 }
-                $ICARGA->__SET('ID_TSERVICIO', $_REQUEST['TSERVICIO']);
-                $ICARGA->__SET('ID_TCONTENEDOR', $_REQUEST['TCONTENEDOR']);
-                $ICARGA->__SET('ID_ATMOSFERA', $_REQUEST['ATMOSFERA']);
-                $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO']);
-                $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA']);
-                $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
-                $ICARGA->__SET('ID_TFLETE', $_REQUEST['TFLETE']);
-                $ICARGA->__SET('ID_SEGURO', $_REQUEST['SEGURO']);
-                $ICARGA->__SET('ID_PAIS',  $_REQUEST['PAIS']);
+                $ICARGA->__SET('ID_TSERVICIO', $_REQUEST['TSERVICIO'] ?? null);
+                $ICARGA->__SET('ID_TCONTENEDOR', $_REQUEST['TCONTENEDOR'] ?? null);
+                $ICARGA->__SET('ID_ATMOSFERA', $_REQUEST['ATMOSFERA'] ?? null);
+                $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO'] ?? null);
+                $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA'] ?? null);
+                $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA'] ?? null);
+                $ICARGA->__SET('ID_TFLETE', $_REQUEST['TFLETE'] ?? null);
+                $ICARGA->__SET('ID_SEGURO', $_REQUEST['SEGURO'] ?? null);
+                $ICARGA->__SET('ID_PAIS', $PAISSELECCIONADO);
                 $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);
-                $ICARGA->__SET('ID_ICARGA', $_REQUEST['IDP']);
+                $ICARGA->__SET('ID_ICARGA', $_REQUEST['IDP'] ?? null);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
                 $ICARGA_ADO->actualizarIcarga($ICARGA);
 
@@ -5986,11 +6042,6 @@ if (isset($_POST)) {
                         })
                     </script>';
                 }
-                echo "<pre>DUPLICAR DETECTADO\n";
-                var_dump($_REQUEST);
-                echo "</pre>";
-                exit;
-                
             }
             if (isset($_REQUEST['CERRAR'])) {
                 if ($_REQUEST['IDP']) {
@@ -6013,46 +6064,46 @@ if (isset($_POST)) {
                         </script>';
                 }
                 if ($SINO == "0") {
-                    $PUBLICAINSTRUCTIVO = $_REQUEST['NETOINSTRUCTIVO'] + $_REQUEST['REBATEINSTRUCTIVO'];
-                    $ICARGA->__SET('FECHA_ICARGA', $_REQUEST['FECHAINSTRUCTIVO']);
-                    $ICARGA->__SET('FECHA_CDOCUMENTAL_ICARGA', $_REQUEST['FECHACDOCUMENTALICARGA']);
-                    $ICARGA->__SET('BOOKING_ICARGA', $_REQUEST['BOOKINGINSTRUCTIVO']);
-                    $ICARGA->__SET('NREFERENCIA_ICARGA', $_REQUEST['NUMEROREFERENCIAINSTRUCTIVO']);
-                    $ICARGA->__SET('FECHAETD_ICARGA', $_REQUEST['FECHAETD']);
-                    $ICARGA->__SET('FECHAETA_ICARGA', $_REQUEST['FECHAETA']);
-                    $ICARGA->__SET('FECHAETAREAL_ICARGA', $_REQUEST['FECHAETAREAL']);
-                    $ICARGA->__SET('FECHAETDREAL_ICARGA', $_REQUEST['FECHAETDREAL']);
-                    $ICARGA->__SET('NCONTENEDOR_ICARGA', $_REQUEST['NCONTENEDOR']);    
-                    $ICARGA->__SET('NCOURIER_ICARGA', $_REQUEST['NCOURIER']);  
-                    $ICARGA->__SET('FDA_ICARGA', $_REQUEST['FDA']);
-                    $ICARGA->__SET('TEMBARQUE_ICARGA', $_REQUEST['TEMBARQUE']);
-                    $ICARGA->__SET('FUMIGADO_ICARGA', $_REQUEST['FUMIGADO']);
-                    $ICARGA->__SET('T_ICARGA', $_REQUEST['TINSTRUCTIVO']);
-                    $ICARGA->__SET('O2_ICARGA', $_REQUEST['O2INSTRUCTIVO']);
-                    $ICARGA->__SET('C02_ICARGA', $_REQUEST['CO2INSTRUCTIVO']);
-                    $ICARGA->__SET('ALAMPA_ICARGA', $_REQUEST['ALAMPAINSTRUCTIVO']);
-                    $ICARGA->__SET('COSTO_FLETE_ICARGA', $_REQUEST['COSTOFLETE']);
-                    $ICARGA->__SET('DUS_ICARGA', $_REQUEST['DUSINSTRUCTIVO']);
-                    $ICARGA->__SET('BOLAWBCRT_ICARGA', $_REQUEST['BOLAWBCRTINSTRUCTIVO']);
-                    $ICARGA->__SET('NETO_ICARGA', $_REQUEST['NETOINSTRUCTIVO']);
-                    $ICARGA->__SET('REBATE_ICARGA', $_REQUEST['REBATEINSTRUCTIVO']);
+                    $PUBLICAINSTRUCTIVO = ($_REQUEST['NETOINSTRUCTIVO'] ?? 0) + ($_REQUEST['REBATEINSTRUCTIVO'] ?? 0);
+                    $ICARGA->__SET('FECHA_ICARGA', $_REQUEST['FECHAINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('FECHA_CDOCUMENTAL_ICARGA', $_REQUEST['FECHACDOCUMENTALICARGA'] ?? null);
+                    $ICARGA->__SET('BOOKING_ICARGA', $_REQUEST['BOOKINGINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('NREFERENCIA_ICARGA', $_REQUEST['NUMEROREFERENCIAINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('FECHAETD_ICARGA', $_REQUEST['FECHAETD'] ?? null);
+                    $ICARGA->__SET('FECHAETA_ICARGA', $_REQUEST['FECHAETA'] ?? null);
+                    $ICARGA->__SET('FECHAETAREAL_ICARGA', $_REQUEST['FECHAETAREAL'] ?? null);
+                    $ICARGA->__SET('FECHAETDREAL_ICARGA', $_REQUEST['FECHAETDREAL'] ?? null);
+                    $ICARGA->__SET('NCONTENEDOR_ICARGA', $_REQUEST['NCONTENEDOR'] ?? null);
+                    $ICARGA->__SET('NCOURIER_ICARGA', $_REQUEST['NCOURIER'] ?? null);
+                    $ICARGA->__SET('FDA_ICARGA', $_REQUEST['FDA'] ?? null);
+                    $ICARGA->__SET('TEMBARQUE_ICARGA', $_REQUEST['TEMBARQUE'] ?? null);
+                    $ICARGA->__SET('FUMIGADO_ICARGA', $_REQUEST['FUMIGADO'] ?? null);
+                    $ICARGA->__SET('T_ICARGA', $_REQUEST['TINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('O2_ICARGA', $_REQUEST['O2INSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('C02_ICARGA', $_REQUEST['CO2INSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('ALAMPA_ICARGA', $_REQUEST['ALAMPAINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('COSTO_FLETE_ICARGA', $_REQUEST['COSTOFLETE'] ?? null);
+                    $ICARGA->__SET('DUS_ICARGA', $_REQUEST['DUSINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('BOLAWBCRT_ICARGA', $_REQUEST['BOLAWBCRTINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('NETO_ICARGA', $_REQUEST['NETOINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('REBATE_ICARGA', $_REQUEST['REBATEINSTRUCTIVO'] ?? null);
                     $ICARGA->__SET('PUBLICA_ICARGA', $PUBLICAINSTRUCTIVO);
-                    $ICARGA->__SET('OBSERVACION_ICARGA', $_REQUEST['OBSERVACIONINSTRUCTIVO']);
-                    $ICARGA->__SET('OBSERVACIONI_ICARGA', $_REQUEST['OBSERVACIONIINSTRUCTIVO']);
-                    $ICARGA->__SET('TOTAL_ENVASE_ICAGRA', $_REQUEST['TOTALENVASE']);
-                    $ICARGA->__SET('TOTAL_NETO_ICARGA', $_REQUEST['TOTALKILONETO']);
-                    $ICARGA->__SET('TOTAL_BRUTO_ICARGA', $_REQUEST['TOTALKILOBRUTO']);
-                    $ICARGA->__SET('TOTAL_US_ICARGA', $_REQUEST['TOTALUS']);
-                    $ICARGA->__SET('ID_EXPPORTADORA', $_REQUEST['EXPORTADORA']);
-                    $ICARGA->__SET('ID_CONSIGNATARIO', $_REQUEST['CONSIGNATARIO']);
-                    $ICARGA->__SET('ID_EMISIONBL', $_REQUEST['EMISIONBL']);
-                    $ICARGA->__SET('ID_NOTIFICADOR', $_REQUEST['NOTIFICADOR']);
-                    $ICARGA->__SET('ID_BROKER', $_REQUEST['BROKER']);
-                    $ICARGA->__SET('ID_RFINAL', $_REQUEST['RFINAL']);
-                    $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO']);
-                    $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
-                    $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
-                    $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL']);
+                    $ICARGA->__SET('OBSERVACION_ICARGA', $_REQUEST['OBSERVACIONINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('OBSERVACIONI_ICARGA', $_REQUEST['OBSERVACIONIINSTRUCTIVO'] ?? null);
+                    $ICARGA->__SET('TOTAL_ENVASE_ICAGRA', $_REQUEST['TOTALENVASE'] ?? null);
+                    $ICARGA->__SET('TOTAL_NETO_ICARGA', $_REQUEST['TOTALKILONETO'] ?? null);
+                    $ICARGA->__SET('TOTAL_BRUTO_ICARGA', $_REQUEST['TOTALKILOBRUTO'] ?? null);
+                    $ICARGA->__SET('TOTAL_US_ICARGA', $_REQUEST['TOTALUS'] ?? null);
+                    $ICARGA->__SET('ID_EXPPORTADORA', $_REQUEST['EXPORTADORA'] ?? null);
+                    $ICARGA->__SET('ID_CONSIGNATARIO', $_REQUEST['CONSIGNATARIO'] ?? null);
+                    $ICARGA->__SET('ID_EMISIONBL', $_REQUEST['EMISIONBL'] ?? null);
+                    $ICARGA->__SET('ID_NOTIFICADOR', $_REQUEST['NOTIFICADOR'] ?? null);
+                    $ICARGA->__SET('ID_BROKER', $_REQUEST['BROKER'] ?? null);
+                    $ICARGA->__SET('ID_RFINAL', $_REQUEST['RFINAL'] ?? null);
+                    $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO'] ?? null);
+                    $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA'] ?? null);
+                    $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA'] ?? null);
+                    $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL'] ?? null);
                     if (isset($_REQUEST['TEMBARQUE'])) {
                         if ($_REQUEST['TEMBARQUE'] == "1") {
                             $ICARGA->__SET('ID_TRANSPORTE', $_REQUEST['TRANSPORTE']);
@@ -6085,7 +6136,7 @@ if (isset($_POST)) {
                     $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
                     $ICARGA->__SET('ID_TFLETE', $_REQUEST['TFLETE']);
                     $ICARGA->__SET('ID_SEGURO', $_REQUEST['SEGURO']);
-                    $ICARGA->__SET('ID_PAIS',  $_REQUEST['PAIS']);
+                    $ICARGA->__SET('ID_PAIS', $PAISSELECCIONADO);
                     $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);
                     $ICARGA->__SET('ID_ICARGA', $_REQUEST['IDP']);
                     //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
