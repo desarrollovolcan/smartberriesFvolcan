@@ -209,6 +209,7 @@ $ARRYAPROVINCIA="";
 $ARRYAREGION="";
 $ARRAYGROSSKILO = [];
 $ARRAYNETKILO = [];
+$ARRAYENVASEAGRUPADO = [];
 
 
 if (isset($_REQUEST['usuario'])) {
@@ -286,8 +287,12 @@ if($ARRAYICARGA){
           if(!isset($ARRAYNETKILO[$NOMBREECOMERCIAL])){
             $ARRAYNETKILO[$NOMBREECOMERCIAL] = 0;
           }
+          if(!isset($ARRAYENVASEAGRUPADO[$NOMBREECOMERCIAL])){
+            $ARRAYENVASEAGRUPADO[$NOMBREECOMERCIAL] = 0;
+          }
           $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = $ARRAYGROSSKILO[$NOMBREECOMERCIAL] + $r['BRUTO'];
           $ARRAYNETKILO[$NOMBREECOMERCIAL] = $ARRAYNETKILO[$NOMBREECOMERCIAL] + $r['NETO'];
+          $ARRAYENVASEAGRUPADO[$NOMBREECOMERCIAL] = $ARRAYENVASEAGRUPADO[$NOMBREECOMERCIAL] + $r['ENVASE'];
         endforeach;
       endforeach;
     }
@@ -787,31 +792,38 @@ $html = $html . '
            <tbody>
           ';
           foreach ($ARRAYDCARGA as $s) :
-         
-            
-            $html = $html . '              
+
+
+            $netoCalculado = $s['NETOSF'];
+            $brutoCalculado = $s['BRUTOSRF'];
+            if(isset($ARRAYNETKILO[$s['NOMBRE']])){
+              $netoCalculado = $ARRAYNETKILO[$s['NOMBRE']];
+              if(isset($ARRAYENVASEAGRUPADO[$s['NOMBRE']]) && $ARRAYENVASEAGRUPADO[$s['NOMBRE']] > 0){
+                $netoCalculado = ($ARRAYNETKILO[$s['NOMBRE']] / $ARRAYENVASEAGRUPADO[$s['NOMBRE']]) * $s['ENVASESF'];
+              }
+            }
+            if(isset($ARRAYGROSSKILO[$s['NOMBRE']])){
+              $brutoCalculado = $ARRAYGROSSKILO[$s['NOMBRE']];
+              if(isset($ARRAYENVASEAGRUPADO[$s['NOMBRE']]) && $ARRAYENVASEAGRUPADO[$s['NOMBRE']] > 0){
+                $brutoCalculado = ($ARRAYGROSSKILO[$s['NOMBRE']] / $ARRAYENVASEAGRUPADO[$s['NOMBRE']]) * $s['ENVASESF'];
+              }
+            }
+
+            $html = $html . '
               <tr class="">
                     <td class="center">'.$s['ENVASE'].'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center">'.$s['TMANEJO'].'</td>
-                    <td class="center">'.(isset($ARRAYNETKILO[$s['NOMBRE']]) ? number_format($ARRAYNETKILO[$s['NOMBRE']], 2, ",", ".") : $s['NETO']).'</td>
-                    <td class="center">'.(isset($ARRAYGROSSKILO[$s['NOMBRE']]) ? number_format($ARRAYGROSSKILO[$s['NOMBRE']], 2, ",", ".") : $s['BRUTOF']).'</td>
+                    <td class="center">'.number_format($netoCalculado, 2, ",", ".").'</td>
+                    <td class="center">'.number_format($brutoCalculado, 2, ",", ".").'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
                     <td class="center">'.$s['US'].'</td>
                     <td class="center">'.$s['TOTALUS'].'</td>
               </tr>
             ';
             $TOTALENVASEV+=$s['ENVASESF'];
-            if(isset($ARRAYNETKILO[$s['NOMBRE']])){
-              $TOTALNETOV+=$ARRAYNETKILO[$s['NOMBRE']];
-            }else{
-              $TOTALNETOV+=$s['NETOSF'];
-            }
-            if(isset($ARRAYGROSSKILO[$s['NOMBRE']])){
-              $TOTALBRUTOV+=$ARRAYGROSSKILO[$s['NOMBRE']];
-            }else{
-              $TOTALBRUTOV+=$s['BRUTOSRF'];
-            }
+            $TOTALNETOV += $netoCalculado;
+            $TOTALBRUTOV += $brutoCalculado;
             $TOTALUSV+=$s['TOTALUSSF'];
             endforeach;
 

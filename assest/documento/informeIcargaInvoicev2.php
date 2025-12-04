@@ -50,6 +50,7 @@ include_once '../../assest/controlador/EEXPORTACION_ADO.php';
 include_once '../../assest/controlador/ESPECIES_ADO.php';
 include_once '../../assest/controlador/VESPECIES_ADO.php';
 include_once '../../assest/controlador/TCALIBRE_ADO.php';
+include_once '../../assest/controlador/TMANEJO_ADO.php';
 include_once '../../assest/controlador/TMONEDA_ADO.php';
 include_once '../../assest/controlador/ECOMERCIAL_ADO.php';
  
@@ -109,6 +110,7 @@ $EEXPORTACION_ADO = new EEXPORTACION_ADO();
 $VESPECIES_ADO =  new VESPECIES_ADO();
 $ESPECIES_ADO =  new ESPECIES_ADO();
 $TCALIBRE_ADO =  new TCALIBRE_ADO();
+$TMANEJO_ADO = new TMANEJO_ADO();
 $PAIS_ADO =  new PAIS_ADO();
 $TCALIBRE_ADO = new TCALIBRE_ADO();
 $TMONEDA_ADO = new TMONEDA_ADO();
@@ -205,8 +207,10 @@ $ARRAYVERDCARGA = "";
 $ARRAYSEGURO = "";
 $ARRAYPRODUCTOR = "";
 $ARRAYDCARGA = "";
+$ARRAYDCARGAAGRUPADO = [];
 $ARRAYGROSSKILO = [];
 $ARRAYNETKILO = [];
+$ARRAYENVASEAGRUPADO = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
 $ARRAYVERNOTADCNC="";
@@ -284,16 +288,50 @@ if($ARRAYICARGA){
               $NOMBREECOMERCIAL = $ARRAYECOMERCIAL[0]['NOMBRE_ECOMERCIAL'];
             }
           }
-          if(!isset($ARRAYGROSSKILO[$NOMBREECOMERCIAL])){
-            $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = 0;
+          $NOMBRETCALIBRE = "Sin Datos";
+          if(isset($r['ID_TCALIBRE'])){
+            $ARRAYCALIBREDETA = $TCALIBRE_ADO->verTcalibre($r['ID_TCALIBRE']);
+            if($ARRAYCALIBREDETA){
+              $NOMBRETCALIBRE = $ARRAYCALIBREDETA[0]['NOMBRE_TCALIBRE'];
+            }
           }
-          if(!isset($ARRAYNETKILO[$NOMBREECOMERCIAL])){
-            $ARRAYNETKILO[$NOMBREECOMERCIAL] = 0;
+          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETCALIBRE;
+          if(!isset($ARRAYGROSSKILO[$KEYDETALLE])){
+            $ARRAYGROSSKILO[$KEYDETALLE] = 0;
           }
-          $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = $ARRAYGROSSKILO[$NOMBREECOMERCIAL] + $r['BRUTO'];
-          $ARRAYNETKILO[$NOMBREECOMERCIAL] = $ARRAYNETKILO[$NOMBREECOMERCIAL] + $r['NETO'];
+          if(!isset($ARRAYNETKILO[$KEYDETALLE])){
+            $ARRAYNETKILO[$KEYDETALLE] = 0;
+          }
+          if(!isset($ARRAYENVASEAGRUPADO[$KEYDETALLE])){
+            $ARRAYENVASEAGRUPADO[$KEYDETALLE] = 0;
+          }
+          $ARRAYGROSSKILO[$KEYDETALLE] = $ARRAYGROSSKILO[$KEYDETALLE] + $r['BRUTO'];
+          $ARRAYNETKILO[$KEYDETALLE] = $ARRAYNETKILO[$KEYDETALLE] + $r['NETO'];
+          $ARRAYENVASEAGRUPADO[$KEYDETALLE] = $ARRAYENVASEAGRUPADO[$KEYDETALLE] + $r['ENVASE'];
         endforeach;
       endforeach;
+    }
+
+    if($ARRAYDCARGA){
+    foreach ($ARRAYDCARGA as $s) {
+      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TCALIBRE'];
+      if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
+        $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
+          'NOMBRE' => $s['NOMBRE'],
+          'TCALIBRE' => $s['TCALIBRE'],
+          'TMONEDA' => $s['TMONEDA'],
+          'US' => $s['US'],
+          'ENVASESF' => 0,
+          'NETOSF' => 0,
+          'BRUTOSF' => 0,
+          'TOTALUSSF' => 0,
+        ];
+      }
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['ENVASESF'] += $s['ENVASESF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['NETOSF'] += $s['NETOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['BRUTOSF'] += $s['BRUTOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TOTALUSSF'] += $s['TOTALUSSF'];
+    }
     }
     
       
@@ -766,7 +804,7 @@ $html = $html . '
         <table border="0" cellspacing="0" cellpadding="0">
           <thead>
             <tr>
-              <th colspan="11" class="center">DETAIL.</th>
+              <th colspan="8" class="center">DETAIL.</th>
             </tr>
             <tr>
               <th class="color center ">Quantity Boxes</th>
@@ -782,33 +820,38 @@ $html = $html . '
           </thead>
            <tbody>
           ';
-          foreach ($ARRAYDCARGA as $s) :
-         
-            
-            $html = $html . '              
+          foreach ($ARRAYDCARGAAGRUPADO as $keyDetalle => $s) :
+            $NETOAGRUPADO = $s['NETOSF'];
+            $BRUTOAGRUPADO = $s['BRUTOSF'];
+            if(isset($ARRAYNETKILO[$keyDetalle])){
+              $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle];
+              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
+                $NETOAGRUPADO = ($ARRAYNETKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
+              }
+            }
+            if(isset($ARRAYGROSSKILO[$keyDetalle])){
+              $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle];
+              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
+                $BRUTOAGRUPADO = ($ARRAYGROSSKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
+              }
+            }
+
+            $html = $html . '
               <tr class="">
-                    <td class="center">'.$s['ENVASE'].'</td>
+                    <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
-                    <td class="center">'.(isset($ARRAYNETKILO[$s['NOMBRE']]) ? number_format($ARRAYNETKILO[$s['NOMBRE']], 2, ",", ".") : $s['NETO']).'</td>
-                    <td class="center">'.(isset($ARRAYGROSSKILO[$s['NOMBRE']]) ? number_format($ARRAYGROSSKILO[$s['NOMBRE']], 2, ",", ".") : $s['BRUTO']).'</td>
+                    <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
+                    <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
                     <td class="center">'.$s['US'].'</td>
-                    <td class="center">'.$s['TOTALUS'].'</td>
+                    <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
               </tr>
             ';
-            $TOTALENVASEV+=$s['ENVASESF'];
-            if(isset($ARRAYNETKILO[$s['NOMBRE']])){
-              $TOTALNETOV+=$ARRAYNETKILO[$s['NOMBRE']];
-            }else{
-              $TOTALNETOV+=$s['NETOSF'];
-            }
-            if(isset($ARRAYGROSSKILO[$s['NOMBRE']])){
-              $TOTALBRUTOV+=$ARRAYGROSSKILO[$s['NOMBRE']];
-            }else{
-              $TOTALBRUTOV+=$s['BRUTOSF'];
-            }
-            $TOTALUSV+=$s['TOTALUSSF'];
+            $TOTALENVASEV += $s['ENVASESF'];
+            $TOTALNETOV += $NETOAGRUPADO;
+            $TOTALBRUTOV += $BRUTOAGRUPADO;
+            $TOTALUSV += $s['TOTALUSSF'];
             endforeach;
 
 if($COSTOFLETEICARGA!=""){
