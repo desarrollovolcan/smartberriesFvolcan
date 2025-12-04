@@ -146,6 +146,7 @@ $BOLAWBCRTINSTRUCTIVO="";
 $CONSIGNATARIO = "";
 $FECHAETD = "";
 $FECHAETA = "";
+$FECHAETDREAL = "";
 $TEMBARQUE = "";
 $TRANSPORTE = "";
 $LCARGA = "";
@@ -305,6 +306,10 @@ if($ARRAYICARGA){
     $TEMBARQUE = $ARRAYICARGA[0]['TEMBARQUE_ICARGA'];
     $FECHAETD = $ARRAYICARGA[0]['FECHAETD'];
     $FECHAETA = $ARRAYICARGA[0]['FECHAETA'];
+    $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL'];
+    if(!$FECHAETDREAL){
+      $FECHAETDREAL = "Sin Datos";
+    }
     $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];
       $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['CRT_ICARGA'];
       if(!$BOLAWBCRTINSTRUCTIVO){
@@ -747,18 +752,26 @@ $html='
            <th class="color2 left">Fecha Corte Documental: </th>       
            <td class="color2 left">'.$FECHACDOCUMENTALICARGA.'</td>         
          </tr>    
-         <tr>       
-           <th class="color2 left">Fecha ETA: </th> 
-           <td class="color2 left">'.$FECHAETA.'</td>      
-           <th class="color2 left">Fumigado: </th>    
-           <td class="color2 left">'.$FUMIGADO.'</td>      
-           <th class="color2 left">Número Contenedor: </th>       
-           <td class="color2 left">'.$NUMEROCONTENEDOR.'</td>
-               
-         </tr>  
-         <tr>          
-    
-           <th class="color2 left">Emisión BL: </th>       
+        <tr>
+          <th class="color2 left">Fecha ETA: </th>
+          <td class="color2 left">'.$FECHAETA.'</td>
+          <th class="color2 left">Fumigado: </th>
+          <td class="color2 left">'.$FUMIGADO.'</td>
+          <th class="color2 left">Número Contenedor: </th>
+          <td class="color2 left">'.$NUMEROCONTENEDOR.'</td>
+
+        </tr>
+        <tr>
+          <th class="color2 left">Fecha Real ETD: </th>
+          <td class="color2 left">'.$FECHAETDREAL.'</td>
+          <th class="color2 left">&nbsp; </th>
+          <td class="color2 left">&nbsp;</td>
+          <th class="color2 left">&nbsp; </th>
+          <td class="color2 left">&nbsp;</td>
+        </tr>
+        <tr>
+
+          <th class="color2 left">Emisión BL: </th>
            <td class="color2 left">'.$NOMBREEMISIONBL.'</td>  
          </tr>    
          ';
