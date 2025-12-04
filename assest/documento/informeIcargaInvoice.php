@@ -43,6 +43,7 @@ include_once '../../assest/controlador/TFLETE_ADO.php';
 
 include_once '../../assest/controlador/TCONTENEDOR_ADO.php';
 include_once '../../assest/controlador/ATMOSFERA_ADO.php';
+include_once '../../assest/controlador/EMISIONBL_ADO.php';
 include_once '../../assest/controlador/PAIS_ADO.php';
 include_once '../../assest/controlador/SEGURO_ADO.php';
 
@@ -102,6 +103,7 @@ $CVENTA_ADO =  new CVENTA_ADO();
 $TFLETE_ADO =  new TFLETE_ADO();
 $TCONTENEDOR_ADO =  new TCONTENEDOR_ADO();
 $ATMOSFERA_ADO =  new ATMOSFERA_ADO();
+$EMISIONBL_ADO =  new EMISIONBL_ADO();
 $SEGURO_ADO =  new SEGURO_ADO();
 
 $EEXPORTACION_ADO = new EEXPORTACION_ADO();
@@ -307,10 +309,22 @@ if($ARRAYICARGA){
       $FECHAETA = $ARRAYICARGA[0]['FECHAETA']; 
       $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL'];
       $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];    
-      $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['ID_EMISIONBL'];
-      if(!$BOLAWBCRTINSTRUCTIVO){
-        $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['BOLAWBCRT_ICARGA'];
-      }
+        $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['ID_EMISIONBL'];
+        if($BOLAWBCRTINSTRUCTIVO){
+          $ARRAYEMISIONBL = $EMISIONBL_ADO->verEmisionbl($BOLAWBCRTINSTRUCTIVO);
+          if($ARRAYEMISIONBL){
+            $BOLAWBCRTINSTRUCTIVO = $ARRAYEMISIONBL[0]['NOMBRE_EMISIONBL'];
+          }
+        }
+        if(!$BOLAWBCRTINSTRUCTIVO){
+          $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['BOLAWBCRT_ICARGA'];
+        }
+        if(!$BOLAWBCRTINSTRUCTIVO){
+          $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['CRT_ICARGA'];
+        }
+        if(!$BOLAWBCRTINSTRUCTIVO){
+          $BOLAWBCRTINSTRUCTIVO = "Sin Datos";
+        }
 
 
       $TINSTRUCTIVO = $ARRAYICARGA[0]['T_ICARGA'];

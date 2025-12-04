@@ -360,7 +360,7 @@ $ARRAYTFLETE = $TFLETE_ADO->listarTfletePorEmpresaCBX($EMPRESAS);
 
 $ARRAYTCONTENEDOR = $TCONTENEDOR_ADO->listarTcontenedorPorEmpresaCBX($EMPRESAS);
 $ARRAYATMOSFERA = $ATMOSFERA_ADO->listarAtmosferaPorEmpresaCBX($EMPRESAS);
-$ARRAYEMISIONBL = $EMISIONBL_ADO->listarEmisionblPorEmpresaCBX($EMPRESAS);
+$ARRAYEMISIONBL = $EMISIONBL_ADO->listarEmisionblCBX();
 $ARRAYSEGURO = $SEGURO_ADO->listarSeguroPorEmpressCBX($EMPRESAS);
 
 $ARRAYESPECIES = $ESPECIES_ADO->listarEspeciesCBX();
@@ -469,12 +469,12 @@ if (isset($id_dato) && isset($accion_dato)) {
             $FDA = $r['FDA_ICARGA'];
             $TEMBARQUE = $r['TEMBARQUE_ICARGA'];
             $COSTOFLETE = $r['COSTO_FLETE_ICARGA'];
+            $CRT = $r['CRT_ICARGA'];
             $LCARGA = $r['ID_LCARGA'];
             if ($TEMBARQUE) {
                 if ($TEMBARQUE == "1") {
                     $TRANSPORTE = $r['ID_TRANSPORTE'];
-                    $CRT = $r['CRT_ICARGA'];
-                    
+
                     $LDESTINO = $r['ID_LDESTINO'];
                 }
                 if ($TEMBARQUE == "2") {
@@ -570,12 +570,12 @@ if (isset($id_dato) && isset($accion_dato)) {
             $FDA = $r['FDA_ICARGA'];
             $TEMBARQUE = $r['TEMBARQUE_ICARGA'];
             $COSTOFLETE = $r['COSTO_FLETE_ICARGA'];
+            $CRT = $r['CRT_ICARGA'];
             $LCARGA = $r['ID_LCARGA'];
             if ($TEMBARQUE) {
                 if ($TEMBARQUE == "1") {
                     $TRANSPORTE = $r['ID_TRANSPORTE'];
-                    $CRT = $r['CRT_ICARGA'];
-                    
+
                     $LDESTINO = $r['ID_LDESTINO'];
                 }
                 if ($TEMBARQUE == "2") {
@@ -663,10 +663,10 @@ if (isset($id_dato) && isset($accion_dato)) {
             $FDA = $r['FDA_ICARGA'];
             $TEMBARQUE = $r['TEMBARQUE_ICARGA'];
             $COSTOFLETE = $r['COSTO_FLETE_ICARGA'];
+            $CRT = $r['CRT_ICARGA'];
             if ($TEMBARQUE) {
                 if ($TEMBARQUE == "1") {
                     $TRANSPORTE = $r['ID_TRANSPORTE'];
-                    $CRT = $r['CRT_ICARGA'];
                     $LCARGA = $r['ID_LCARGA'];
                     $LDESTINO = $r['ID_LDESTINO'];
                 }
@@ -765,12 +765,12 @@ if (isset($id_dato) && isset($accion_dato)) {
             $FDA = $r['FDA_ICARGA'];
             $TEMBARQUE = $r['TEMBARQUE_ICARGA'];
             $COSTOFLETE = $r['COSTO_FLETE_ICARGA'];
+            $CRT = $r['CRT_ICARGA'];
             $LCARGA = $r['ID_LCARGA'];
             $PLANTA = $r['ID_PLANTA'];
             if ($TEMBARQUE) {
                 if ($TEMBARQUE == "1") {
                     $TRANSPORTE = $r['ID_TRANSPORTE'];
-                    $CRT = $r['CRT_ICARGA'];
                     $LDESTINO = $r['ID_LDESTINO'];
                 }
                 if ($TEMBARQUE == "2") {
@@ -881,13 +881,14 @@ if (isset($id_dato) && isset($accion_dato)) {
                 $ICARGA->__SET('ID_ACARGA', $ACARGA);
                 $ICARGA->__SET('ID_ADESTINO', $ADESTINO);
             }
-            if ($TEMBARQUE == "3") {
-                $ICARGA->__SET('ID_NAVIERA', $NAVIERA);
-                $ICARGA->__SET('NAVE_ICARGA', $NAVE);
-                $ICARGA->__SET('FECHASTACKING_ICARGA', $FECHASTACKING);
-                $ICARGA->__SET('FECHASTACKINGF_ICARGA', $FECHASTACKINGF);
-                $ICARGA->__SET('NVIAJE_ICARGA', $NVIAJE);
-                $ICARGA->__SET('ID_PCARGA', $PCARGA);
+              if ($TEMBARQUE == "3") {
+                  $ICARGA->__SET('ID_NAVIERA', $NAVIERA);
+                  $ICARGA->__SET('NAVE_ICARGA', $NAVE);
+                  $ICARGA->__SET('CRT_ICARGA', $CRT);
+                  $ICARGA->__SET('FECHASTACKING_ICARGA', $FECHASTACKING);
+                  $ICARGA->__SET('FECHASTACKINGF_ICARGA', $FECHASTACKINGF);
+                  $ICARGA->__SET('NVIAJE_ICARGA', $NVIAJE);
+                  $ICARGA->__SET('ID_PCARGA', $PCARGA);
                 $ICARGA->__SET('ID_PDESTINO', $PDESTINO);
             }
 
@@ -1115,6 +1116,9 @@ if (isset($_POST)) {
     if (isset($_REQUEST['DUSINSTRUCTIVO'])) {
         $DUSINSTRUCTIVO = $_REQUEST['DUSINSTRUCTIVO'];
     }
+    if (isset($_REQUEST['CRT'])) {
+        $CRT = $_REQUEST['CRT'];
+    }
     if (isset($_REQUEST['BOLAWBCRTINSTRUCTIVO'])) {
         $BOLAWBCRTINSTRUCTIVO = $_REQUEST['BOLAWBCRTINSTRUCTIVO'];
     }
@@ -1184,6 +1188,12 @@ if (isset($_POST)) {
         .rounded-reports .btn i,
         .rounded-actions .btn i {
             margin-right: 0.35rem;
+        }
+
+        /* Mantener los selectpicker con bordes rectos como el resto de los campos */
+        .bootstrap-select .dropdown-toggle,
+        .bootstrap-select > .btn {
+            border-radius: 0 !important;
         }
     </style>
     <!- FUNCIONES BASES -!>
@@ -3080,8 +3090,7 @@ if (isset($_POST)) {
                                                 <div class="form-group">
                                                     <label>Emision BL</label>
                                                     <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <select class="form-control select2" id="EMISIONBL" name="EMISIONBL" style="width: 100%;" <?php echo $DISABLED; ?>>
-                                                        <option></option>
+                                                    <select class="form-control selectpicker" data-live-search="true" data-live-search-style="contains" data-size="15" title="Seleccione Emisión BL" id="EMISIONBL" name="EMISIONBL" <?php echo $DISABLED; ?>>
                                                         <?php foreach ($ARRAYEMISIONBL as $r) : ?>
                                                             <?php if ($ARRAYEMISIONBL) {    ?>
                                                                 <option value="<?php echo $r['ID_EMISIONBL']; ?>" <?php if ($EMISIONBL == $r['ID_EMISIONBL']) { echo "selected"; } ?>>
@@ -3625,8 +3634,7 @@ if (isset($_POST)) {
                                                 <div class="form-group">
                                                     <label>Emision BL</label>
                                                     <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <select class="form-control select2" id="EMISIONBL" name="EMISIONBL" style="width: 100%;" <?php echo $DISABLED; ?>>
-                                                        <option></option>
+                                                    <select class="form-control selectpicker" data-live-search="true" data-live-search-style="contains" data-size="15" title="Seleccione Emisión BL" id="EMISIONBL" name="EMISIONBL" <?php echo $DISABLED; ?>>
                                                         <?php foreach ($ARRAYEMISIONBL as $r) : ?>
                                                             <?php if ($ARRAYEMISIONBL) {    ?>
                                                                 <option value="<?php echo $r['ID_EMISIONBL']; ?>" <?php if ($EMISIONBL == $r['ID_EMISIONBL']) { echo "selected"; } ?>>
@@ -4321,9 +4329,19 @@ if (isset($_POST)) {
                                             </div>
                                             <div class="col-xxl-3 col-xl-5 col-lg-8 col-md-8 col-sm-8 col-8 col-xs-8">
                                                 <div class="form-group">
-                                                    <label>BL / AWB / CRT</label>
+                                                    <label>Emisión BL</label>
                                                     <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <input type="text" class="form-control" placeholder="Ingrese BL/AWB/CRT" id="EMISIONBL" name="EMISIONBL" value="<?php echo $EMISIONBL; ?>" <?php echo $DISABLED; ?> />
+                                                    <select class="form-control selectpicker" data-live-search="true" data-live-search-style="contains" data-size="15" title="Seleccione Emisión BL" id="EMISIONBL" name="EMISIONBL" <?php echo $DISABLED; ?>>
+                                                        <?php foreach ($ARRAYEMISIONBL as $r) : ?>
+                                                            <?php if ($ARRAYEMISIONBL) {    ?>
+                                                                <option value="<?php echo $r['ID_EMISIONBL']; ?>" <?php if ($EMISIONBL == $r['ID_EMISIONBL']) { echo "selected"; } ?>>
+                                                                    <?php echo $r['NOMBRE_EMISIONBL'] ?>
+                                                                </option>
+                                                            <?php } else { ?>
+                                                                <option value="0">No Hay Datos Registrados </option>
+                                                            <?php } ?>
+                                                        <?php endforeach; ?>
+                                                    </select>
                                                     <label id="val_emisionbl" class="validacion"> </label>
                                                 </div>
                                             </div>
@@ -4383,8 +4401,7 @@ if (isset($_POST)) {
                                                 <div class="form-group">
                                                     <label>Emision BL</label>
                                                     <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <select class="form-control select2" id="EMISIONBL" name="EMISIONBL" style="width: 100%;" <?php echo $DISABLED; ?>>
-                                                        <option></option>
+                                                    <select class="form-control selectpicker" data-live-search="true" data-live-search-style="contains" data-size="15" title="Seleccione Emisión BL" id="EMISIONBL" name="EMISIONBL" <?php echo $DISABLED; ?>>
                                                         <?php foreach ($ARRAYEMISIONBL as $r) : ?>
                                                             <?php if ($ARRAYEMISIONBL) {    ?>
                                                                 <option value="<?php echo $r['ID_EMISIONBL']; ?>" <?php if ($EMISIONBL == $r['ID_EMISIONBL']) { echo "selected"; } ?>>
@@ -4857,10 +4874,10 @@ if (isset($_POST)) {
                                              
                                             <div class="col-xxl-3 col-xl-5 col-lg-8 col-md-8 col-sm-8 col-8 col-xs-8">
                                                 <div class="form-group">
-                                                    <label>BL / AWB / CRT</label>
-                                                    <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <input type="text" class="form-control" placeholder="Ingrese BL/AWB/CRT" id="EMISIONBL" name="EMISIONBL" value="<?php echo $EMISIONBL; ?>" <?php echo $DISABLED; ?> />
-                                                    <label id="val_emisionbl" class="validacion"> </label>
+                                                    <label>N° de BL</label>
+                                                    <input type="hidden" class="form-control" placeholder="CRTE" id="CRTE" name="CRTE" value="<?php echo $CRT; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Ingrese N° de BL" id="CRT" name="CRT" value="<?php echo $CRT; ?>" <?php echo $DISABLED; ?> />
+                                                    <label id="val_crt" class="validacion"> </label>
                                                 </div>
                                             </div>
                                             <div class="col-xxl-2 col-xl-4 col-lg-6 col-md-6 col-sm-6 col-6 col-xs-6">
@@ -5613,6 +5630,24 @@ if (isset($_POST)) {
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script>
+            $(document).ready(function () {
+                // Migrar todos los select de ICarga al formato selectpicker con búsqueda
+                $('select.select2').each(function () {
+                    $(this)
+                        .removeClass('select2')
+                        .addClass('selectpicker')
+                        .attr('data-live-search', 'true')
+                        .attr('data-live-search-style', 'contains')
+                        .attr('data-size', '15');
+                });
+
+                $('.selectpicker').selectpicker({
+                    liveSearch: true,
+                    liveSearchPlaceholder: 'Buscar...',
+                    noneResultsText: 'Sin resultados para {0}'
+                });
+            });
+
             document.addEventListener('DOMContentLoaded', function () {
                 const paisSelects = document.querySelectorAll('.pais-destino');
                 const paisHidden = document.getElementById('PAISE');
@@ -5623,7 +5658,7 @@ if (isset($_POST)) {
                             if (other !== origin) {
                                 other.value = value;
                                 if (window.$ && typeof window.$ === 'function') {
-                                    window.$(other).trigger('change.select2');
+                                    window.$(other).trigger('change');
                                 }
                             }
                         });
@@ -5728,6 +5763,7 @@ if (isset($_POST)) {
                     if ($_REQUEST['TEMBARQUE'] == "3") {
                         $ICARGA->__SET('ID_NAVIERA', $_REQUEST['NAVIERA']);
                         $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE']);
+                        $ICARGA->__SET('CRT_ICARGA', $_REQUEST['CRT']);
                         $ICARGA->__SET('FECHASTACKING_ICARGA', $_REQUEST['FECHASTACKING']);
                         $ICARGA->__SET('FECHASTACKINGF_ICARGA', $_REQUEST['FECHASTACKINGF']);
                         $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE']);
@@ -5943,6 +5979,7 @@ if (isset($_POST)) {
                     if ($_REQUEST['TEMBARQUE'] == "3") {
                         $ICARGA->__SET('ID_NAVIERA', $_REQUEST['NAVIERA'] ?? null);
                         $ICARGA->__SET('NAVE_ICARGA', $_REQUEST['NAVE'] ?? null);
+                        $ICARGA->__SET('CRT_ICARGA', $_REQUEST['CRT'] ?? null);
                         $ICARGA->__SET('FECHASTACKING_ICARGA', $_REQUEST['FECHASTACKING'] ?? null);
                         $ICARGA->__SET('FECHASTACKINGF_ICARGA', $_REQUEST['FECHASTACKINGF'] ?? null);
                         $ICARGA->__SET('NVIAJE_ICARGA', $_REQUEST['NVIAJE'] ?? null);
