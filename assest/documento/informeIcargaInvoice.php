@@ -60,6 +60,7 @@ include_once '../../assest/controlador/COMUNA_ADO.php';
 
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/DESPACHOEX_ADO.php';
+include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 
 
 
@@ -115,6 +116,7 @@ $ECOMERCIAL_ADO = new ECOMERCIAL_ADO();
 
 $PRODUCTOR_ADO = new PRODUCTOR_ADO();
 $DESPACHOEX_ADO = new DESPACHOEX_ADO();
+$EXIEXPORTACION_ADO = new EXIEXPORTACION_ADO();
 
 $PAIS_ADO =  new PAIS_ADO();
 $REGION_ADO =  new REGION_ADO();
@@ -205,6 +207,8 @@ $ARRAYVERNOTADCNC="";
 $ARRAYCOMUNA="";
 $ARRYAPROVINCIA="";
 $ARRYAREGION="";
+$ARRAYGROSSKILO = [];
+$ARRAYNETKILO = [];
 
 
 if (isset($_REQUEST['usuario'])) {
@@ -243,9 +247,9 @@ if($ARRAYICARGA){
     $ARRAYDESPACHOEX=$DESPACHOEX_ADO->buscarDespachoExPorIcarga($IDOP);
     $ARRAYDESPACHOEX2=$DESPACHOEX_ADO->buscarDespachoExPorIcargaAgrupadoPorPlanta($IDOP);
     if($ARRAYDESPACHOEX){
-      $NUMEROCONTENEDOR=$ARRAYDESPACHOEX[0]['NUMERO_CONTENEDOR_DESPACHOEX'];   
+      $NUMEROCONTENEDOR=$ARRAYDESPACHOEX[0]['NUMERO_CONTENEDOR_DESPACHOEX'];
 
-      foreach ($ARRAYDESPACHOEX2 as $r) :  
+      foreach ($ARRAYDESPACHOEX2 as $r) :
         $ARRAYVERPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
         if($ARRAYVERPLANTA){
           $LUGARDECARGA= $LUGARDECARGA.$ARRAYVERPLANTA[0]["RAZON_SOCIAL_PLANTA"]."  ";
@@ -262,6 +266,30 @@ if($ARRAYICARGA){
       $NUMEROSELLO="Sin Datos";
       $FECHADESPACHOEX="Sin Datos";
       $LUGARDECARGA="Sin Datos";
+    }
+
+    if($ARRAYDESPACHOEX){
+      foreach ($ARRAYDESPACHOEX as $despacho) :
+        $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPordespachoEx($despacho['ID_DESPACHOEX']);
+        foreach ($ARRAYTOMADO as $r) :
+          $NOMBREECOMERCIAL = "Sin Datos";
+          $ARRAYEEXPORTACION = $EEXPORTACION_ADO->verEstandar($r['ID_ESTANDAR']);
+          if($ARRAYEEXPORTACION){
+            $ARRAYECOMERCIAL = $ECOMERCIAL_ADO->verEcomercial($ARRAYEEXPORTACION[0]['ID_ECOMERCIAL']);
+            if($ARRAYECOMERCIAL){
+              $NOMBREECOMERCIAL = $ARRAYECOMERCIAL[0]['NOMBRE_ECOMERCIAL'];
+            }
+          }
+          if(!isset($ARRAYGROSSKILO[$NOMBREECOMERCIAL])){
+            $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = 0;
+          }
+          if(!isset($ARRAYNETKILO[$NOMBREECOMERCIAL])){
+            $ARRAYNETKILO[$NOMBREECOMERCIAL] = 0;
+          }
+          $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = $ARRAYGROSSKILO[$NOMBREECOMERCIAL] + $r['BRUTO'];
+          $ARRAYNETKILO[$NOMBREECOMERCIAL] = $ARRAYNETKILO[$NOMBREECOMERCIAL] + $r['NETO'];
+        endforeach;
+      endforeach;
     }
     
       
@@ -766,16 +794,24 @@ $html = $html . '
                     <td class="center">'.$s['ENVASE'].'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center">'.$s['TMANEJO'].'</td>
-                    <td class="center">'.$s['NETO'].'</td>
-                    <td class="center">'.$s['BRUTOF'].'</td>
+                    <td class="center">'.(isset($ARRAYNETKILO[$s['NOMBRE']]) ? number_format($ARRAYNETKILO[$s['NOMBRE']], 2, ",", ".") : $s['NETO']).'</td>
+                    <td class="center">'.(isset($ARRAYGROSSKILO[$s['NOMBRE']]) ? number_format($ARRAYGROSSKILO[$s['NOMBRE']], 2, ",", ".") : $s['BRUTOF']).'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
                     <td class="center">'.$s['US'].'</td>
                     <td class="center">'.$s['TOTALUS'].'</td>
               </tr>
             ';
             $TOTALENVASEV+=$s['ENVASESF'];
-            $TOTALNETOV+=$s['NETOSF'];
-            $TOTALBRUTOV+=$s['BRUTOSRF'];
+            if(isset($ARRAYNETKILO[$s['NOMBRE']])){
+              $TOTALNETOV+=$ARRAYNETKILO[$s['NOMBRE']];
+            }else{
+              $TOTALNETOV+=$s['NETOSF'];
+            }
+            if(isset($ARRAYGROSSKILO[$s['NOMBRE']])){
+              $TOTALBRUTOV+=$ARRAYGROSSKILO[$s['NOMBRE']];
+            }else{
+              $TOTALBRUTOV+=$s['BRUTOSRF'];
+            }
             $TOTALUSV+=$s['TOTALUSSF'];
             endforeach;
 
