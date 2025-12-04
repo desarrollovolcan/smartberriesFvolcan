@@ -879,6 +879,7 @@ if($COSTOFLETEICARGA!=""){
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
                           <th class="color right">Overall Kilogram </td>
+                          <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
                           <td class="color center">&nbsp;</td>
