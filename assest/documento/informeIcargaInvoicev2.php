@@ -290,7 +290,7 @@ if($ARRAYICARGA){
           }
           $NOMBRETCALIBRE = "Sin Datos";
           if(isset($r['ID_TCALIBRE'])){
-            $ARRAYCALIBREDETA = $TCALIBRE_ADO->verTcalibre($r['ID_TCALIBRE']);
+            $ARRAYCALIBREDETA = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
             if($ARRAYCALIBREDETA){
               $NOMBRETCALIBRE = $ARRAYCALIBREDETA[0]['NOMBRE_TCALIBRE'];
             }
