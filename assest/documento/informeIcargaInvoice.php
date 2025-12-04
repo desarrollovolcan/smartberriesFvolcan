@@ -308,7 +308,9 @@ if($ARRAYICARGA){
       $FECHAETD = $ARRAYICARGA[0]['FECHAETD'];
       $FECHAETA = $ARRAYICARGA[0]['FECHAETA'];
       $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL_ICARGA'];
-      if(!$FECHAETDREAL){
+      if($FECHAETDREAL){
+        $FECHAETDREAL = date("d/m/Y", strtotime($FECHAETDREAL));
+      }else{
         $FECHAETDREAL = "Sin Datos";
       }
       $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];
