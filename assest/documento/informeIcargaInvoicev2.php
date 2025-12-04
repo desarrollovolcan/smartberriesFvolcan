@@ -198,6 +198,8 @@ $ARRAYVERDCARGA = "";
 $ARRAYSEGURO = "";
 $ARRAYPRODUCTOR = "";
 $ARRAYDCARGA = "";
+$ARRAYGROSSKILO = [];
+$ARRAYNETKILO = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
 $ARRAYVERNOTADCNC="";
@@ -261,6 +263,30 @@ if($ARRAYICARGA){
       $NUMEROSELLO="Sin Datos";
       $FECHADESPACHOEX="Sin Datos";
       $LUGARDECARGA="Sin Datos";
+    }
+
+    if($ARRAYDESPACHOEX){
+      foreach ($ARRAYDESPACHOEX as $despacho) :
+        $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPordespachoEx($despacho['ID_DESPACHOEX']);
+        foreach ($ARRAYTOMADO as $r) :
+          $NOMBREECOMERCIAL = "Sin Datos";
+          $ARRAYEEXPORTACION = $EEXPORTACION_ADO->verEstandar($r['ID_ESTANDAR']);
+          if($ARRAYEEXPORTACION){
+            $ARRAYECOMERCIAL = $ECOMERCIAL_ADO->verEcomercial($ARRAYEEXPORTACION[0]['ID_ECOMERCIAL']);
+            if($ARRAYECOMERCIAL){
+              $NOMBREECOMERCIAL = $ARRAYECOMERCIAL[0]['NOMBRE_ECOMERCIAL'];
+            }
+          }
+          if(!isset($ARRAYGROSSKILO[$NOMBREECOMERCIAL])){
+            $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = 0;
+          }
+          if(!isset($ARRAYNETKILO[$NOMBREECOMERCIAL])){
+            $ARRAYNETKILO[$NOMBREECOMERCIAL] = 0;
+          }
+          $ARRAYGROSSKILO[$NOMBREECOMERCIAL] = $ARRAYGROSSKILO[$NOMBREECOMERCIAL] + $r['BRUTO'];
+          $ARRAYNETKILO[$NOMBREECOMERCIAL] = $ARRAYNETKILO[$NOMBREECOMERCIAL] + $r['NETO'];
+        endforeach;
+      endforeach;
     }
     
       
@@ -757,16 +783,24 @@ $html = $html . '
                     <td class="center">'.$s['ENVASE'].'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
-                    <td class="center">'.$s['NETO'].'</td>
-                    <td class="center">'.$s['BRUTO'].'</td>
+                    <td class="center">'.(isset($ARRAYNETKILO[$s['NOMBRE']]) ? number_format($ARRAYNETKILO[$s['NOMBRE']], 2, ",", ".") : $s['NETO']).'</td>
+                    <td class="center">'.(isset($ARRAYGROSSKILO[$s['NOMBRE']]) ? number_format($ARRAYGROSSKILO[$s['NOMBRE']], 2, ",", ".") : $s['BRUTO']).'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
                     <td class="center">'.$s['US'].'</td>
                     <td class="center">'.$s['TOTALUS'].'</td>
               </tr>
             ';
             $TOTALENVASEV+=$s['ENVASESF'];
-            $TOTALNETOV+=$s['NETOSF'];
-            $TOTALBRUTOV+=$s['BRUTOSF'];
+            if(isset($ARRAYNETKILO[$s['NOMBRE']])){
+              $TOTALNETOV+=$ARRAYNETKILO[$s['NOMBRE']];
+            }else{
+              $TOTALNETOV+=$s['NETOSF'];
+            }
+            if(isset($ARRAYGROSSKILO[$s['NOMBRE']])){
+              $TOTALBRUTOV+=$ARRAYGROSSKILO[$s['NOMBRE']];
+            }else{
+              $TOTALBRUTOV+=$s['BRUTOSF'];
+            }
             $TOTALUSV+=$s['TOTALUSSF'];
             endforeach;
 
