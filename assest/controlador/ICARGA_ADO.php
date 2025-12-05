@@ -156,14 +156,15 @@ class ICARGA_ADO
         try {
 
             $datos = $this->conexion->prepare("SELECT *,
-                                                DATE_FORMAT(FECHA_ICARGA, '%d/%m/%Y') AS 'FECHA', 
-                                                DATE_FORMAT(FECHA_CDOCUMENTAL_ICARGA, '%d/%m/%Y') AS 'FECHACD', 
-                                                DATE_FORMAT(FECHAETD_ICARGA, '%d/%m/%Y') AS 'FECHAETD', 
-                                                DATE_FORMAT(FECHAETA_ICARGA, '%d/%m/%Y') AS 'FECHAETA', 
-                                                DATE_FORMAT(FECHAETAREAL_ICARGA, '%d/%m/%Y') AS 'FECHAETAREAL', 
-                                                DATE_FORMAT(FECHASTACKING_ICARGA, '%d/%m/%Y') AS 'FECHASTACKING', 
-                                                DATE_FORMAT(FECHASTACKINGF_ICARGA, '%d/%m/%Y') AS 'FECHASTACKINGF', 
-                                                DATE_FORMAT(INGRESO, '%Y-%m-%d') AS 'INGRESO', 
+                                                DATE_FORMAT(FECHA_ICARGA, '%d/%m/%Y') AS 'FECHA',
+                                                DATE_FORMAT(FECHA_CDOCUMENTAL_ICARGA, '%d/%m/%Y') AS 'FECHACD',
+                                                DATE_FORMAT(FECHAETD_ICARGA, '%d/%m/%Y') AS 'FECHAETD',
+                                                DATE_FORMAT(FECHAETA_ICARGA, '%d/%m/%Y') AS 'FECHAETA',
+                                                DATE_FORMAT(FECHAETDREAL_ICARGA, '%d/%m/%Y') AS 'FECHAETDREAL',
+                                                DATE_FORMAT(FECHAETAREAL_ICARGA, '%d/%m/%Y') AS 'FECHAETAREAL',
+                                                DATE_FORMAT(FECHASTACKING_ICARGA, '%d/%m/%Y') AS 'FECHASTACKING',
+                                                DATE_FORMAT(FECHASTACKINGF_ICARGA, '%d/%m/%Y') AS 'FECHASTACKINGF',
+                                                DATE_FORMAT(INGRESO, '%Y-%m-%d') AS 'INGRESO',
                                                 DATE_FORMAT(MODIFICACION, '%Y-%m-%d') AS 'MODIFICACION'
                                             FROM fruta_icarga
                                             WHERE ID_ICARGA = '" . $IDICARGA . "';");
