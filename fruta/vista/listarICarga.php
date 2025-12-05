@@ -87,6 +87,13 @@ include_once "../../assest/config/datosUrLP.php";
     <meta name="author" content="">
     <!- LLAMADA DE LOS ARCHIVOS NECESARIOS PARA DISEÑO Y FUNCIONES BASE DE LA VISTA -!>
         <?php include_once "../../assest/config/urlHead.php"; ?>
+        <style>
+            .action-btn-compact {
+                border-radius: 12px;
+                padding: 0.35rem 0.75rem;
+                line-height: 1.25;
+            }
+        </style>
         <!- FUNCIONES BASES -!>
             <script type="text/javascript">
                 //REDIRECCIONAR A LA PAGINA SELECIONADA
@@ -153,8 +160,8 @@ include_once "../../assest/config/datosUrLP.php";
                                                         <th>Estado</th>
                                                         <th>Fecha Instructivo</th>
                                                         <th class="text-center">Operaciónes </th>
-                                                        <!-- <th class="text-center">Operaciónes </th> -->
-                                                        <th></th>
+                                                        <th class="text-center">Duplicar</th>
+                                                        <th class="text-center">Eliminar</th>
                                                         
                                                         <th>Fecha Corte Documental</th>
                                                         <th>Tipo Emarque</th>
@@ -386,16 +393,24 @@ include_once "../../assest/config/datosUrLP.php";
                                                                </form> -->
                                                             </td>
                                                             <td>
-                                                                <form  method="post" id="form1">
-                                                                <div class="list-icons d-inline-flex">
-                                                                    <input type="hidden" class="form-control" placeholder="ID" id="ID" name="ID" value="<?php echo $r['ID_ICARGA']; ?>" />
+                                                                <form method="post" class="mb-0">
+                                                                    <input type="hidden" name="ID" value="<?php echo $r['ID_ICARGA']; ?>" />
+                                                                    <button type="submit" class="btn btn-block btn-success btn-sm action-btn-compact" name="DUPLICAR" value="1" data-toggle="tooltip" title="Duplicar Instructivo Carga">
+                                                                        <i class="fa fa-copy"></i> Duplicar
+                                                                    </button>
+                                                                </form>
+                                                            </td>
+                                                            <td>
+                                                                <form  method="post" id="form1" class="mb-0">
+                                                                    <div class="list-icons d-inline-flex">
+                                                                        <input type="hidden" class="form-control" placeholder="ID" id="ID" name="ID" value="<?php echo $r['ID_ICARGA']; ?>" />
                                                                         <input type="hidden" class="form-control" placeholder="URL" id="URL" name="URL" value="registroICarga" />
-                                                                        <input type="hidden" class="form-control" placeholder="URLO" id="URLO" name="URLO" value="listarICarga" /> 
-                                                                        <button type="submit" class="btn btn-block btn-danger" id="ELIMINAR" name="ELIMINAR" data-toggle="tooltip" title="Eliminar Instructivo Carga" >
-                                                                                <i class="fa fa-copy "></i> Eliminar
-                                                                            </button>
+                                                                        <input type="hidden" class="form-control" placeholder="URLO" id="URLO" name="URLO" value="listarICarga" />
+                                                                        <button type="submit" class="btn btn-block btn-danger btn-sm action-btn-compact" id="ELIMINAR" name="ELIMINAR" data-toggle="tooltip" title="Eliminar Instructivo Carga" >
+                                                                            <i class="fa fa-trash"></i> Eliminar
+                                                                        </button>
                                                                     </div>
-                                                                    </form>
+                                                                </form>
                                                             </td>
                                     
                                                             <td> <?php echo $ESTADOICARGA; ?> </td>
@@ -489,7 +504,104 @@ include_once "../../assest/config/datosUrLP.php";
     </div>
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
-        <?php         
+        <?php
+        if (isset($_REQUEST['DUPLICAR'])) {
+            $IDDUPLICAR = $_REQUEST['ID'];
+            $ARRAYVERICARGA = $ICARGA_ADO->verIcarga($IDDUPLICAR);
+            if ($ARRAYVERICARGA) {
+                $ARRAYNUMERO = $ICARGA_ADO->obtenerNumero($EMPRESAS, $TEMPORADAS);
+                $NUMERO = isset($ARRAYNUMERO[0]['NUMERO']) ? $ARRAYNUMERO[0]['NUMERO'] + 1 : 1;
+                $ORIGINAL = $ARRAYVERICARGA[0];
+
+                $ICARGA->__SET('NUMERO_ICARGA', $NUMERO);
+                $ICARGA->__SET('FECHA_ICARGA', $ORIGINAL['FECHA_ICARGA']);
+                $ICARGA->__SET('FECHA_CDOCUMENTAL_ICARGA', $ORIGINAL['FECHA_CDOCUMENTAL_ICARGA']);
+                $ICARGA->__SET('BOOKING_ICARGA', $ORIGINAL['BOOKING_ICARGA']);
+                $ICARGA->__SET('NREFERENCIA_ICARGA', $ORIGINAL['NREFERENCIA_ICARGA']);
+                $ICARGA->__SET('FECHAETD_ICARGA', $ORIGINAL['FECHAETD_ICARGA']);
+                $ICARGA->__SET('FECHAETA_ICARGA', $ORIGINAL['FECHAETA_ICARGA']);
+                $ICARGA->__SET('FECHAETAREAL_ICARGA', $ORIGINAL['FECHAETAREAL_ICARGA']);
+                $ICARGA->__SET('FECHAETDREAL_ICARGA', $ORIGINAL['FECHAETDREAL_ICARGA']);
+                $ICARGA->__SET('NCONTENEDOR_ICARGA', $ORIGINAL['NCONTENEDOR_ICARGA']);
+                $ICARGA->__SET('NCOURIER_ICARGA', $ORIGINAL['NCOURIER_ICARGA']);
+                $ICARGA->__SET('CRT_ICARGA', $ORIGINAL['CRT_ICARGA']);
+                $ICARGA->__SET('FECHASTACKING_ICARGA', $ORIGINAL['FECHASTACKING_ICARGA']);
+                $ICARGA->__SET('FECHASTACKINGF_ICARGA', $ORIGINAL['FECHASTACKINGF_ICARGA']);
+                $ICARGA->__SET('NVIAJE_ICARGA', $ORIGINAL['NVIAJE_ICARGA']);
+                $ICARGA->__SET('FUMIGADO_ICARGA', $ORIGINAL['FUMIGADO_ICARGA']);
+                $ICARGA->__SET('T_ICARGA', $ORIGINAL['T_ICARGA']);
+                $ICARGA->__SET('O2_ICARGA', $ORIGINAL['O2_ICARGA']);
+                $ICARGA->__SET('C02_ICARGA', $ORIGINAL['C02_ICARGA']);
+                $ICARGA->__SET('ALAMPA_ICARGA', $ORIGINAL['ALAMPA_ICARGA']);
+                $ICARGA->__SET('COSTO_FLETE_ICARGA', $ORIGINAL['COSTO_FLETE_ICARGA']);
+                $ICARGA->__SET('DUS_ICARGA', $ORIGINAL['DUS_ICARGA']);
+                $ICARGA->__SET('BOLAWBCRT_ICARGA', $ORIGINAL['BOLAWBCRT_ICARGA']);
+                $ICARGA->__SET('NETO_ICARGA', $ORIGINAL['NETO_ICARGA']);
+                $ICARGA->__SET('REBATE_ICARGA', $ORIGINAL['REBATE_ICARGA']);
+                $ICARGA->__SET('PUBLICA_ICARGA', $ORIGINAL['PUBLICA_ICARGA']);
+                $ICARGA->__SET('FDA_ICARGA', $ORIGINAL['FDA_ICARGA']);
+                $ICARGA->__SET('TEMBARQUE_ICARGA', $ORIGINAL['TEMBARQUE_ICARGA']);
+                $ICARGA->__SET('OBSERVACION_ICARGA', $ORIGINAL['OBSERVACION_ICARGA']);
+                $ICARGA->__SET('OBSERVACIONI_ICARGA', $ORIGINAL['OBSERVACIONI_ICARGA']);
+                $ICARGA->__SET('NAVE_ICARGA', $ORIGINAL['NAVE_ICARGA']);
+                $ICARGA->__SET('ID_EXPPORTADORA', $ORIGINAL['ID_EXPPORTADORA']);
+                $ICARGA->__SET('ID_CONSIGNATARIO', $ORIGINAL['ID_CONSIGNATARIO']);
+                $ICARGA->__SET('ID_EMISIONBL', $ORIGINAL['ID_EMISIONBL']);
+                $ICARGA->__SET('ID_NOTIFICADOR', $ORIGINAL['ID_NOTIFICADOR']);
+                $ICARGA->__SET('ID_BROKER', $ORIGINAL['ID_BROKER']);
+                $ICARGA->__SET('ID_RFINAL', $ORIGINAL['ID_RFINAL']);
+                $ICARGA->__SET('ID_MERCADO', $ORIGINAL['ID_MERCADO']);
+                $ICARGA->__SET('ID_AADUANA', $ORIGINAL['ID_AADUANA']);
+                $ICARGA->__SET('ID_AGCARGA', $ORIGINAL['ID_AGCARGA']);
+                $ICARGA->__SET('ID_DFINAL', $ORIGINAL['ID_DFINAL']);
+                $ICARGA->__SET('ID_TRANSPORTE', $ORIGINAL['ID_TRANSPORTE']);
+                $ICARGA->__SET('ID_LCARGA', $ORIGINAL['ID_LCARGA']);
+                $ICARGA->__SET('ID_LDESTINO', $ORIGINAL['ID_LDESTINO']);
+                $ICARGA->__SET('ID_LAREA', $ORIGINAL['ID_LAREA']);
+                $ICARGA->__SET('ID_ACARGA', $ORIGINAL['ID_ACARGA']);
+                $ICARGA->__SET('ID_ADESTINO', $ORIGINAL['ID_ADESTINO']);
+                $ICARGA->__SET('ID_NAVIERA', $ORIGINAL['ID_NAVIERA']);
+                $ICARGA->__SET('ID_PCARGA', $ORIGINAL['ID_PCARGA']);
+                $ICARGA->__SET('ID_PDESTINO', $ORIGINAL['ID_PDESTINO']);
+                $ICARGA->__SET('ID_FPAGO', $ORIGINAL['ID_FPAGO']);
+                $ICARGA->__SET('ID_CVENTA', $ORIGINAL['ID_CVENTA']);
+                $ICARGA->__SET('ID_MVENTA', $ORIGINAL['ID_MVENTA']);
+                $ICARGA->__SET('ID_TCONTENEDOR', $ORIGINAL['ID_TCONTENEDOR']);
+                $ICARGA->__SET('ID_ATMOSFERA', $ORIGINAL['ID_ATMOSFERA']);
+                $ICARGA->__SET('ID_TSERVICIO', $ORIGINAL['ID_TSERVICIO']);
+                $ICARGA->__SET('ID_TFLETE', $ORIGINAL['ID_TFLETE']);
+                $ICARGA->__SET('ID_SEGURO', $ORIGINAL['ID_SEGURO']);
+                $ICARGA->__SET('ID_PAIS', $ORIGINAL['ID_PAIS']);
+                $ICARGA->__SET('ID_EMPRESA', $ORIGINAL['ID_EMPRESA']);
+                $ICARGA->__SET('ID_TEMPORADA', $ORIGINAL['ID_TEMPORADA']);
+                $ICARGA->__SET('ID_USUARIOI', $IDUSUARIOS);
+                $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);
+
+                $ICARGA_ADO->agregarIcarga($ICARGA);
+
+                $ARRYAOBTENERID = $ICARGA_ADO->obtenerId(
+                    $ORIGINAL['FECHA_ICARGA'],
+                    $ORIGINAL['OBSERVACION_ICARGA'],
+                    $ORIGINAL['ID_EMPRESA'],
+                    $ORIGINAL['ID_TEMPORADA']
+                );
+                $IDNUEVO = $ARRYAOBTENERID[0]['ID_ICARGA'];
+                $AUSUARIO_ADO->agregarAusuario2($NUMERO, 1, 1, "" . $_SESSION["NOMBRE_USUARIO"] . ", Duplicación Instructivo Carga", "fruta_icarga", $IDNUEVO, $_SESSION["ID_USUARIO"], $_SESSION['ID_EMPRESA'], $_SESSION['ID_PLANTA'], $_SESSION['ID_TEMPORADA']);
+
+                echo '<script>
+                    Swal.fire({
+                        icon:"success",
+                        title:"Registro Duplicado",
+                        text:"El Instructivo de carga se ha duplicado correctamente",
+                        showConfirmButton: true,
+                        confirmButtonText:"Cerrar",
+                        closeOnConfirm:false
+                    }).then((result)=>{
+                        location.href = "listarICarga.php";
+                    })
+                </script>';
+            }
+        }
         if (isset($_REQUEST['CARGADO'])) {
 
             $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);

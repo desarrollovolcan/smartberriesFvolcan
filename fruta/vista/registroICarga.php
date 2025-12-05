@@ -516,7 +516,7 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
             $PAIS_PUERTO = $PAIS;
-            $PAIS_FINAL = $PAIS;
+            $PAIS_FINAL = $r['ID_DFINAL'];
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -616,7 +616,7 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
             $PAIS_PUERTO = $PAIS;
-            $PAIS_FINAL = $PAIS;
+            $PAIS_FINAL = $r['ID_DFINAL'];
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -708,7 +708,7 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
             $PAIS_PUERTO = $PAIS;
-            $PAIS_FINAL = $PAIS;
+            $PAIS_FINAL = $r['ID_DFINAL'];
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -811,7 +811,7 @@ if (isset($id_dato) && isset($accion_dato)) {
             $OBSERVACIONIINSTRUCTIVO = $r['OBSERVACIONI_ICARGA'];
             $PAIS = $r['ID_PAIS'];
             $PAIS_PUERTO = $PAIS;
-            $PAIS_FINAL = $PAIS;
+            $PAIS_FINAL = $r['ID_DFINAL'];
             $EMPRESA = $r['ID_EMPRESA'];
             $TEMPORADA = $r['ID_TEMPORADA'];
             $ESTADO = $r['ESTADO'];
@@ -859,8 +859,12 @@ if (isset($id_dato) && isset($accion_dato)) {
             $ICARGA->__SET('ID_RFINAL', $RFINAL);
             $ICARGA->__SET('ID_MERCADO', $MERCADO);
             $ICARGA->__SET('ID_AADUANA', $AADUANA);
+            $PAIS_DESTINO_AUTOMATICO = $_REQUEST['PAIS']
+                ?? ($_REQUEST['PAIS_EMBARQUE'] ?? ($_REQUEST['PAIS_PUERTO'] ?? ($_REQUEST['PAISE'] ?? $PAIS ?? null)));
+            $PAIS_DESTINO_FINAL_AUTOMATICO = $_REQUEST['PAIS_FINAL'] ?? ($PAIS_FINAL ?? null);
+
             $ICARGA->__SET('ID_AGCARGA', $AGCARGA);
-            $ICARGA->__SET('ID_DFINAL', $DFINAL);
+            $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_AUTOMATICO);
             $ICARGA->__SET('ID_FPAGO', $FPAGO);
             $ICARGA->__SET('ID_CVENTA', $CVENTA);
             $ICARGA->__SET('ID_MVENTA', $MVENTA);
@@ -892,7 +896,7 @@ if (isset($id_dato) && isset($accion_dato)) {
                 $ICARGA->__SET('ID_PDESTINO', $PDESTINO);
             }
 
-            $ICARGA->__SET('ID_PAIS',  $PAIS);
+            $ICARGA->__SET('ID_PAIS',  $PAIS_DESTINO_AUTOMATICO);
             $ICARGA->__SET('ID_EMPRESA',  $EMPRESA);
             $ICARGA->__SET('ID_PLANTA',  $PLANTA);
             $ICARGA->__SET('ID_TEMPORADA',  $TEMPORADA);
@@ -974,8 +978,12 @@ if (isset($_POST)) {
     if (isset($_REQUEST['PAIS'])) {
         $PAIS = $_REQUEST['PAIS'];
     }
+    if (isset($_REQUEST['PAIS_EMBARQUE'])) {
+        $PAIS = $_REQUEST['PAIS_EMBARQUE'];
+    }
     if (isset($_REQUEST['PAIS_PUERTO'])) {
         $PAIS_PUERTO = $_REQUEST['PAIS_PUERTO'];
+        $PAIS = $_REQUEST['PAIS_PUERTO'];
     }
     if (isset($_REQUEST['PAIS_FINAL'])) {
         $PAIS_FINAL = $_REQUEST['PAIS_FINAL'];
@@ -1194,6 +1202,153 @@ if (isset($_POST)) {
         .bootstrap-select .dropdown-toggle,
         .bootstrap-select > .btn {
             border-radius: 0 !important;
+        }
+
+        body.light-skin {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: 1px solid #e4e7ec;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #e4e7ec;
+            background: #fcfcfd;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .card-footer {
+            border-top: 1px solid #e4e7ec;
+            background: #fcfcfd;
+            border-radius: 0 0 14px 14px;
+        }
+
+        .form-control,
+        .select2-container--default .select2-selection--single {
+            border-radius: 12px;
+            border: 1px solid #d9dde3;
+            background: #f9fafb;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+            padding: 10px 14px;
+            text-align: center;
+            height: 44px;
+            line-height: 22px;
+            transition: all 0.2s ease;
+        }
+
+        .select2-container--default .select2-selection--single {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        select.form-control {
+            text-align-last: center;
+            padding: 10px 12px;
+            line-height: 22px;
+            height: 44px;
+        }
+
+        .form-control:focus,
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default .select2-selection--single .select2-selection__rendered:focus,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            outline: none;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            padding-left: 0;
+            color: #111827;
+            line-height: 1.4;
+            width: 100%;
+            text-align: center;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .card .form-group {
+            margin-bottom: 12px;
+        }
+
+        .compact-row [class*="col-"] {
+            margin-bottom: 10px;
+        }
+
+        .inline-field-action {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inline-field-action .select2-container,
+        .inline-field-action .form-control {
+            flex: 1 1 auto;
+        }
+
+        .inline-field-action .btn {
+            flex: 0 0 44px;
+            padding: 10px 0;
+            min-width: 44px;
+        }
+
+        .btn {
+            border-radius: 12px;
+            border: none;
+            padding: 10px 16px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-group .btn + .btn {
+            margin-left: 8px;
         }
     </style>
     <!- FUNCIONES BASES -!>
@@ -3338,7 +3493,7 @@ if (isset($_POST)) {
                                             <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                                                 <div class="form-group">
                                                     <label>Pais Destino</label>
-                                                    <select class="form-control select2 pais-destino" id="PAIS_EMBARQUE" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2 pais-destino" id="PAIS_EMBARQUE" name="PAIS_EMBARQUE" style="width: 100%;" value="<?php echo $PAIS; ?>" <?php echo $DISABLED; ?>>
                                                         <option></option>
                                                         <?php foreach ($ARRAYPAIS as $r) : ?>
                                                             <?php if ($ARRAYPAIS) {    ?>
@@ -4331,7 +4486,7 @@ if (isset($_POST)) {
                                                 <div class="form-group">
                                                     <label>Emisión BL</label>
                                                     <input type="hidden" class="form-control" placeholder="EMISIONBL" id="EMISIONBLE" name="EMISIONBLE" value="<?php echo $EMISIONBL; ?>" />
-                                                    <select class="form-control selectpicker" data-live-search="true" data-live-search-style="contains" data-size="15" title="Seleccione Emisión BL" id="EMISIONBL" name="EMISIONBL" <?php echo $DISABLED; ?>>
+                                                    <select class="form-control select2" id="EMISIONBL" name="EMISIONBL" style="width: 100%;" <?php echo $DISABLED; ?>>
                                                         <?php foreach ($ARRAYEMISIONBL as $r) : ?>
                                                             <?php if ($ARRAYEMISIONBL) {    ?>
                                                                 <option value="<?php echo $r['ID_EMISIONBL']; ?>" <?php if ($EMISIONBL == $r['ID_EMISIONBL']) { echo "selected"; } ?>>
@@ -5648,52 +5803,12 @@ if (isset($_POST)) {
                 });
             });
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const paisSelects = document.querySelectorAll('.pais-destino');
-                const paisHidden = document.getElementById('PAISE');
-
-                if (paisSelects.length > 0) {
-                    const syncPais = (origin, value) => {
-                        paisSelects.forEach((other) => {
-                            if (other !== origin) {
-                                other.value = value;
-                                if (window.$ && typeof window.$ === 'function') {
-                                    window.$(other).trigger('change');
-                                }
-                            }
-                        });
-                        if (paisHidden) {
-                            paisHidden.value = value;
-                        }
-                    };
-
-                    paisSelects.forEach((select) => {
-                        select.addEventListener('change', function () {
-                            syncPais(this, this.value);
-                        });
-                    });
-                }
-            });
         </script>
         <?php
             //OPERACIONES
-            $PAISSELECCIONADO = $PAIS;
-            if (isset($_REQUEST['PAIS_FINAL']) && $_REQUEST['PAIS_FINAL'] !== '') {
-                $PAISSELECCIONADO = $_REQUEST['PAIS_FINAL'];
-            } elseif (isset($_REQUEST['PAIS_PUERTO']) && $_REQUEST['PAIS_PUERTO'] !== '') {
-                $PAISSELECCIONADO = $_REQUEST['PAIS_PUERTO'];
-            } elseif (isset($_REQUEST['PAIS']) && $_REQUEST['PAIS'] !== '') {
-                $PAISSELECCIONADO = $_REQUEST['PAIS'];
-            } elseif (isset($_REQUEST['PAISE']) && $_REQUEST['PAISE'] !== '') {
-                $PAISSELECCIONADO = $_REQUEST['PAISE'];
-            }
-            if ($PAIS_PUERTO === "") {
-                $PAIS_PUERTO = $PAISSELECCIONADO;
-            }
-            if ($PAIS_FINAL === "") {
-                $PAIS_FINAL = $PAISSELECCIONADO;
-            }
-            $PAIS = $PAISSELECCIONADO;
+            $PAIS_DESTINO_FORM = $_REQUEST['PAIS']
+                ?? ($_REQUEST['PAIS_EMBARQUE'] ?? ($_REQUEST['PAIS_PUERTO'] ?? ($_REQUEST['PAISE'] ?? $PAIS ?? null)));
+            $PAIS_DESTINO_FINAL_FORM = $_REQUEST['PAIS_FINAL'] ?? ($PAIS_FINAL ?? null);
             //OPERACION DE REGISTRO DE FILA
             if (isset($_REQUEST['CREAR'])) {
 
@@ -5738,7 +5853,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO']);
                 $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
                 $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
-                $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL']);
+                $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
                 $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO']);
                 $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA']);
                 $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
@@ -5771,7 +5886,7 @@ if (isset($_POST)) {
                         $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO']);
                     }
                 }
-                $ICARGA->__SET('ID_PAIS',  $PAISSELECCIONADO);
+                $ICARGA->__SET('ID_PAIS',  $PAIS_DESTINO_FORM);
                 $ICARGA->__SET('ID_EMPRESA',  $_REQUEST['EMPRESA']);
                 $ICARGA->__SET('ID_PLANTA',  $_REQUEST['PLANTA']);
                 $ICARGA->__SET('ID_TEMPORADA',  $_REQUEST['TEMPORADA']);
@@ -5850,7 +5965,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO']);
                 $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
                 $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
-                $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL']);
+                $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
                 $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO']);
                 $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA']);
                 $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
@@ -5882,7 +5997,7 @@ if (isset($_POST)) {
                         $ICARGA->__SET('ID_PDESTINO', $_REQUEST['PDESTINO']);
                     }
                 }
-                $ICARGA->__SET('ID_PAIS',  $PAISSELECCIONADO);
+                $ICARGA->__SET('ID_PAIS',  $PAIS_DESTINO_FORM);
                 $ICARGA->__SET('ID_EMPRESA',  $_REQUEST['EMPRESA']);
                 $ICARGA->__SET('ID_PLANTA',  $_REQUEST['PLANTA']);
                 $ICARGA->__SET('ID_TEMPORADA',  $_REQUEST['TEMPORADA']);
@@ -5959,7 +6074,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO'] ?? null);
                 $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA'] ?? null);
                 $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA'] ?? null);
-                $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL'] ?? null);
+                $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
                 $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA'] ?? null);
 
                 if (isset($_REQUEST['TEMBARQUE'])) {
@@ -5996,7 +6111,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA'] ?? null);
                 $ICARGA->__SET('ID_TFLETE', $_REQUEST['TFLETE'] ?? null);
                 $ICARGA->__SET('ID_SEGURO', $_REQUEST['SEGURO'] ?? null);
-                $ICARGA->__SET('ID_PAIS', $PAISSELECCIONADO);
+                $ICARGA->__SET('ID_PAIS', $PAIS_DESTINO_FORM);
                 $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);
                 $ICARGA->__SET('ID_ICARGA', $_REQUEST['IDP'] ?? null);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
@@ -6102,7 +6217,7 @@ if (isset($_POST)) {
                     $ICARGA->__SET('ID_MERCADO', $_REQUEST['MERCADO'] ?? null);
                     $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA'] ?? null);
                     $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA'] ?? null);
-                    $ICARGA->__SET('ID_DFINAL', $_REQUEST['DFINAL'] ?? null);
+                    $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
                     if (isset($_REQUEST['TEMBARQUE'])) {
                         if ($_REQUEST['TEMBARQUE'] == "1") {
                             $ICARGA->__SET('ID_TRANSPORTE', $_REQUEST['TRANSPORTE']);
@@ -6135,7 +6250,7 @@ if (isset($_POST)) {
                     $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
                     $ICARGA->__SET('ID_TFLETE', $_REQUEST['TFLETE']);
                     $ICARGA->__SET('ID_SEGURO', $_REQUEST['SEGURO']);
-                    $ICARGA->__SET('ID_PAIS', $PAISSELECCIONADO);
+                    $ICARGA->__SET('ID_PAIS', $PAIS_DESTINO_FORM);
                     $ICARGA->__SET('ID_USUARIOM', $IDUSUARIOS);
                     $ICARGA->__SET('ID_ICARGA', $_REQUEST['IDP']);
                     //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR

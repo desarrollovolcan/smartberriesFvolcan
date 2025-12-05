@@ -348,6 +348,137 @@ if ($_POST) {
     <meta name="author" content="">
     <!- LLAMADA DE LOS ARCHIVOS NECESARIOS PARA DISEÑO Y FUNCIONES BASE DE LA VISTA -!>
         <?php include_once "../../assest/config/urlHead.php"; ?>
+        <style>
+            body.light-skin {
+                background: #f5f7fb;
+            }
+
+            .card {
+                border: 1px solid #e4e7ec;
+                border-radius: 14px;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            }
+
+            .card-header {
+                border-bottom: 1px solid #e4e7ec;
+                background: #fcfcfd;
+                border-radius: 14px 14px 0 0;
+            }
+
+            .card-footer {
+                border-top: 1px solid #e4e7ec;
+                background: #fcfcfd;
+                border-radius: 0 0 14px 14px;
+            }
+
+            .form-control,
+            .select2-container--default .select2-selection--single {
+                border-radius: 12px;
+                border: 1px solid #d9dde3;
+                background: #f9fafb;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+                padding: 10px 14px;
+                text-align: center;
+                height: 44px;
+                line-height: 22px;
+                transition: all 0.2s ease;
+            }
+
+            .select2-container--default .select2-selection--single {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            select.form-control {
+                text-align-last: center;
+                padding: 10px 12px;
+                line-height: 22px;
+                height: 44px;
+            }
+
+            .form-control:focus,
+            .select2-container--default .select2-selection--single:focus,
+            .select2-container--default .select2-selection--single .select2-selection__rendered:focus,
+            .select2-container--default.select2-container--focus .select2-selection--single {
+                border-color: #2563eb;
+                background: #ffffff;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+                outline: none;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                padding-left: 0;
+                color: #111827;
+                line-height: 1.4;
+                width: 100%;
+                text-align: center;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 100%;
+                display: flex;
+                align-items: center;
+            }
+
+            label {
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 6px;
+            }
+
+            .card .form-group {
+                margin-bottom: 12px;
+            }
+
+            .compact-row [class*="col-"] {
+                margin-bottom: 10px;
+            }
+
+            .btn {
+                border-radius: 12px;
+                border: none;
+                padding: 10px 16px;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+                transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+            }
+
+            .btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+                box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            }
+
+            .btn-success {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+            }
+
+            .btn-info {
+                background: linear-gradient(135deg, #06b6d4, #0ea5e9);
+            }
+
+            .btn-danger {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+            }
+
+            .btn-group .btn + .btn {
+                margin-left: 8px;
+            }
+        </style>
         <!- FUNCIONES BASES -!>
             <script type="text/javascript">
                 function validacion() {
@@ -522,15 +653,15 @@ if ($_POST) {
                         </div>
                     </div>
                     <section class="content">
-                        <div class="box">
-                            <div class="box-header with-border">
+                        <div class="box card">
+                            <div class="box-header with-border card-header">
                                 <!--
                                         <h4 class="box-title">Different Width</h4>
                                         -->
                             </div>
                             <form class="form" role="form" method="post" name="form_reg_dato">
                                 <div class="box-body form-element">
-                                    <div class="row">
+                                    <div class="row compact-row">
                                         <div class="col-xxl-4 col-xl-4 col-lg-4 col-md-12 col-sm-12 col-12 col-xs-12">
                                             <div class="form-group">
                                                 <input type="hidden" class="form-control" placeholder="ID DICARGA" id="ID" name="ID" value="<?php echo $IDOP; ?>" />
@@ -693,7 +824,7 @@ if ($_POST) {
                                     <!-- /.box-body -->
                                     <label id=" val_mensaje" class="validacion"><?php echo $MENSAJEELIMINAR; ?> </label>
                                     
-                                <div class="box-footer">
+                                <div class="box-footer card-footer">
                                     <div class="btn-group btn-block col-xxl-4 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12" role="group" aria-label="Acciones generales">
                                         <button type="button" class="btn btn-success  " data-toggle="tooltip" title="Volver" name="CANCELAR" value="CANCELAR" Onclick="irPagina('<?php echo $URLO; ?>.php?op&id=<?php echo $id_dato; ?>&a=<?php echo $accion_dato; ?>&urlo=<?php echo $urlo_dato; ?>');">
                                             <i class="ti-back-left "></i> Volver
