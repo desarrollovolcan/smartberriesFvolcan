@@ -438,9 +438,9 @@ class AUSUARIO_ADO {
     //VER LA INFORMACION RELACIONADA EN BASE AL ID INGRESADO A LA FUNCION
     public function buscarAusuarioPorNombreUsuarioUltimasCinco($NOMBREUSUARIO){
         try{
-            
-            $datos=$this->conexion->prepare("SELECT * 
-                                            FROM  usuario_ausuario  
+
+            $datos=$this->conexion->prepare("SELECT *
+                                            FROM  usuario_ausuario
                                             WHERE  ID_USUARIO = '".$NOMBREUSUARIO."' 
                                             ORDER BY  FECHA_AUSUARIO  DESC LIMIT 5 ; ");
             $datos->execute();
@@ -455,7 +455,45 @@ class AUSUARIO_ADO {
         }catch(Exception $e){
             die($e->getMessage());
         }
-        
+
+    }
+
+    public function listarUltimosCambiosFolioMp($EMPRESA, $PLANTA, $TEMPORADA, $LIMIT = 10)
+    {
+        try {
+            $sql = "SELECT
+                        au.MENSAJE,
+                        au.INGRESO,
+                        u.NOMBRE_USUARIO AS USUARIO,
+                        CONCAT(IFNULL(u.PNOMBRE_USUARIO, ''), ' ', IFNULL(u.SNOMBRE_USUARIO, ''), ' ', IFNULL(u.PAPELLIDO_USUARIO, ''), ' ', IFNULL(u.SAPELLIDO_USUARIO, '')) AS NOMBRE_COMPLETO,
+                        e.NOMBRE_EMPRESA,
+                        p.NOMBRE_PLANTA,
+                        t.NOMBRE_TEMPORADA
+                    FROM usuario_ausuario au
+                    LEFT JOIN usuario_usuario u ON u.ID_USUARIO = au.ID_USUARIO
+                    LEFT JOIN principal_empresa e ON e.ID_EMPRESA = au.ID_EMPRESA
+                    LEFT JOIN principal_planta p ON p.ID_PLANTA = au.ID_PLANTA
+                    LEFT JOIN principal_temporada t ON t.ID_TEMPORADA = au.ID_TEMPORADA
+                    WHERE au.TABLA = 'fruta_eximateriaprima'
+                      AND au.ID_EMPRESA = ?
+                      AND au.ID_PLANTA = ?
+                      AND au.ID_TEMPORADA = ?
+                      AND (au.MENSAJE LIKE '%folio de materia prima%')
+                    ORDER BY au.INGRESO DESC
+                    LIMIT ?;";
+            $datos = $this->conexion->prepare($sql);
+            $datos->bindParam(1, $EMPRESA, PDO::PARAM_INT);
+            $datos->bindParam(2, $PLANTA, PDO::PARAM_INT);
+            $datos->bindParam(3, $TEMPORADA, PDO::PARAM_INT);
+            $datos->bindParam(4, $LIMIT, PDO::PARAM_INT);
+            $datos->execute();
+            $resultado = $datos->fetchAll(PDO::FETCH_ASSOC);
+            $datos=null;
+
+            return $resultado;
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
     }
 }
 ?>

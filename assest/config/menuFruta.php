@@ -705,11 +705,23 @@ $ARRAYPLANTACAMBIAR = $PLANTA_ADO->listarPlantaPropiaCBX();
                   </ul>
                 </li> 
               <?php  } ?>
-              <?php if($PFFRCFOLIO=="1"){ ?>
-                <li><a href="registroCambiarFolioPT.php">Cambiar Folio P. Terminado<i class="ti-more"></i></a></li>     
-              <?php  } ?>
             </ul>
-          </li>            
+          </li>
+        <?php  } ?>
+        <?php if($PFFRCFOLIO=="1"){ ?>
+          <li class="treeview">
+            <a href="#">
+              <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/apps.svg" class="svg-icon" alt="">
+              <span> Gestion de folios</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-right pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">
+              <li><a href="registroGestionFolioMp.php">Folio Materia Prima<i class="ti-more"></i></a></li>
+              <li><a href="registroCambiarFolioPT.php">Cambiar Folio P. Terminado<i class="ti-more"></i></a></li>
+            </ul>
+          </li>
         <?php  } ?>
         <?php if($PFCFRUTA=="1"){ ?>
           <li class="treeview">

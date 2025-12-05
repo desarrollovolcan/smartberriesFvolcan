@@ -661,14 +661,60 @@ class DRECEPCIONMP_ADO
     {
         try {
             $query = "
-                            UPDATE fruta_drecepcionmp SET	
-                                    MODIFICACION = SYSDATE(), 		
+                            UPDATE fruta_drecepcionmp SET
+                                    MODIFICACION = SYSDATE(),
                                     ESTADO = 0
                             WHERE ID_DRECEPCION= ?;";
             $this->conexion->prepare($query)
                 ->execute(
                     array(
                         $DRECEPCIONMP->__GET('ID_DRECEPCION')
+                    )
+                );
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function actualizarFolioPorRecepcion($IDRECEPCION, $FOLIOACTUAL, $FOLIONUEVO)
+    {
+        try {
+            $query = "
+                UPDATE fruta_drecepcionmp SET
+                    MODIFICACION = SYSDATE(),
+                    FOLIO_DRECEPCION = ?
+                WHERE ID_RECEPCION = ?
+                  AND FOLIO_DRECEPCION = ?;";
+
+            $this->conexion->prepare($query)
+                ->execute(
+                    array(
+                        $FOLIONUEVO,
+                        $IDRECEPCION,
+                        $FOLIOACTUAL
+                    )
+                );
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function deshabilitarFolioPorRecepcion($IDRECEPCION, $FOLIOACTUAL)
+    {
+        try {
+            $query = "
+                UPDATE fruta_drecepcionmp SET
+                    MODIFICACION = SYSDATE(),
+                    ESTADO_REGISTRO = 0,
+                    ESTADO = 0
+                WHERE ID_RECEPCION = ?
+                  AND FOLIO_DRECEPCION = ?;";
+
+            $this->conexion->prepare($query)
+                ->execute(
+                    array(
+                        $IDRECEPCION,
+                        $FOLIOACTUAL
                     )
                 );
         } catch (Exception $e) {
