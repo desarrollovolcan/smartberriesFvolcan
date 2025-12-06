@@ -19,7 +19,6 @@ include_once '../../assest/controlador/RFINAL_ADO.php';
 
 include_once '../../assest/controlador/AGCARGA_ADO.php';
 include_once '../../assest/controlador/AADUANA_ADO.php';
-include_once '../../assest/controlador/DFINAL_ADO.php';
 
 
 include_once '../../assest/controlador/TRANSPORTE_ADO.php';
@@ -87,7 +86,6 @@ $RFINAL_ADO =  new RFINAL_ADO();
 
 $AGCARGA_ADO =  new AGCARGA_ADO();
 $AADUANA_ADO =  new AADUANA_ADO();
-$DFINAL_ADO =  new DFINAL_ADO();
 
 $TRANSPORTE_ADO =  new TRANSPORTE_ADO();
 $LCARGA_ADO =  new LCARGA_ADO();
@@ -453,9 +451,9 @@ if($ARRAYICARGA){
         $RUTEXPPORTADORA="Sin Datos";
         $NOMBREEXPPORTADORA="Sin Datos";
       }
-      $ARRAYDFINAL =$DFINAL_ADO->verDfinal( $ARRAYICARGA[0]['ID_DFINAL']);
-      if($ARRAYDFINAL){
-        $NOMBREDFINAL=$ARRAYDFINAL[0]["NOMBRE_DFINAL"];
+      $ARRAYPAISFINAL = $PAIS_ADO->verPais($ARRAYICARGA[0]['ID_DFINAL']);
+      if($ARRAYPAISFINAL){
+        $NOMBREDFINAL=$ARRAYPAISFINAL[0]["NOMBRE_PAIS"];
       }else{
         $NOMBREDFINAL="Sin Datos";
       }
