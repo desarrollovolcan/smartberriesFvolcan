@@ -46,11 +46,25 @@ $TOTALEXPORTACIONNETOS = 0;
 $TOTALDESHIDRATACIONEXPO = 0;
 $TOTALNETOINDUSTRIAL = 0;
 $TURNO = "";
-$NETOENTRADA="";
+$NETOENTRADA = "";
 $MENSAJE = "";
 $MENSAJEENVIO = "";
 $CORREOUSUARIO = "";
 $NOMBRECOMPLETOUSUARIO = $_SESSION['NOMBRE_USUARIO'] ?? '';
+
+/** Totales generales usados en el primer foreach */
+$TOTALNETOENTRADA = 0;
+$TOTALNETO        = 0;
+$TOTALEXPORTACION = 0;
+$TOTALINDUSTRIAL  = 0;
+
+/** Para cálculos de promedios */
+$TOTALPROCESOS          = 0;
+$SUMAPDEXPORTACION      = 0;
+$SUMAPDEXPORTACIONCD    = 0;
+$SUMAPDINDUSTRIAL       = 0;
+$SUMAPORCENTAJE         = 0;
+$SUMAPDDESHIDRATACION   = 0;
 
 
 //INICIALIZAR ARREGLOS
@@ -428,20 +442,33 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
 }
 $ARRAYPROCESOSBAJOEXPORTACION = [];
 if ($ARRAYPROCESO) {
+
+    // cantidad de procesos para promedios
+    $TOTALPROCESOS = count($ARRAYPROCESO);
+
     foreach ($ARRAYPROCESO as $procesoTotales) {
         $TOTALNETOENTRADA += (float) ($procesoTotales['ENTRADA'] ?? 0);
-        $TOTALNETO += (float) ($procesoTotales['NETO'] ?? 0);
+        $TOTALNETO        += (float) ($procesoTotales['NETO'] ?? 0);
         $TOTALEXPORTACION += (float) ($procesoTotales['EXPORTACION'] ?? 0);
-        $TOTALINDUSTRIAL += (float) ($procesoTotales['SUMA_INDUSTRIAL_INFO'] ?? 0);
+        $TOTALINDUSTRIAL  += (float) ($procesoTotales['SUMA_INDUSTRIAL_INFO'] ?? 0);
     }
 
     foreach ($ARRAYPROCESO as $proceso) {
-        $TOTALNETOPROCESADO += (float) ($proceso['NETO'] ?? 0);
+        $TOTALNETOPROCESADO    += (float) ($proceso['NETO'] ?? 0);
         $TOTALEXPORTACIONNETOS += (float) ($proceso['EXPORTACION'] ?? 0);
-        $TOTALNETOINDUSTRIAL += (float) ($proceso['SUMA_INDUSTRIAL_INFO'] ?? 0);
+        $TOTALNETOINDUSTRIAL   += (float) ($proceso['SUMA_INDUSTRIAL_INFO'] ?? 0);
 
         $kilosDeshidratacion = ((float) ($proceso['EXPORTACION'] ?? 0)) - ((float) ($proceso['NETO'] ?? 0));
         $TOTALDESHIDRATACIONEXPO += $kilosDeshidratacion;
+
+        // para promedios
+        $SUMAPDEXPORTACION    += (float) ($proceso['PDEXPORTACION_PROCESO'] ?? 0);
+        $SUMAPDEXPORTACIONCD  += (float) ($proceso['PDEXPORTACIONCD_PROCESO'] ?? 0);
+        $SUMAPDINDUSTRIAL     += (float) ($proceso['PDINDUSTRIAL_PROCESO'] ?? 0);
+        $SUMAPORCENTAJE       += (float) ($proceso['PORCENTAJE_PROCESO'] ?? 0);
+        $SUMAPDDESHIDRATACION += (float)(
+            ($proceso['PDEXPORTACIONCD_PROCESO'] ?? 0) - ($proceso['PDEXPORTACION_PROCESO'] ?? 0)
+        );
 
         if ($proceso['PDEXPORTACION_PROCESO'] < 85) {
             $ARRAYPROCESOSBAJOEXPORTACION[] = [
@@ -452,11 +479,13 @@ if ($ARRAYPROCESO) {
     }
 }
 
-$PROMPDEXPORTACION = $TOTALPROCESOS ? $SUMAPDEXPORTACION / $TOTALPROCESOS : 0;
+$PROMPDEXPORTACION   = $TOTALPROCESOS ? $SUMAPDEXPORTACION / $TOTALPROCESOS : 0;
 $PROMPDEXPORTACIONCD = $TOTALPROCESOS ? $SUMAPDEXPORTACIONCD / $TOTALPROCESOS : 0;
-$PROMPDINDUSTRIAL = $TOTALPROCESOS ? $SUMAPDINDUSTRIAL / $TOTALPROCESOS : 0;
-$PROMPORCENTAJE = $TOTALPROCESOS ? $SUMAPORCENTAJE / $TOTALPROCESOS : 0;
-$PROMPDDESHIDRATACION = $TOTALPROCESOS ? $SUMAPDDESHIDRATACION / $TOTALPROCESOS : 0;
+$PROMPDINDUSTRIAL    = $TOTALPROCESOS ? $SUMAPDINDUSTRIAL / $TOTALPROCESOS : 0;
+$PROMPORCENTAJE      = $TOTALPROCESOS ? $SUMAPORCENTAJE / $TOTALPROCESOS : 0;
+$PROMPDDESHIDRATACION= $TOTALPROCESOS ? $SUMAPDDESHIDRATACION / $TOTALPROCESOS : 0;
+
+
 include_once "../../assest/config/validarDatosUrl.php";
 include_once "../../assest/config/datosUrLP.php";
 
@@ -500,6 +529,8 @@ include_once "../../assest/config/datosUrLP.php";
                 function irPagina(url) {
                     location.href = "" + url;
                 }
+
+            
 
                 //FUNCION PARA ABRIR VENTANA QUE SE ENCUENTRA LA OPERACIONES DE DETALLE DE RECEPCION
                 function abrirVentana(url) {
@@ -960,7 +991,7 @@ include_once "../../assest/config/datosUrLP.php";
                     columnDefs: [
                         { targets: [28, 29, 30, 31], visible: false }
                     ],
-                    dom: 'Bfrtip', // <- AQUÍ VA LA "f" PARA MOSTRAR EL BUSCADOR
+                    dom: 'Brtip',
                     buttons: [
                         {
                             extend: 'excelHtml5',
@@ -976,7 +1007,7 @@ include_once "../../assest/config/datosUrLP.php";
                     ]
                 });
 
-                // IMPORTANTE: ya no se remueve el filtro de DataTables
+                // IMPORTANTE: ya no se oculta el buscador de DataTables
                 // $('#procesoFruta_filter').remove();
 
                 $('#modalEliminarProceso').on('show.bs.modal', function (event) {
