@@ -845,8 +845,32 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                     paging: false,
                     pageLength: 10,
                     scrollY: '60vh',
+                    scrollX: true,
                     scrollCollapse: true,
                     lengthChange: false,
+                    language: {
+                        search: "Buscar:",
+                        searchBuilder: {
+                            add: 'Agregar filtro',
+                            button: {
+                                0: 'Filtros',
+                                _: 'Filtros (%d)'
+                            },
+                            clearAll: 'Quitar todo',
+                            condition: 'Condición',
+                            data: 'Columna',
+                            deleteTitle: 'Eliminar regla de filtrado',
+                            leftTitle: 'Filtros agrupados',
+                            logicAnd: 'Y',
+                            logicOr: 'O',
+                            rightTitle: 'Agrupación de filtros',
+                            title: {
+                                0: 'Filtros',
+                                _: 'Filtros (%d)'
+                            },
+                            value: 'Valor'
+                        }
+                    },
                     dom: 'Bfrtip',
                     buttons: [
                         {
@@ -857,14 +881,14 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                             }
                         },
                         {
-                            extend: 'searchPanes',
-                            text: 'Filtro',
-                            config: {
-                                cascadePanes: true
-                            }
+                            extend: 'searchBuilder',
+                            text: 'Filtros'
                         }
                     ]
                 });
+
+                // IMPORTANTE: Ya no se elimina el buscador de DataTables
+                // $('#recepcionmp_filter').remove();
 
                 $('#modalCerrarRecepcion').on('show.bs.modal', function (event) {
                     var button = $(event.relatedTarget);
