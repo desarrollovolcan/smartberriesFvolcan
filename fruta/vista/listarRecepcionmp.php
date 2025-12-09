@@ -11,6 +11,12 @@ include_once '../../assest/controlador/CONDUCTOR_ADO.php';
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/TRANSPORTE_ADO.php';
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
+include_once '../../assest/controlador/EXIMATERIAPRIMA_ADO.php';
+include_once '../../assest/controlador/USUARIO_ADO.php';
+include_once '../../assest/controlador/EMPRESA_ADO.php';
+include_once '../../assest/controlador/PLANTA_ADO.php';
+include_once '../../assest/controlador/TEMPORADA_ADO.php';
+include_once '../../assest/modelo/RECEPCIONMP.php';
 
 //INCIALIZAR LAS VARIBLES
 //INICIALIZAR CONTROLADOR¿
@@ -20,8 +26,14 @@ $DRECEPCIONMP_ADO =  new DRECEPCIONMP_ADO();
 
 $PRODUCTOR_ADO =  new PRODUCTOR_ADO();
 $TRANSPORTE_ADO =  new TRANSPORTE_ADO();
-$CONDUCTOR_ADO =  new CONDUCTOR_ADO(); 
+$CONDUCTOR_ADO =  new CONDUCTOR_ADO();
 $PRODUCTOR_ADO =  new PRODUCTOR_ADO();
+$EXIMATERIAPRIMA_ADO = new EXIMATERIAPRIMA_ADO();
+$USUARIO_ADO = new USUARIO_ADO();
+$EMPRESA_ADO = new EMPRESA_ADO();
+$PLANTA_ADO = new PLANTA_ADO();
+$TEMPORADA_ADO = new TEMPORADA_ADO();
+$RECEPCIONMP = new RECEPCIONMP();
 
 
 //INCIALIZAR VARIBALES A OCUPAR PARA LA FUNCIONALIDAD
@@ -34,6 +46,11 @@ $TOTALGUIA = "";
 $TOTALBRUTO = "";
 $TOTALNETO = "";
 $TOTALENVASE = "";
+$MENSAJE = "";
+$MENSAJEENVIO = "";
+
+$CORREOUSUARIO = "";
+$NOMBRECOMPLETOUSUARIO = $_SESSION['NOMBRE_USUARIO'] ?? '';
 
 $FECHADESDE = "";
 $FECHAHASTA = "";
@@ -50,16 +67,369 @@ $ARRAYVERTRANSPORTE = "";
 $ARRAYVERCONDUCTOR = "";
 $ARRAYFECHA = "";
 $ARRAYPRODUCTOR = "";
+$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
+if ($ARRAYUSUARIO) {
+    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
+    $NOMBRECOMPLETOUSUARIO = trim(
+        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
+    );
+    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
+}
+
+function generarCodigoAutorizacion()
+{
+    if (function_exists('random_int')) {
+        return random_int(100000, 999999);
+    }
+
+    return mt_rand(100000, 999999);
+}
+
+function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
+{
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
+
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
+
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
+    }
+
+    if (function_exists('stream_set_timeout')) {
+        stream_set_timeout($conexion, $timeout);
+    }
+
+    $leerRespuesta = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] === ' ') {
+                break;
+            }
+        }
+        return $respuesta;
+    };
+
+    $comando = function ($instruccion, $codigoEsperado) use ($conexion, $leerRespuesta) {
+        fwrite($conexion, $instruccion . "\r\n");
+        $respuesta = $leerRespuesta();
+        if (substr($respuesta, 0, 3) !== $codigoEsperado) {
+            throw new Exception("Error SMTP en '{$instruccion}': {$respuesta}");
+        }
+        return $respuesta;
+    };
+
+    $respuestaInicial = $leerRespuesta();
+    if (substr($respuestaInicial, 0, 3) !== '220') {
+        fclose($conexion);
+        return [false, "El servidor SMTP no respondió correctamente: {$respuestaInicial}"];
+    }
+
+    $hostEhlo = $host ?: 'localhost';
+    try {
+        $comando('EHLO ' . $hostEhlo, '250');
+    } catch (Exception $e) {
+        $comando('HELO ' . $hostEhlo, '250');
+    }
+
+    try {
+        $comando('AUTH LOGIN', '334');
+        $comando(base64_encode($usuario), '334');
+        $comando(base64_encode($contrasena), '235');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error de autenticación SMTP: " . $e->getMessage()];
+    }
+
+    try {
+        $comando("MAIL FROM:<{$remitente}>", '250');
+        foreach ($destinatarios as $correo) {
+            $comando("RCPT TO:<{$correo}>", '250');
+        }
+        $comando('DATA', '354');
+
+        $cabeceras = "Date: " . date('r') . "\r\n" .
+            "Message-ID: <" . uniqid() . "@" . ($hostEhlo ?: 'localhost') . ">\r\n" .
+            "From: {$remitente}\r\n" .
+            "Return-Path: {$remitente}\r\n" .
+            "Reply-To: {$remitente}\r\n" .
+            "To: " . implode(', ', $destinatarios) . "\r\n" .
+            "Subject: {$asunto}\r\n" .
+            "MIME-Version: 1.0\r\n" .
+            "X-Mailer: PHP/" . phpversion() . "\r\n" .
+            "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+
+        $mensajeNormalizado = str_replace(["\r\n", "\n"], "\r\n", $mensaje);
+        fwrite($conexion, $cabeceras . $mensajeNormalizado . "\r\n.\r\n");
+        $respuestaData = $leerRespuesta();
+        if (substr($respuestaData, 0, 3) !== '250') {
+            throw new Exception("Error SMTP tras DATA: {$respuestaData}");
+        }
+        $comando('QUIT', '221');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error al enviar correo: " . $e->getMessage()];
+    }
+
+    fclose($conexion);
+    return [true, null];
+}
+
+function obtenerDatosCorreoRecepcion($recepcion, $PRODUCTOR_ADO, $PLANTA_ADO, $EMPRESA_ADO, $TEMPORADA_ADO)
+{
+    $numero = $recepcion['NUMERO_RECEPCION'] ?? 'Sin datos';
+    $fecha = $recepcion['FECHA'] ?? ($recepcion['FECHA_RECEPCION'] ?? 'Sin datos');
+    $empresa = 'Sin datos';
+    $planta = 'Sin datos';
+    $temporada = 'Sin datos';
+    $origen = 'Sin datos';
+
+    if (!empty($recepcion['ID_EMPRESA'])) {
+        $empresaData = $EMPRESA_ADO->verEmpresa($recepcion['ID_EMPRESA']);
+        if ($empresaData) {
+            $empresa = $empresaData[0]['NOMBRE_EMPRESA'];
+        }
+    }
+
+    if (!empty($recepcion['ID_PLANTA'])) {
+        $plantaData = $PLANTA_ADO->verPlanta($recepcion['ID_PLANTA']);
+        if ($plantaData) {
+            $planta = $plantaData[0]['NOMBRE_PLANTA'];
+        }
+    }
+
+    if (!empty($recepcion['ID_TEMPORADA'])) {
+        $temporadaData = $TEMPORADA_ADO->verTemporada($recepcion['ID_TEMPORADA']);
+        if ($temporadaData) {
+            $temporada = $temporadaData[0]['NOMBRE_TEMPORADA'];
+        }
+    }
+
+    if (!empty($recepcion['TRECEPCION'])) {
+        if ($recepcion['TRECEPCION'] == "1" || $recepcion['TRECEPCION'] == "3") {
+            $productor = $PRODUCTOR_ADO->verProductor($recepcion['ID_PRODUCTOR'] ?? null);
+            $origen = $productor ? $productor[0]['NOMBRE_PRODUCTOR'] : 'Sin datos';
+        } elseif ($recepcion['TRECEPCION'] == "2") {
+            $plantaOrigen = $PLANTA_ADO->verPlanta($recepcion['ID_PLANTA2'] ?? null);
+            $origen = $plantaOrigen ? $plantaOrigen[0]['NOMBRE_PLANTA'] : 'Sin datos';
+        }
+    }
+
+    return [
+        'numero' => $numero,
+        'fecha' => $fecha,
+        'empresa' => $empresa,
+        'planta' => $planta,
+        'temporada' => $temporada,
+        'origen' => $origen,
+    ];
+}
+$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
+if ($ARRAYUSUARIO) {
+    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
+    $NOMBRECOMPLETOUSUARIO = trim(
+        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
+    );
+    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
+}
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
 
+
+include_once "../../assest/config/validarDatosUrl.php";
+include_once "../../assest/config/datosUrLP.php";
+
+if ($_POST) {
+    $IDRECEPCION = $_REQUEST['ID'] ?? null;
+    $CODIGOCIERRE = $_REQUEST['CODIGO_CERRAR'] ?? '';
+    $CODIGOAPERTURA = $_REQUEST['CODIGO_ABRIR'] ?? '';
+
+    $detalleRecepcion = $IDRECEPCION ? $RECEPCIONMP_ADO->verRecepcion2($IDRECEPCION) : [];
+    $datosRecepcion = $detalleRecepcion ? $detalleRecepcion[0] : [];
+    $datosCorreo = obtenerDatosCorreoRecepcion($datosRecepcion, $PRODUCTOR_ADO, $PLANTA_ADO, $EMPRESA_ADO, $TEMPORADA_ADO);
+
+    if (isset($_REQUEST['SOLICITAR_CERRAR'])) {
+        $foliosActivos = $IDRECEPCION ? $EXIMATERIAPRIMA_ADO->buscarPorRecepcionIngresado($IDRECEPCION) : [];
+        $detallesActivos = $IDRECEPCION ? $DRECEPCIONMP_ADO->listarDrecepcionPorRecepcion($IDRECEPCION) : [];
+
+        if ($foliosActivos || $detallesActivos) {
+            unset($_SESSION['RECEPCION_CERRAR_CODIGO'], $_SESSION['RECEPCION_CERRAR_ID'], $_SESSION['RECEPCION_CERRAR_TIEMPO']);
+            $MENSAJEENVIO = '';
+            $MENSAJE = "La recepción tiene registros de materia prima asociados y no se envió código de autorización.";
+        } else {
+            $codigoAutorizacion = generarCodigoAutorizacion();
+            $_SESSION['RECEPCION_CERRAR_CODIGO'] = $codigoAutorizacion;
+            $_SESSION['RECEPCION_CERRAR_ID'] = $IDRECEPCION;
+            $_SESSION['RECEPCION_CERRAR_TIEMPO'] = time();
+
+            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $asunto = 'Autorización eliminación recepción #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se solicitó eliminar una recepción de materia prima." . "\r\n\r\n" .
+                "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de recepción: " . $datosCorreo['fecha'] . "\r\n" .
+                "Origen: " . $datosCorreo['origen'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+                "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+                "El código tiene validez de 15 minutos.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if ($envioOk) {
+                $MENSAJEENVIO = "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla.";
+            } else {
+                $MENSAJE = $errorEnvio ?: "No fue posible enviar el correo de autorización.";
+            }
+        }
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_CERRAR'])) {
+        $codigoSesion = $_SESSION['RECEPCION_CERRAR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['RECEPCION_CERRAR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['RECEPCION_CERRAR_TIEMPO'] ?? 0;
+
+        $foliosActivos = $IDRECEPCION ? $EXIMATERIAPRIMA_ADO->buscarPorRecepcionIngresado($IDRECEPCION) : [];
+        $detallesActivos = $IDRECEPCION ? $DRECEPCIONMP_ADO->listarDrecepcionPorRecepcion($IDRECEPCION) : [];
+
+        if ($foliosActivos || $detallesActivos) {
+            $MENSAJE = "No es posible eliminar la recepción porque existen folios de materia prima habilitados.";
+        } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDRECEPCION) {
+            $MENSAJE = "Debe solicitar un código de autorización antes de eliminar esta recepción.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOCIERRE || $CODIGOCIERRE != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $RECEPCIONMP->__SET('ID_RECEPCION', $IDRECEPCION);
+            $RECEPCIONMP_ADO->cerrado($RECEPCIONMP);
+            $RECEPCIONMP_ADO->deshabilitar($RECEPCIONMP);
+
+            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $asunto = 'Confirmación eliminación recepción #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la eliminación de la recepción." . "\r\n\r\n" .
+                "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de recepción: " . $datosCorreo['fecha'] . "\r\n" .
+                "Origen: " . $datosCorreo['origen'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado se marcó como eliminado.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Recepción eliminada correctamente." : ($errorEnvio ?: "La recepción se eliminó pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['RECEPCION_CERRAR_CODIGO']);
+            unset($_SESSION['RECEPCION_CERRAR_ID']);
+            unset($_SESSION['RECEPCION_CERRAR_TIEMPO']);
+        }
+    }
+
+    if (isset($_REQUEST['SOLICITAR_ABRIR'])) {
+        $codigoAutorizacion = generarCodigoAutorizacion();
+        $_SESSION['RECEPCION_ABRIR_CODIGO'] = $codigoAutorizacion;
+        $_SESSION['RECEPCION_ABRIR_ID'] = $IDRECEPCION;
+        $_SESSION['RECEPCION_ABRIR_TIEMPO'] = time();
+
+        $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+        $asunto = 'Autorización apertura recepción #' . $datosCorreo['numero'];
+        $mensajeCorreo = "Se solicitó abrir una recepción de materia prima." . "\r\n\r\n" .
+            "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
+            "Fecha de recepción: " . $datosCorreo['fecha'] . "\r\n" .
+            "Origen: " . $datosCorreo['origen'] . "\r\n" .
+            "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+            "Planta: " . $datosCorreo['planta'] . "\r\n" .
+            "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+            "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+            "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+            "El código tiene validez de 15 minutos.";
+
+        $remitente = 'informevolcan@gocreative.cl';
+        $usuarioSMTP = 'informevolcan@gocreative.cl';
+        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+        $hostSMTP = 'mail.gocreative.cl';
+        $puertoSMTP = 465;
+
+        [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+        if ($envioOk) {
+            $MENSAJEENVIO = "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla.";
+        } else {
+            $MENSAJE = $errorEnvio ?: "No fue posible enviar el correo de autorización.";
+        }
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_ABRIR'])) {
+        $codigoSesion = $_SESSION['RECEPCION_ABRIR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['RECEPCION_ABRIR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['RECEPCION_ABRIR_TIEMPO'] ?? 0;
+
+        if (!$codigoSesion || !$idSesion || $idSesion != $IDRECEPCION) {
+            $MENSAJE = "No hay una solicitud de apertura vigente para esta recepción.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOAPERTURA || $CODIGOAPERTURA != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $RECEPCIONMP->__SET('ID_RECEPCION', $IDRECEPCION);
+            $RECEPCIONMP->__SET('ESTADO', 1);
+            $RECEPCIONMP_ADO->abierto($RECEPCIONMP);
+
+            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $asunto = 'Confirmación apertura recepción #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la apertura de la recepción." . "\r\n\r\n" .
+                "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de recepción: " . $datosCorreo['fecha'] . "\r\n" .
+                "Origen: " . $datosCorreo['origen'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado se marcó como abierto.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Recepción abierta correctamente." : ($errorEnvio ?: "La recepción se abrió pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['RECEPCION_ABRIR_CODIGO']);
+            unset($_SESSION['RECEPCION_ABRIR_ID']);
+            unset($_SESSION['RECEPCION_ABRIR_TIEMPO']);
+        }
+    }
+}
 
 if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
     $ARRAYRECEPCION = $RECEPCIONMP_ADO->listarRecepcionEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
 }
 
-include_once "../../assest/config/validarDatosUrl.php";
-include_once "../../assest/config/datosUrLP.php";
 
 
 
@@ -143,6 +513,16 @@ include_once "../../assest/config/datosUrLP.php";
                 <section class="content">
                     <div class="box">
                         <div class="box-body">
+                            <?php if ($MENSAJE) { ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <?php echo $MENSAJE; ?>
+                                </div>
+                            <?php } ?>
+                            <?php if ($MENSAJEENVIO) { ?>
+                                <div class="alert alert-success" role="alert">
+                                    <?php echo $MENSAJEENVIO; ?>
+                                </div>
+                            <?php } ?>
                             <div class="row">
                                 <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                                     <div class="table-responsive">
@@ -151,7 +531,8 @@ include_once "../../assest/config/datosUrLP.php";
                                                 <tr class="text-center">
                                                     <th>Numero Recepción </th>
                                                     <th>Estado</th>
-                                                    <th class="text-center">Operaciones</th>
+                                                    <th class="text-center">Administración</th>
+                                                    <th class="text-center">Autorizaciones</th>
                                                     <th>Origen Recepción</th>
                                                     <th>CSG/CSP Recepción</th>
                                                     <th>Numero Guía </th>
@@ -171,9 +552,6 @@ include_once "../../assest/config/datosUrLP.php";
                                                     <th>Patente Carro </th>
                                                     <th>Semana Recepción </th>
                                                     <th>Semana Guía </th>
-                                                    <th>Empresa</th>
-                                                    <th>Planta</th>
-                                                    <th>Temporada</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -308,6 +686,20 @@ include_once "../../assest/config/datosUrLP.php";
                                                                 </div>
                                                             </form>
                                                         </td>
+                                                        <td class="text-center">
+                                                            <div class="d-grid gap-1">
+                                                                <?php if ($r['ESTADO'] == "1") { ?>
+                                                                    <button type="button" class="btn btn-outline-danger btn-sm btn-block" data-toggle="modal" data-target="#modalCerrarRecepcion" data-id="<?php echo $r['ID_RECEPCION']; ?>" data-numero="<?php echo $r['NUMERO_RECEPCION']; ?>">
+                                                                        Eliminar recepción
+                                                                    </button>
+                                                                <?php } ?>
+                                                                <?php if ($r['ESTADO'] == "0") { ?>
+                                                                    <button type="button" class="btn btn-outline-success btn-sm btn-block" data-toggle="modal" data-target="#modalAbrirRecepcion" data-id="<?php echo $r['ID_RECEPCION']; ?>" data-numero="<?php echo $r['NUMERO_RECEPCION']; ?>">
+                                                                        Abrir recepción
+                                                                    </button>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </td>
                                                         <td><?php echo $ORIGEN; ?></td>
                                                         <td><?php echo $CSGCSPORIGEN; ?></td>
                                                         <td><?php echo $r['NUMERO_GUIA_RECEPCION']; ?></td> 
@@ -327,9 +719,6 @@ include_once "../../assest/config/datosUrLP.php";
                                                         <td><?php echo $r['PATENTE_CARRO']; ?></td>                                                
                                                         <td><?php echo $r['SEMANA']; ?></td>
                                                         <td><?php echo $r['SEMANAGUIA']; ?></td>
-                                                        <td><?php echo $NOMBREEMPRESA; ?></td>
-                                                        <td><?php echo $NOMBREPLANTA; ?></td>
-                                                        <td><?php echo $NOMBRETEMPORADA; ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
@@ -380,6 +769,122 @@ include_once "../../assest/config/datosUrLP.php";
         <?php include_once "../../assest/config/menuExtraFruta.php"; ?>
     </div>
     <?php include_once "../../assest/config/urlBase.php"; ?>
+
+        <!-- Modal Eliminar Recepción -->
+        <div class="modal fade" id="modalCerrarRecepcion" tabindex="-1" role="dialog" aria-labelledby="modalCerrarRecepcionLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalCerrarRecepcionLabel">Autorización para eliminar recepción</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="font-weight-bold">Recepción N° <span class="numero-recepcion-cerrar"></span></p>
+                            <input type="hidden" name="ID" value="">
+                            <input type="hidden" name="URL" value="registroRecepcionmp">
+                            <input type="hidden" name="URLO" value="listarRecepcionmp">
+                            <div class="form-group">
+                                <label for="codigoCerrar">Código de autorización</label>
+                                <input type="text" class="form-control" id="codigoCerrar" name="CODIGO_CERRAR" placeholder="Ingresa el código recibido">
+                                <small class="form-text text-muted">El código tiene validez de 15 minutos.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-danger" name="SOLICITAR_CERRAR">Solicitar código</button>
+                            <button type="submit" class="btn btn-danger" name="CONFIRMAR_CERRAR">Eliminar recepción</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Abrir Recepción -->
+        <div class="modal fade" id="modalAbrirRecepcion" tabindex="-1" role="dialog" aria-labelledby="modalAbrirRecepcionLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalAbrirRecepcionLabel">Autorización para abrir recepción</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="font-weight-bold">Recepción N° <span class="numero-recepcion-abrir"></span></p>
+                            <input type="hidden" name="ID" value="">
+                            <input type="hidden" name="URL" value="registroRecepcionmp">
+                            <input type="hidden" name="URLO" value="listarRecepcionmp">
+                            <div class="form-group">
+                                <label for="codigoAbrir">Código de autorización</label>
+                                <input type="text" class="form-control" id="codigoAbrir" name="CODIGO_ABRIR" placeholder="Ingresa el código recibido">
+                                <small class="form-text text-muted">El código tiene validez de 15 minutos.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-success" name="SOLICITAR_ABRIR">Solicitar código</button>
+                            <button type="submit" class="btn btn-success" name="CONFIRMAR_ABRIR">Abrir recepción</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function () {
+                if ($.fn.DataTable.isDataTable('#recepcionmp')) {
+                    $('#recepcionmp').DataTable().destroy();
+                }
+
+                $('#recepcionmp').DataTable({
+                    order: [[0, 'desc']],
+                    paging: false,
+                    pageLength: 10,
+                    scrollY: '60vh',
+                    scrollCollapse: true,
+                    lengthChange: false,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'searchPanes',
+                            text: 'Filtro',
+                            config: {
+                                cascadePanes: true
+                            }
+                        }
+                    ]
+                });
+
+                $('#modalCerrarRecepcion').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget);
+                    var idRecepcion = button.data('id');
+                    var numero = button.data('numero');
+                    var modal = $(this);
+                    modal.find('input[name="ID"]').val(idRecepcion);
+                    modal.find('.numero-recepcion-cerrar').text(numero || '');
+                });
+
+                $('#modalAbrirRecepcion').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget);
+                    var idRecepcion = button.data('id');
+                    var numero = button.data('numero');
+                    var modal = $(this);
+                    modal.find('input[name="ID"]').val(idRecepcion);
+                    modal.find('.numero-recepcion-abrir').text(numero || '');
+                });
+            });
+        </script>
 </body>
 
 </html>
