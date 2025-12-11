@@ -263,17 +263,16 @@ include_once "../../assest/config/datosUrLP.php";
                                                         <th>Modalidad Venta</th>
                                                         <th>Clausula Venta</th>
                                                         <th>Tipo Flete</th>
-                                                        <th>Fecha Corte Documental</th>   
+                                                        <th>Fecha Corte Documental</th>
                                                         <th>Fecha ETD</th>
                                                         <th>Fecha ETA</th>
-                                                        <th>Fecha Real ETA</th>                                            
+                                                        <th>Fecha Real ETA</th>
                                                         <th>Tipo Contenedor</th>
-                                                        <th>BL/AWB</th>
                                                         <th>Emisión BL</th>
                                                         <th>N° Contenedor</th>
                                                         <th>Días Estimados</th>
                                                         <th>Días Reales </th>
-                                                        <th>Destino Final </th>       
+                                                        <th>Destino Final </th>
                                                         <th>Semana Instructivo</th>
                                                         <th>Semana Corte Documental</th>
                                                         <th>Semana ETD</th>
@@ -593,7 +592,6 @@ include_once "../../assest/config/datosUrLP.php";
                                                                 <td> <?php echo $r['FECHAETA']; ?> </td>
                                                                 <td> <?php echo $r['FECHAETAREAL']; ?> </td>
                                                                 <td> <?php echo $NOMBRETCONTENEDOR; ?> </td>
-                                                                <td> <?php echo $r['CRT_ICARGA']; ?> </td>
                                                                 <td> <?php echo $NOMBREEMISIONBL; ?> </td>
                                                                 <td> <?php echo $NUMEROCONTENEDOR; ?> </td>
                                                                 <td> <?php echo $r['ESTIMADO']; ?> </td>
