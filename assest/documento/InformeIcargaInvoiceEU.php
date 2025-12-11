@@ -55,15 +55,16 @@ include_once '../../assest/controlador/TMANEJO_ADO.php';
 include_once '../../assest/controlador/TMONEDA_ADO.php';
 include_once '../../assest/controlador/ECOMERCIAL_ADO.php';
  
-include_once '../../assest/controlador/PAIS_ADO.php';
-include_once '../../assest/controlador/REGION_ADO.php';
-include_once '../../assest/controlador/PROVINCIA_ADO.php';
-include_once '../../assest/controlador/COMUNA_ADO.php';
 
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/DESPACHOEX_ADO.php';
 include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 
+
+include_once '../../assest/controlador/PAIS_ADO.php';
+include_once '../../assest/controlador/REGION_ADO.php';
+include_once '../../assest/controlador/PROVINCIA_ADO.php';
+include_once '../../assest/controlador/COMUNA_ADO.php';
 
 
 include_once '../../assest/controlador/ICARGA_ADO.php';
@@ -133,6 +134,11 @@ $DICARGA_ADO =  new DICARGA_ADO();
 
 $NUMERO = "";
 $NUMEROVER = "";
+$LUGARDECARGA = "";
+$FDADESPACHOEX = "";
+$FECHADESPACHOEX = "";
+$NUMEROCONTENEDOR = "";
+$NUMEROSELLO = "";
 $FECHAINGRESO = "";
 $FECHAMODIFCIACION = "";
 $IDINOTA = "";
@@ -177,11 +183,19 @@ $TOTALNETOV = 0;
 $TOTALBRUTOV = 0;
 $TOTALUS = 0;
 $TOTALUSV = 0;
-$LUGARDECARGA = "";
-$FDADESPACHOEX = "";
-$FECHADESPACHOEX = "";
-$NUMEROCONTENEDOR = "";
-$NUMEROSELLO = "";
+
+function normalizeNumber($value) {
+  if ($value === null || $value === '') {
+    return 0;
+  }
+  if (is_numeric($value)) {
+    return (float) $value;
+  }
+
+  $value = str_replace(['.', ' '], '', $value);
+  $value = str_replace(',', '.', $value);
+  return (float) $value;
+}
 
 //INICIALIZAR ARREGLOS
 $ARRAYEMPRESA = "";
@@ -210,15 +224,19 @@ $ARRAYSEGURO = "";
 $ARRAYPRODUCTOR = "";
 $ARRAYDCARGA = "";
 $ARRAYDCARGAAGRUPADO = [];
+$ARRAYDETALLEAGRUPADO = [];
+$ARRAYGROSSKILO = [];
+$ARRAYNETKILO = [];
+$ARRAYENVASEAGRUPADO = [];
+$ARRAYPRECIOPORCALIBRE = [];
+$ARRAYPRECIOPORCALIBREID = [];
+$ARRAYPRECIOPORCALIBRESOLO = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
 $ARRAYVERNOTADCNC="";
 $ARRAYCOMUNA="";
 $ARRYAPROVINCIA="";
 $ARRYAREGION="";
-$ARRAYGROSSKILO = [];
-$ARRAYNETKILO = [];
-$ARRAYENVASEAGRUPADO = [];
 
 
 if (isset($_REQUEST['usuario'])) {
@@ -237,12 +255,12 @@ if (isset($_REQUEST['parametro'])) {
 $ARRAYICARGA=$ICARGA_ADO->verIcarga2($IDOP);
 if($ARRAYICARGA){
       
-    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
-    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
+    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     if($ARRAYDCARGA1){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
     }else if($ARRAYDCARGA2){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     }
     
 
@@ -290,53 +308,106 @@ if($ARRAYICARGA){
               $NOMBREECOMERCIAL = $ARRAYECOMERCIAL[0]['NOMBRE_ECOMERCIAL'];
             }
           }
-          $NOMBRETMANEJO = "Sin Datos";
-          if(isset($r['ID_TMANEJO'])){
-            $ARRAYTMANEJO = $TMANEJO_ADO->verTmanejo($r['ID_TMANEJO']);
-            if($ARRAYTMANEJO){
-              $NOMBRETMANEJO = $ARRAYTMANEJO[0]['NOMBRE_TMANEJO'];
+          $NOMBRETCALIBRE = "Sin Datos";
+          if(isset($r['ID_TCALIBRE'])){
+            $ARRAYCALIBREDETA = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
+            if($ARRAYCALIBREDETA){
+              $NOMBRETCALIBRE = $ARRAYCALIBREDETA[0]['NOMBRE_TCALIBRE'];
             }
           }
-          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO;
-          if(!isset($ARRAYGROSSKILO[$KEYDETALLE])){
-            $ARRAYGROSSKILO[$KEYDETALLE] = 0;
+          $KEYCALIBRE = $NOMBRETCALIBRE;
+          if(!isset($ARRAYGROSSKILO[$KEYCALIBRE])){
+            $ARRAYGROSSKILO[$KEYCALIBRE] = 0;
           }
-          if(!isset($ARRAYNETKILO[$KEYDETALLE])){
-            $ARRAYNETKILO[$KEYDETALLE] = 0;
+          if(!isset($ARRAYNETKILO[$KEYCALIBRE])){
+            $ARRAYNETKILO[$KEYCALIBRE] = 0;
           }
-          if(!isset($ARRAYENVASEAGRUPADO[$KEYDETALLE])){
-            $ARRAYENVASEAGRUPADO[$KEYDETALLE] = 0;
-          }
-          $ARRAYGROSSKILO[$KEYDETALLE] = $ARRAYGROSSKILO[$KEYDETALLE] + $r['BRUTO'];
-          $ARRAYNETKILO[$KEYDETALLE] = $ARRAYNETKILO[$KEYDETALLE] + $r['NETO'];
-          $ARRAYENVASEAGRUPADO[$KEYDETALLE] = $ARRAYENVASEAGRUPADO[$KEYDETALLE] + $r['ENVASE'];
-        endforeach;
-      endforeach;
-    }
+      if(!isset($ARRAYENVASEAGRUPADO[$KEYCALIBRE])){
+        $ARRAYENVASEAGRUPADO[$KEYCALIBRE] = 0;
+      }
+      $ARRAYGROSSKILO[$KEYCALIBRE] = $ARRAYGROSSKILO[$KEYCALIBRE] + $r['BRUTO'];
+      $ARRAYNETKILO[$KEYCALIBRE] = $ARRAYNETKILO[$KEYCALIBRE] + $r['NETO'];
+      $ARRAYENVASEAGRUPADO[$KEYCALIBRE] = $ARRAYENVASEAGRUPADO[$KEYCALIBRE] + $r['ENVASE'];
+    endforeach;
+  endforeach;
+}
 
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
-      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TMANEJO'];
-      if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
-        $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
-          'NOMBRE' => $s['NOMBRE'],
-          'TMANEJO' => $s['TMANEJO'],
+      $KEYCALIBRE = $s['TCALIBRE'];
+      $IDTCALIBRE = $s['ID_TCALIBRE'] ?? null;
+      if(!isset($ARRAYDCARGAAGRUPADO[$KEYCALIBRE])){
+      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE] = [
+        'NOMBRE' => $s['NOMBRE'],
+        'TCALIBRE' => $s['TCALIBRE'],
+        'ID_TCALIBRE' => $IDTCALIBRE,
+        'TMONEDA' => $s['TMONEDA'],
+        'USSF' => normalizeNumber($s['USSF']),
+        'US' => normalizeNumber($s['US']),
+        'ENVASESF' => 0,
+        'NETOSF' => 0,
+        'BRUTOSF' => 0,
+        'TOTALUSSF' => 0,
+      ];
+      }
+      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['ENVASESF'] += $s['ENVASESF'];
+      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['NETOSF'] += $s['NETOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['BRUTOSF'] += $s['BRUTOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['TOTALUSSF'] += $s['TOTALUSSF'];
+      $ARRAYPRECIOPORCALIBRE[$KEYCALIBRE] = [
+        'ID_TCALIBRE' => $IDTCALIBRE,
+        'TMONEDA' => $s['TMONEDA'],
+        'US' => normalizeNumber($s['US']),
+      ];
+      if($IDTCALIBRE){
+        $ARRAYPRECIOPORCALIBREID[$IDTCALIBRE] = [
           'TMONEDA' => $s['TMONEDA'],
-          'US' => $s['US'],
-          'ENVASESF' => 0,
-          'NETOSF' => 0,
-          'BRUTOSF' => 0,
-          'TOTALUSSF' => 0,
+          'US' => normalizeNumber($s['US']),
         ];
       }
-      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['ENVASESF'] += $s['ENVASESF'];
-      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['NETOSF'] += $s['NETOSF'];
-      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['BRUTOSF'] += $s['BRUTOSF'];
-      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TOTALUSSF'] += $s['TOTALUSSF'];
+      $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']] = [
+        'TMONEDA' => $s['TMONEDA'],
+        'US' => normalizeNumber($s['US']),
+      ];
     }
     }
-    
-      
+
+
+    $ARRAYCLAVESDETALLE = array_unique(array_merge(array_keys($ARRAYENVASEAGRUPADO), array_keys($ARRAYDCARGAAGRUPADO)));
+    foreach($ARRAYCLAVESDETALLE as $keyDetalle) {
+      $NOMBREDETALLE = '';
+      $CALIBREDETALLE = '';
+      $CALIBREDETALLE = $keyDetalle;
+      $IDCALIBREDETALLE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['ID_TCALIBRE']
+        ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['ID_TCALIBRE'] ?? null);
+
+      $ENVASEAGRUPADO = normalizeNumber($ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0));
+      $NETOAGRUPADO = normalizeNumber($ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0));
+      $BRUTOAGRUPADO = normalizeNumber($ARRAYGROSSKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0));
+
+      $PRECIOAGRUPADO = normalizeNumber(
+        $ARRAYDCARGAAGRUPADO[$keyDetalle]['US']
+          ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['US'] ?? null)
+          ?? ($ARRAYPRECIOPORCALIBRESOLO[$CALIBREDETALLE]['US'] ?? 0)
+      );
+      $MONEDAAGRUPADA = $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMONEDA']
+        ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['TMONEDA'] ?? null)
+        ?? ($ARRAYPRECIOPORCALIBRESOLO[$CALIBREDETALLE]['TMONEDA'] ?? "");
+
+      $ARRAYDETALLEAGRUPADO[$keyDetalle] = [
+        'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
+        'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
+        'ID_TCALIBRE' => $IDCALIBREDETALLE,
+        'TMONEDA' => $MONEDAAGRUPADA,
+        'US' => $PRECIOAGRUPADO,
+        'ENVASESF' => $ENVASEAGRUPADO,
+        'NETOSF' => $NETOAGRUPADO,
+        'BRUTOSF' => $BRUTOAGRUPADO,
+        'TOTALUS' => $PRECIOAGRUPADO * $ENVASEAGRUPADO,
+      ];
+    }
+
+
       $NUMEROICARGA=$ARRAYICARGA[0]["NUMERO_ICARGA"];
       $NUMEROIREFERENCIA=$ARRAYICARGA[0]["NREFERENCIA_ICARGA"];
       $FECHA=$ARRAYICARGA[0]["FECHA"];
@@ -344,17 +415,18 @@ if($ARRAYICARGA){
       $TEMBARQUE = $ARRAYICARGA[0]['TEMBARQUE_ICARGA'];
       $FECHAETD = $ARRAYICARGA[0]['FECHAETD'];
       $FECHAETA = $ARRAYICARGA[0]['FECHAETA'];
-      $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL'];
-      if(!$FECHAETDREAL){
+      $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL_ICARGA'];
+      $FECHASTACKING = $ARRAYICARGA[0]['FECHAESTACKING'] ?? null;
+      if($FECHAETDREAL){
+        $FECHAETDREAL = date("d/m/Y", strtotime($FECHAETDREAL));
+      }else{
         $FECHAETDREAL = "Sin Datos";
       }
+      $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];
         $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['CRT_ICARGA'];
         if(!$BOLAWBCRTINSTRUCTIVO){
           $BOLAWBCRTINSTRUCTIVO = "Sin Datos";
         }
-      if(!$BOLAWBCRTINSTRUCTIVO){
-        $BOLAWBCRTINSTRUCTIVO = "Sin Datos";
-      }
 
 
       $TINSTRUCTIVO = $ARRAYICARGA[0]['T_ICARGA'];
@@ -364,7 +436,7 @@ if($ARRAYICARGA){
 
       $OBSERVACIONES = $ARRAYICARGA[0]['OBSERVACION_ICARGA'];
       $OBSERVACIONESI = $ARRAYICARGA[0]['OBSERVACIONI_ICARGA'];
-      $COSTOFLETEICARGA = $ARRAYICARGA[0]['COSTO_FLETE_ICARGA'];
+      $COSTOFLETEICARGA = normalizeNumber($ARRAYICARGA[0]['COSTO_FLETE_ICARGA']);
       if($ARRAYICARGA[0]['FUMIGADO_ICARGA']==1){
         $FUMIGADO="Si";
       }else if($ARRAYICARGA[0]['FUMIGADO_ICARGA']==2){
@@ -580,26 +652,26 @@ if($ARRAYICARGA){
 
 
 
-  $ARRAYEMPRESA = $EMPRESA_ADO->verEmpresa($ARRAYICARGA[0]['ID_EMPRESA']);
-  if($ARRAYEMPRESA){
-    $NOMBREEMPRESA=$ARRAYEMPRESA[0]["NOMBRE_EMPRESA"];
-    $COC=$ARRAYEMPRESA[0]["COC"];
-    $RAZONSOCIALEMPRESA = $ARRAYEMPRESA[0]["RAZON_SOCIAL_EMPRESA"];
-    $RUTEMPRESA=$ARRAYEMPRESA[0]["RUT_EMPRESA"]."-".$ARRAYEMPRESA[0]["DV_EMPRESA"];
-    $DIRECCIONEMPRESA=$ARRAYEMPRESA[0]["DIRECCION_EMPRESA"];
-    $ARRAYCOMUNA=$COMUNA_ADO->verComuna2($ARRAYEMPRESA[0]["ID_COMUNA"]);
-    if($ARRAYCOMUNA){
-      $UBICACION=$ARRAYCOMUNA[0]["COMUNA"].", ".$ARRAYCOMUNA[0]["PAIS"];
-      $DIRECCIONEMPRESA=$DIRECCIONEMPRESA.", ".$UBICACION;
-    }else{
-      $DIRECCIONEMPRESA=$DIRECCIONEMPRESA;
+    $ARRAYEMPRESA = $EMPRESA_ADO->verEmpresa($ARRAYICARGA[0]['ID_EMPRESA']);
+    if($ARRAYEMPRESA){
+      $NOMBREEMPRESA=$ARRAYEMPRESA[0]["NOMBRE_EMPRESA"];
+      $COC=$ARRAYEMPRESA[0]["COC"];
+      $RAZONSOCIALEMPRESA = $ARRAYEMPRESA[0]["RAZON_SOCIAL_EMPRESA"];
+      $RUTEMPRESA=$ARRAYEMPRESA[0]["RUT_EMPRESA"]."-".$ARRAYEMPRESA[0]["DV_EMPRESA"];
+      $DIRECCIONEMPRESA=$ARRAYEMPRESA[0]["DIRECCION_EMPRESA"];
+      $ARRAYCOMUNA=$COMUNA_ADO->verComuna2($ARRAYEMPRESA[0]["ID_COMUNA"]);
+      if($ARRAYCOMUNA){
+        $UBICACION=$ARRAYCOMUNA[0]["COMUNA"].", ".$ARRAYCOMUNA[0]["PAIS"];
+        $DIRECCIONEMPRESA=$DIRECCIONEMPRESA.", ".$UBICACION;
+      }else{
+        $DIRECCIONEMPRESA=$DIRECCIONEMPRESA;
+      }
+    }else{    
+      $NOMBREEMPRESA="Sin Datos";
+      $RAZONSOCIALEMPRESA="Sin Datos";
+      $RUTEMPRESA="Sin Datos";
+      $DIRECCIONEMPRESA="Sin Datos";
     }
-  }else{    
-    $NOMBREEMPRESA="Sin Datos";
-    $RAZONSOCIALEMPRESA="Sin Datos";
-    $RUTEMPRESA="Sin Datos";
-    $DIRECCIONEMPRESA="Sin Datos";
-  }
   $ARRAYTEMPORADA = $TEMPORADA_ADO->verTemporada($ARRAYICARGA[0]['ID_TEMPORADA']);  
   if($ARRAYTEMPORADA){
     $NOMBRETEMPORADA=$ARRAYTEMPORADA[0]["NOMBRE_TEMPORADA"];
@@ -686,7 +758,7 @@ $html = '
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Invoice</title>
+    <title>Invoice v2</title>
   </head>
   <body>
     <header class="clearfix">
@@ -724,35 +796,32 @@ $html = '
     <div class="address"> <b>  Email Consigne:  </b> '.$EMAIL1CONSIGNATARIO.'  </div>
     <div class="address">&nbsp;  </div>
 
-    ';
+    '; 
     if ($TEMBARQUE == "1") {
       $html = $html . '
-        <div class="address"> <b>  Date ETD:   </b>  '.$FECHAETD.'</div>
-        <div class="address"> <b>  Date ETA:  </b>  '.$FECHAETA.' </div>
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
       ';
     }
     if ($TEMBARQUE == "2") {
         $html = $html . '
 
-        <div class="address"> <b>  Date ETD:   </b>  '.$FECHAETD.'</div>
-        <div class="address"> <b>  Date ETA:  </b>  '.$FECHAETA.' </div>
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
      }
     if ($TEMBARQUE == "3") {
         $html = $html . '
 
-        <div class="address"> <b>  Date ETD:  </b>   '.$FECHAETD.'</div>
-        <div class="address"> <b>  Date ETA:   </b> '.$FECHAETA.' </div>
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
     }
@@ -824,48 +893,41 @@ $html = $html . '
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
-              <th class="color center ">Handling</th>
+              <th class="color center ">Type of Caliber </th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
               <th class="color center ">Type of currency </th>
               <th class="color center ">Price Box</th>
-              <th class="color center ">Total Price</th>
+              <th class="color center ">Total Price</th>    
+              
             </tr>
           </thead>
-           <tbody>
+          <tbody>
           ';
-          foreach ($ARRAYDCARGAAGRUPADO as $keyDetalle => $s) :
-            $NETOAGRUPADO = $s['NETOSF'];
-            $BRUTOAGRUPADO = $s['BRUTOSF'];
-            if(isset($ARRAYNETKILO[$keyDetalle])){
-              $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $NETOAGRUPADO = ($ARRAYNETKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
-              }
-            }
-            if(isset($ARRAYGROSSKILO[$keyDetalle])){
-              $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $BRUTOAGRUPADO = ($ARRAYGROSSKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
-              }
-            }
+          foreach ($ARRAYDETALLEAGRUPADO as $keyDetalle => $s) :
+
+            $PRECIOPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['US']
+              ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['US'] ?? $s['US']);
+            $MONEDAPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['TMONEDA']
+              ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['TMONEDA'] ?? $s['TMONEDA']);
+            $TOTALPORCALIBRE = $PRECIOPORCALIBRE * $s['ENVASESF'];
 
             $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
-                    <td class="center">'.$s['TMANEJO'].'</td>
-                    <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
-                    <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
-                    <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.$s['US'].'</td>
-                    <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
+                    <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
+                    <td class="center">'.number_format($s['NETOSF'], 2, ",", ".").'</td>
+                    <td class="center">'.number_format($s['BRUTOSF'], 2, ",", ".").'</td>
+                    <td class="center" style="text-transform: uppercase;">'.$MONEDAPORCALIBRE.'</td>
+                    <td class="center">'.number_format($PRECIOPORCALIBRE, 2, ",", ".").'</td>
+                    <td class="center">'.number_format($TOTALPORCALIBRE, 2, ",", ".").'</td>
               </tr>
             ';
             $TOTALENVASEV += $s['ENVASESF'];
-            $TOTALNETOV += $NETOAGRUPADO;
-            $TOTALBRUTOV += $BRUTOAGRUPADO;
-            $TOTALUSV += $s['TOTALUSSF'];
+            $TOTALNETOV += $s['NETOSF'];
+            $TOTALBRUTOV += $s['BRUTOSF'];
+            $TOTALUSV += $TOTALPORCALIBRE;
             endforeach;
 
 if($COSTOFLETEICARGA!=""){
@@ -873,7 +935,8 @@ if($COSTOFLETEICARGA!=""){
     $TOTALUSV+=$COSTOFLETEICARGA;  
             $html = $html . '              
               <tr class="">
-                  <td class="center"> - </td>
+                    <td class="center"> - </td>
+                    <td class="center"> - </td>
                     <td class="center">Freight cost </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
@@ -895,6 +958,7 @@ if($COSTOFLETEICARGA!=""){
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
                           <th class="color right">Overall Kilogram </td>
+                          <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
                           <td class="color center">&nbsp;</td>
@@ -916,10 +980,7 @@ $html = $html . '
         <div id="client">
           <div class="address"><b>Invoice Note</b></div>
           <div class="address">  ' . $OBSERVACIONESI . ' </div>
-          <div class="address">&nbsp;  </div>
-          <div class="address">&nbsp;  </div>
-          <div class="address"> <b>“The exporter of the products covered by this document (77.223.122-9) declares that, except where otherwise clearly indicated,
-          <br>these products are of CHILE preferential origin Product Description: Fresh Blueberries 0810.40”</b></div>
+          <div class="address"><b>“The exporter of the products covered by this document (77.223.122-9) declares that, except where otherwise clearly indicated,<br>these products are of CHILE preferential origin Product Description: Fresh Blueberries 0810.40"</b></div>
         </div>
         
       </div>
@@ -937,7 +998,7 @@ $html = $html . '
 
 
 //CREACION NOMBRE DEL ARCHIVO
-$NOMBREARCHIVO = "reportInvoice_";
+$NOMBREARCHIVO = "reportInvoicev2_";
 $FECHADOCUMENTO = $FECHANORMAL . "_" . $HORAFINAL;
 $TIPODOCUMENTO = "Report";
 $FORMATO = ".pdf";
@@ -951,7 +1012,7 @@ $UNICODE = "true";
 $ENCODING = "UTF-8";
 
 //DETALLE DEL CREADOR DEL INFORME
-$TIPOINFORME = "Report Invoice";
+$TIPOINFORME = "Report Invoice v2";
 $CREADOR = "Usuario";
 $AUTOR = "Usuario";
 $ASUNTO = "Report";
