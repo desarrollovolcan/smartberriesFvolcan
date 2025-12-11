@@ -109,21 +109,28 @@ $PRODUCTOR = "";
 $NUMEROGUIA = "";
 
 //INICIALIZAR ARREGLOS
-$ARRAYDESPACHOPT = "";
-$ARRAYDESPACHOPTTOTALES = "";
-$ARRAYVEREMPRESA = "";
-$ARRAYVERPRODUCTOR = "";
-$ARRAYVERTRANSPORTE = "";
-$ARRAYVERCONDUCTOR = "";
-$ARRAYMGUIAPT = "";
-$ARRAYRECEPCIONMPORIGEN1 = "";
-$ARRAYRECEPCIONMPORIGEN2 = "";
+$ARRAYDESPACHOPT = [];
+$ARRAYDESPACHOPTTOTALES = [];
+$ARRAYVEREMPRESA = [];
+$ARRAYVERPRODUCTOR = [];
+$ARRAYVERTRANSPORTE = [];
+$ARRAYVERCONDUCTOR = [];
+$ARRAYMGUIAPT = [];
+$ARRAYRECEPCIONMPORIGEN1 = [];
+$ARRAYRECEPCIONMPORIGEN2 = [];
+$ARRAYDESPACHOEX = [];
+
+$ARRAYEMPRESAS = $EMPRESA_ADO->listarEmpresaCBX();
+$EMPRESABUSCAR = "";
+if (isset($_REQUEST['EMPRESA']) && $_REQUEST['EMPRESA'] != "") {
+    $EMPRESABUSCAR = $_REQUEST['EMPRESA'];
+}
 
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
-if ($TEMPORADAS) {    
-    $ARRAYDESPACHOEX = $DESPACHOEX_ADO->listarDespachoexTemporadaCBX($TEMPORADAS);
-}
+if ($EMPRESABUSCAR && $TEMPORADAS) {
+    $ARRAYDESPACHOEX = $DESPACHOEX_ADO->listarDespachoexEmpresaTemporadaCBX($EMPRESABUSCAR, $TEMPORADAS);
+} 
 
 ?>
 
@@ -194,6 +201,23 @@ if ($TEMPORADAS) {
                     <div class="box">
 
                         <div class="box-body">
+                            <form method="post" id="form_reg_dato">
+                                <div class="row mb-3">
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-group">
+                                            <label>Empresa</label>
+                                            <select class="form-control select2" name="EMPRESA" id="EMPRESA" onchange="refrescar()">
+                                                <option value="">Seleccione la empresa</option>
+                                                <?php foreach ($ARRAYEMPRESAS as $E) : ?>
+                                                    <option value="<?php echo $E['ID_EMPRESA']; ?>" <?php if ($EMPRESABUSCAR == $E['ID_EMPRESA']) {  echo 'selected'; } ?>>
+                                                        <?php echo $E['NOMBRE_EMPRESA']; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                             <div class="row">
                                 <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                                     <div class="table-responsive">
@@ -328,7 +352,7 @@ if ($TEMPORADAS) {
                                                     $ARRAYICARGA = $ICARGA_ADO->verIcarga($r["ID_ICARGA"]);
                                                     if ($ARRAYICARGA) {
                                                         $NUMEROREFERENCIA   = $ARRAYICARGA[0]['NREFERENCIA_ICARGA'];
-                                                        $BOLAWBCRTICARGA    = $ARRAYICARGA[0]['BOLAWBCRT_ICARGA'];
+                                                        $NUMEROBL    = $ARRAYICARGA[0]['CRT_ICARGA'];
                                                         $FECHAETD           = $ARRAYICARGA[0]['FECHAETD_ICARGA'];
                                                         $FECHAETA           = $ARRAYICARGA[0]['FECHAETA_ICARGA'];
                                                         $FECHAETAREAL       = $ARRAYICARGA[0]['FECHAETAREAL_ICARGA'];
@@ -391,7 +415,7 @@ if ($TEMPORADAS) {
                                                     } else {
                                                         $NUMEROREFERENCIA = "No Aplica";
                                                         $NOMBREBROKER = "No Aplica";
-                                                        $BOLAWBCRTICARGA = "No Aplica";
+                                                        $NUMEROBL = "No Aplica";
                                                         $FECHAETD = $r['FECHAETD_DESPACHOEX'];
                                                         $FECHAETA = $r['FECHAETA_DESPACHOEX'];
                                                         $FECHAETAREAL = "";
@@ -740,7 +764,7 @@ if ($TEMPORADAS) {
                                                             <td><?php echo $NOMBREEMPRESA; ?></td>
                                                             <td><?php echo $NOMBREPLANTA; ?></td>
                                                             <td><?php echo $NOMBRETEMPORADA; ?></td>
-                                                            <td><?php echo $BOLAWBCRTICARGA; ?></td>
+                                                            <td><?php echo $NUMEROBL; ?></td>
                                                             <td><?php echo $NUMERORECEPCION; ?></td>
                                                             <td><?php echo $FECHARECEPCION; ?></td>
                                                             <td><?php echo $TIPORECEPCION; ?></td>
