@@ -533,10 +533,11 @@ class DICARGA_ADO
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
                                                     ) AS 'TOTALUS'
-                                            FROM  fruta_icarga icarga, fruta_despachoex despacho, fruta_exiexportacion existencia, estandar_eexportacion estandar, estandar_ecomercial comercial
-                                            WHERE icarga.ID_ICARGA = despacho.ID_ICARGA 
+                                            FROM  fruta_icarga icarga, fruta_despachoex despacho, fruta_exiexportacion existencia, fruta_tcalibre calibre, estandar_eexportacion estandar, estandar_ecomercial comercial
+                                            WHERE icarga.ID_ICARGA = despacho.ID_ICARGA
                                               AND despacho.ID_DESPACHOEX = existencia.ID_DESPACHOEX
                                               AND existencia.ID_ESTANDAR=estandar.ID_ESTANDAR
+                                              AND existencia.ID_TCALIBRE = calibre.ID_TCALIBRE
                                               AND estandar.ID_ECOMERCIAL=comercial.ID_ECOMERCIAL
                                               AND icarga.ID_ICARGA = '".$IDICARGA."'
                                             GROUP BY comercial.ID_ECOMERCIAL;");
