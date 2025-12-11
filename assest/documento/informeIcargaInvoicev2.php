@@ -897,6 +897,10 @@ $html = $html . '
           ';
           foreach ($ARRAYDETALLEAGRUPADO as $keyDetalle => $s) :
 
+            $PRECIOPORCALIBRE = $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['US'] ?? $s['US'];
+            $MONEDAPORCALIBRE = $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['TMONEDA'] ?? $s['TMONEDA'];
+            $TOTALPORCALIBRE = $PRECIOPORCALIBRE * $s['ENVASESF'];
+
             $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
@@ -904,15 +908,15 @@ $html = $html . '
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
                     <td class="center">'.number_format($s['NETOSF'], 2, ",", ".").'</td>
                     <td class="center">'.number_format($s['BRUTOSF'], 2, ",", ".").'</td>
-                    <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.number_format($s['US'], 2, ",", ".").'</td>
-                    <td class="center">'.number_format($s['TOTALUS'], 2, ",", ".").'</td>
+                    <td class="center" style="text-transform: uppercase;">'.$MONEDAPORCALIBRE.'</td>
+                    <td class="center">'.number_format($PRECIOPORCALIBRE, 2, ",", ".").'</td>
+                    <td class="center">'.number_format($TOTALPORCALIBRE, 2, ",", ".").'</td>
               </tr>
             ';
             $TOTALENVASEV += $s['ENVASESF'];
             $TOTALNETOV += $s['NETOSF'];
             $TOTALBRUTOV += $s['BRUTOSF'];
-            $TOTALUSV += $s['TOTALUS'];
+            $TOTALUSV += $TOTALPORCALIBRE;
             endforeach;
 
 if($COSTOFLETEICARGA!=""){
