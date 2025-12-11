@@ -342,6 +342,7 @@ if($ARRAYICARGA){
         'TCALIBRE' => $s['TCALIBRE'],
         'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
+        'TMANEJO' => $s['TMANEJO'] ?? '',
         'USSF' => normalizeNumber($s['USSF']),
         'US' => normalizeNumber($s['US']),
         'ENVASESF' => 0,
@@ -398,6 +399,7 @@ if($ARRAYICARGA){
         'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
         'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
         'ID_TCALIBRE' => $IDCALIBREDETALLE,
+        'TMANEJO' => $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMANEJO'] ?? '',
         'TMONEDA' => $MONEDAAGRUPADA,
         'US' => $PRECIOAGRUPADO,
         'ENVASESF' => $ENVASEAGRUPADO,
@@ -893,6 +895,7 @@ $html = $html . '
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
+              <th class="color center ">Handling </th>
               <th class="color center ">Type of Caliber </th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
@@ -916,6 +919,7 @@ $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
+                    <td class="center">'.$s['TMANEJO'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
                     <td class="center">'.number_format($s['NETOSF'], 2, ",", ".").'</td>
                     <td class="center">'.number_format($s['BRUTOSF'], 2, ",", ".").'</td>
@@ -936,14 +940,13 @@ if($COSTOFLETEICARGA!=""){
             $html = $html . '
               <tr class="">
                     <td class="center"> - </td>
-                    <td class="center"> - </td>
                     <td class="center">Freight cost </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
-                    <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
+                    <td class="center"> - </td>
                     <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
               </tr>
             ';
@@ -963,6 +966,7 @@ if($COSTOFLETEICARGA!=""){
                           <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
+                          <td class="color center">&nbsp;</td>
                           <td class="color center">&nbsp;</td>
                           <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
