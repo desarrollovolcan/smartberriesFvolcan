@@ -881,7 +881,10 @@ if (isset($id_dato) && isset($accion_dato)) {
             $ICARGA->__SET('ID_AADUANA', $AADUANA);
             $PAIS_DESTINO_AUTOMATICO = $_REQUEST['PAIS']
                 ?? ($_REQUEST['PAIS_EMBARQUE'] ?? ($_REQUEST['PAIS_PUERTO'] ?? ($_REQUEST['PAISE'] ?? $PAIS ?? null)));
-            $PAIS_DESTINO_FINAL_AUTOMATICO = $_REQUEST['PAIS_FINAL'] ?? ($PAIS_FINAL ?? null);
+            $PAIS_DESTINO_FINAL_AUTOMATICO = $_REQUEST['DFINAL'] ?? ($_REQUEST['PAIS_FINAL'] ?? ($PAIS_FINAL ?? null));
+            if ($PAIS_DESTINO_FINAL_AUTOMATICO === '') {
+                $PAIS_DESTINO_FINAL_AUTOMATICO = null;
+            }
 
             $ICARGA->__SET('ID_AGCARGA', $AGCARGA);
             $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_AUTOMATICO);
@@ -4670,8 +4673,8 @@ if (isset($_POST)) {
                                             <!-- <div class="col-xxl-2 col-xl-4 col-lg-6 col-md-6 col-sm-6 col-6 col-xs-6">
                                                 <div class="form-group">
                                                     <label>Fecha Real ETA</label>
-                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETA; ?>" />
-                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETA; ?>" <?php echo $DISABLED; ?> />
+                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETAREAL; ?>" />
+                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETAREAL; ?>" <?php echo $DISABLED; ?> />
                                                     <label id="val_fechaetareal" class="validacion"> </label>
                                                 </div>
                                             </div> -->
@@ -4773,8 +4776,8 @@ if (isset($_POST)) {
                                             <div class="col-xxl-2 col-xl-4 col-lg-6 col-md-6 col-sm-6 col-6 col-xs-6">
                                                 <div class="form-group">
                                                     <label>Fecha Real ETA</label>
-                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETA; ?>" />
-                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETA; ?>" <?php echo $DISABLED; ?> />
+                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETAREAL; ?>" />
+                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETAREAL; ?>" <?php echo $DISABLED; ?> />
                                                     <label id="val_fechaetareal" class="validacion"> </label>
                                                 </div>
                                             </div>
@@ -4896,8 +4899,8 @@ if (isset($_POST)) {
                                             <div class="col-xxl-2 col-xl-4 col-lg-6 col-md-6 col-sm-6 col-6 col-xs-6">
                                                 <div class="form-group">
                                                     <label>Fecha Real ETA</label>
-                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETA; ?>" />
-                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETA; ?>" <?php echo $DISABLED; ?> />
+                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETAREAL; ?>" />
+                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETAREAL; ?>" <?php echo $DISABLED; ?> />
                                                     <label id="val_fechaetareal" class="validacion"> </label>
                                                 </div>
                                             </div>
@@ -5041,8 +5044,8 @@ if (isset($_POST)) {
                                             <div class="col-xxl-2 col-xl-4 col-lg-6 col-md-6 col-sm-6 col-6 col-xs-6">
                                                 <div class="form-group">
                                                     <label>Fecha Real ETA</label>
-                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETA; ?>" />
-                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETA; ?>" <?php echo $DISABLED; ?> />
+                                                    <input type="hidden" class="form-control" placeholder="FECHA PROCESO" id="FECHAETAREALE" name="FECHAETAREALE" value="<?php echo $FECHAETAREAL; ?>" />
+                                                    <input type="date" class="form-control" placeholder="Fecha ETA Real" id="FECHAETAREAL" name="FECHAETAREAL" value="<?php echo $FECHAETAREAL; ?>" <?php echo $DISABLED; ?> />
                                                     <label id="val_fechaetareal" class="validacion"> </label>
                                                 </div>
                                             </div>
@@ -5828,7 +5831,10 @@ if (isset($_POST)) {
             //OPERACIONES
             $PAIS_DESTINO_FORM = $_REQUEST['PAIS']
                 ?? ($_REQUEST['PAIS_EMBARQUE'] ?? ($_REQUEST['PAIS_PUERTO'] ?? ($_REQUEST['PAISE'] ?? $PAIS ?? null)));
-            $PAIS_DESTINO_FINAL_FORM = $_REQUEST['PAIS_FINAL'] ?? ($PAIS_FINAL ?? null);
+            $PAIS_DESTINO_FINAL_FORM = $_REQUEST['DFINAL'] ?? ($_REQUEST['PAIS_FINAL'] ?? null);
+            if ($PAIS_DESTINO_FINAL_FORM === '') {
+                $PAIS_DESTINO_FINAL_FORM = null;
+            }
             //OPERACION DE REGISTRO DE FILA
             if (isset($_REQUEST['CREAR'])) {
 
@@ -5874,6 +5880,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
                 $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
                 $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
+                $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA']);
                 $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO']);
                 $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA']);
                 $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
@@ -5986,6 +5993,7 @@ if (isset($_POST)) {
                 $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA']);
                 $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA']);
                 $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
+                $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA']);
                 $ICARGA->__SET('ID_FPAGO', $_REQUEST['FPAGO']);
                 $ICARGA->__SET('ID_CVENTA', $_REQUEST['CVENTA']);
                 $ICARGA->__SET('ID_MVENTA', $_REQUEST['MVENTA']);
