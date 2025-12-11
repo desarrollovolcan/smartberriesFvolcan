@@ -888,6 +888,7 @@ if (isset($id_dato) && isset($accion_dato)) {
 
             $ICARGA->__SET('ID_AGCARGA', $AGCARGA);
             $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_AUTOMATICO);
+            $ICARGA->__SET('ID_LCARGA', $LCARGA);
             $ICARGA->__SET('ID_FPAGO', $FPAGO);
             $ICARGA->__SET('ID_CVENTA', $CVENTA);
             $ICARGA->__SET('ID_MVENTA', $MVENTA);
@@ -6249,11 +6250,11 @@ if (isset($_POST)) {
                     $ICARGA->__SET('ID_AADUANA', $_REQUEST['AADUANA'] ?? null);
                     $ICARGA->__SET('ID_AGCARGA', $_REQUEST['AGCARGA'] ?? null);
                     $ICARGA->__SET('ID_DFINAL', $PAIS_DESTINO_FINAL_FORM);
+                    $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA'] ?? null);
                     if (isset($_REQUEST['TEMBARQUE'])) {
                         if ($_REQUEST['TEMBARQUE'] == "1") {
                             $ICARGA->__SET('ID_TRANSPORTE', $_REQUEST['TRANSPORTE']);
                             $ICARGA->__SET('CRT_ICARGA', $_REQUEST['CRT']);
-                            $ICARGA->__SET('ID_LCARGA', $_REQUEST['LCARGA']);
                             $ICARGA->__SET('ID_LDESTINO', $_REQUEST['LDESTINO']);
                         }
                         if ($_REQUEST['TEMBARQUE'] == "2") {
