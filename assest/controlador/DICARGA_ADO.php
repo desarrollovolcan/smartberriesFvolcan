@@ -303,7 +303,7 @@ class DICARGA_ADO
                                                     (select PESO_BRUTO_ECOMERCIAL
                                                      FROM estandar_ecomercial
                                                      WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'PESOBRUTOC',                      
-                                                    IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0)  AS 'ENVASESF',                              
+                                                    IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0)  AS 'ENVASESF',
                                                     (select IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0) *PESO_NETO_ECOMERCIAL
                                                      FROM estandar_ecomercial
                                                      WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'NETOSF',                                                    
@@ -318,31 +318,23 @@ class DICARGA_ADO
                                                     (select FORMAT(IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0) *PESO_BRUTO_ECOMERCIAL,2,'de_DE')
                                                      FROM estandar_ecomercial
                                                      WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'BRUTO',  
-                                                    (
-                                                        SELECT
-                                                            (SELECT NOMBRE_TMANEJO
-                                                             FROM fruta_tmanejo
-                                                             WHERE ID_TMANEJO=detalle2.ID_TMANEJO)
-                                                        FROM fruta_dicarga detalle2, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE   detalle2.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle2.ID_ICARGA = '".$IDICARGA."'
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle2.ESTADO_REGISTRO = 1
-                                                        LIMIT 1
-                                                    ) AS 'TMANEJO',
                                                     (SELECT NOMBRE_TMONEDA
                                                      FROM fruta_tmoneda
                                                      WHERE ID_TMONEDA=detalle.ID_TMONEDA
                                                      LIMIT 1) AS 'TMONEDA',
+                                                    detalle.ID_TMANEJO AS 'ID_TMANEJO',
+                                                    (SELECT NOMBRE_TMANEJO
+                                                     FROM fruta_tmanejo
+                                                     WHERE ID_TMANEJO = detalle.ID_TMANEJO
+                                                     LIMIT 1) AS 'TMANEJO',
                                                     FORMAT(IFNULL(detalle.PRECIO_US_DICARGA,0),2,'de_DE') AS 'US',
-                                                    FORMAT(IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0) * IFNULL(detalle.PRECIO_US_DICARGA,0),2,'de_DE') AS 'TOTALUS'                                 
+                                                    FORMAT(IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0) * IFNULL(detalle.PRECIO_US_DICARGA,0),2,'de_DE') AS 'TOTALUS'
                                                 FROM fruta_dicarga detalle, estandar_eexportacion estandar, estandar_ecomercial comercial
                                                 WHERE detalle.ID_ESTANDAR=estandar.ID_ESTANDAR
                                                   AND estandar.ID_ECOMERCIAL=comercial.ID_ECOMERCIAL
                                                   AND detalle.ESTADO_REGISTRO = 1
                                                   AND detalle.ID_ICARGA = '".$IDICARGA."'
-                                                GROUP BY comercial.ID_ECOMERCIAL;");
+                                                GROUP BY comercial.ID_ECOMERCIAL, detalle.ID_TMANEJO;");
             $datos->execute();
             $resultado = $datos->fetchAll();
             $datos = null;
@@ -376,7 +368,7 @@ class DICARGA_ADO
                                                         (select PESO_BRUTO_ECOMERCIAL
                                                          FROM estandar_ecomercial
                                                          WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'PESOBRUTOC',                      
-                                                        IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0)  AS 'ENVASESF',                              
+                                                        IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0)  AS 'ENVASESF',
                                                         (select IFNULL(SUM(detalle.CANTIDAD_ENVASE_DICARGA),0) *PESO_NETO_ECOMERCIAL
                                                          FROM estandar_ecomercial
                                                          WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'NETOSF',                                                    
@@ -393,8 +385,14 @@ class DICARGA_ADO
                                                          WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'BRUTO',  
                                                         (SELECT NOMBRE_TMONEDA
                                                          FROM fruta_tmoneda
-                                                         WHERE ID_TMONEDA=detalle.ID_TMONEDA     
-                                                         LIMIT 1) AS 'TMONEDA',                                                    
+                                                         WHERE ID_TMONEDA=detalle.ID_TMONEDA
+                                                         LIMIT 1) AS 'TMONEDA',
+                                                        detalle.ID_TMANEJO AS 'ID_TMANEJO',
+                                                        (SELECT NOMBRE_TMANEJO
+                                                         FROM fruta_tmanejo
+                                                         WHERE ID_TMANEJO = detalle.ID_TMANEJO
+                                                         LIMIT 1) AS 'TMANEJO',
+                                                        calibre.ID_TCALIBRE AS 'ID_TCALIBRE',
                                                         (
                                                             SELECT calibre2.NOMBRE_TCALIBRE
                                                             FROM fruta_tcalibre calibre2
@@ -408,7 +406,7 @@ class DICARGA_ADO
                                                   AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                   AND detalle.ESTADO_REGISTRO = 1
                                                   AND detalle.ID_ICARGA = '".$IDICARGA."'
-                                                GROUP BY comercial.ID_ECOMERCIAL, calibre.ID_TCALIBRE;");
+                                                GROUP BY comercial.ID_ECOMERCIAL, calibre.ID_TCALIBRE, detalle.ID_TMANEJO;");
             $datos->execute();
             $resultado = $datos->fetchAll();
             $datos = null;
@@ -455,7 +453,8 @@ class DICARGA_ADO
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
                                                         WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
@@ -465,7 +464,8 @@ class DICARGA_ADO
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
                                                         WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
@@ -477,6 +477,17 @@ class DICARGA_ADO
                                                      FROM estandar_ecomercial
                                                      WHERE ID_ECOMERCIAL=comercial.ID_ECOMERCIAL) AS 'BRUTO',
                                                     (  SELECT
+                                                            detalle.ID_TMANEJO
+                                                        FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
+                                                        WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                          AND detalle.ESTADO_REGISTRO = 1
+                                                        LIMIT 1
+                                                    ) AS 'ID_TMANEJO',
+                                                    (  SELECT
                                                             (       SELECT NOMBRE_TMANEJO
                                                                     FROM fruta_tmanejo
                                                                     WHERE ID_TMANEJO=detalle.ID_TMANEJO
@@ -485,6 +496,7 @@ class DICARGA_ADO
                                                         WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
                                                           AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
@@ -498,7 +510,8 @@ class DICARGA_ADO
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
                                                         WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
@@ -511,7 +524,8 @@ class DICARGA_ADO
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
                                                         WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
@@ -521,15 +535,17 @@ class DICARGA_ADO
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
                                                         WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
                                                           AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
+                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                          AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
                                                           AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
                                                           AND detalle.ESTADO_REGISTRO = 1
                                                         LIMIT 1
                                                     ) AS 'TOTALUS'
-                                            FROM  fruta_icarga icarga, fruta_despachoex despacho, fruta_exiexportacion existencia, estandar_eexportacion estandar, estandar_ecomercial comercial
-                                            WHERE icarga.ID_ICARGA = despacho.ID_ICARGA 
+                                            FROM  fruta_icarga icarga, fruta_despachoex despacho, fruta_exiexportacion existencia, fruta_tcalibre calibre, estandar_eexportacion estandar, estandar_ecomercial comercial
+                                            WHERE icarga.ID_ICARGA = despacho.ID_ICARGA
                                               AND despacho.ID_DESPACHOEX = existencia.ID_DESPACHOEX
                                               AND existencia.ID_ESTANDAR=estandar.ID_ESTANDAR
+                                              AND existencia.ID_TCALIBRE = calibre.ID_TCALIBRE
                                               AND estandar.ID_ECOMERCIAL=comercial.ID_ECOMERCIAL
                                               AND icarga.ID_ICARGA = '".$IDICARGA."'
                                             GROUP BY comercial.ID_ECOMERCIAL;");
@@ -578,22 +594,24 @@ class DICARGA_ADO
                                                     (  SELECT
                                                             IFNULL(detalle.PRECIO_US_DICARGA,0)
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
+                                                      WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                      LIMIT 1
                                                         ) AS 'USSF',  
                                                     (  SELECT
                                                         IFNULL(SUM(existencia.CANTIDAD_ENVASE_EXIEXPORTACION),0) * IFNULL(detalle.PRECIO_US_DICARGA,0)
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
+                                                      WHERE detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                      LIMIT 1
                                                         ) AS 'TOTALUSSF',                                                                                                                                                 
                                                     (select FORMAT(IFNULL(SUM(existencia.CANTIDAD_ENVASE_EXIEXPORTACION),0) *PESO_NETO_ECOMERCIAL,2,'de_DE')
                                                      FROM estandar_ecomercial
@@ -607,26 +625,29 @@ class DICARGA_ADO
                                                                     WHERE ID_TMANEJO=detalle.ID_TMANEJO
                                                             )
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
-                                                        ) AS 'TMANEJO',
+                                                      WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                      LIMIT 1
+                                                      ) AS 'TMANEJO',
                                                     (  SELECT               
                                                             (	SELECT NOMBRE_TMONEDA
                                                                 FROM fruta_tmoneda
                                                                 WHERE ID_TMONEDA=detalle.ID_TMONEDA   
                                                             )
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
-                                                        ) AS 'TMONEDA',
+                                                      WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                      LIMIT 1
+                                                      ) AS 'TMONEDA',
+                                                    calibre.ID_TCALIBRE AS 'ID_TCALIBRE',
                                                     (
                                                         SELECT calibre2.NOMBRE_TCALIBRE
                                                         FROM fruta_tcalibre calibre2
@@ -638,23 +659,25 @@ class DICARGA_ADO
                                                     (  SELECT
                                                             FORMAT(IFNULL(detalle.PRECIO_US_DICARGA,0),2,'de_DE')
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
-                                                        ) AS 'US',            
+                                                      WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                          LIMIT 1
+                                                      ) AS 'US',
                                                     (  SELECT
                                                             FORMAT(IFNULL(SUM(existencia.CANTIDAD_ENVASE_EXIEXPORTACION),0) * IFNULL(detalle.PRECIO_US_DICARGA,0),2,'de_DE')
                                                         FROM fruta_dicarga detalle, estandar_eexportacion estandar2, estandar_ecomercial comercial2
-                                                        WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
-                                                          AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
-                                                          AND detalle.ID_ICARGA = icarga.ID_ICARGA  
-                                                          AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
-                                                          AND detalle.ESTADO_REGISTRO = 1
-                                                            LIMIT 1
-                                                        ) AS 'TOTALUS'
+                                                      WHERE   detalle.ID_ESTANDAR=estandar2.ID_ESTANDAR
+                                                        AND estandar2.ID_ECOMERCIAL = comercial2.ID_ECOMERCIAL
+                                                        AND detalle.ID_ICARGA = icarga.ID_ICARGA
+                                                        AND detalle.ID_TCALIBRE = calibre.ID_TCALIBRE
+                                                        AND comercial2.ID_ECOMERCIAL =comercial.ID_ECOMERCIAL
+                                                        AND detalle.ESTADO_REGISTRO = 1
+                                                          LIMIT 1
+                                                      ) AS 'TOTALUS'
                                             FROM  fruta_icarga icarga, fruta_despachoex despacho, fruta_exiexportacion existencia, 
                                                   fruta_tcalibre calibre, estandar_eexportacion estandar, estandar_ecomercial comercial
                                             WHERE icarga.ID_ICARGA = despacho.ID_ICARGA 
