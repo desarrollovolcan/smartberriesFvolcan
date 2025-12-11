@@ -323,6 +323,7 @@ if($ARRAYICARGA){
           'NOMBRE' => $s['NOMBRE'],
           'TCALIBRE' => $s['TCALIBRE'],
           'TMONEDA' => $s['TMONEDA'],
+          'USSF' => $s['USSF'],
           'US' => $s['US'],
           'ENVASESF' => 0,
           'NETOSF' => 0,
@@ -351,6 +352,7 @@ if($ARRAYICARGA){
       }else{
         $FECHAETDREAL = "Sin Datos";
       }
+      $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];
         $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['CRT_ICARGA'];
         if(!$BOLAWBCRTINSTRUCTIVO){
           $BOLAWBCRTINSTRUCTIVO = "Sin Datos";
@@ -730,6 +732,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
       ';
     }
     if ($TEMBARQUE == "2") {
@@ -738,6 +741,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
      }
@@ -747,6 +751,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
     }
@@ -853,7 +858,7 @@ $html = $html . '
                     <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.$s['US'].'</td>
+                    <td class="center">'.number_format($s['USSF'], 2, ",", ".").'</td>
                     <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
               </tr>
             ';
