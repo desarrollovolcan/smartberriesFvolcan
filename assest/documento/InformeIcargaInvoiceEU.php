@@ -334,14 +334,15 @@ if($ARRAYICARGA){
 
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
-      $KEYCALIBRE = $s['TCALIBRE'];
+      $KEYDETALLE = $s['TCALIBRE'].'|'.($s['TMANEJO'] ?? '');
       $IDTCALIBRE = $s['ID_TCALIBRE'] ?? null;
-      if(!isset($ARRAYDCARGAAGRUPADO[$KEYCALIBRE])){
-      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE] = [
+      if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
         'NOMBRE' => $s['NOMBRE'],
         'TCALIBRE' => $s['TCALIBRE'],
         'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
+        'TMANEJO' => $s['TMANEJO'] ?? '',
         'USSF' => normalizeNumber($s['USSF']),
         'US' => normalizeNumber($s['US']),
         'ENVASESF' => 0,
@@ -350,11 +351,11 @@ if($ARRAYICARGA){
         'TOTALUSSF' => 0,
       ];
       }
-      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['ENVASESF'] += $s['ENVASESF'];
-      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['NETOSF'] += $s['NETOSF'];
-      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['BRUTOSF'] += $s['BRUTOSF'];
-      $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['TOTALUSSF'] += $s['TOTALUSSF'];
-      $ARRAYPRECIOPORCALIBRE[$KEYCALIBRE] = [
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['ENVASESF'] += $s['ENVASESF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['NETOSF'] += $s['NETOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['BRUTOSF'] += $s['BRUTOSF'];
+      $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TOTALUSSF'] += $s['TOTALUSSF'];
+      $ARRAYPRECIOPORCALIBRE[$KEYDETALLE] = [
         'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
         'US' => normalizeNumber($s['US']),
@@ -373,17 +374,17 @@ if($ARRAYICARGA){
     }
 
 
-    $ARRAYCLAVESDETALLE = array_unique(array_merge(array_keys($ARRAYENVASEAGRUPADO), array_keys($ARRAYDCARGAAGRUPADO)));
-    foreach($ARRAYCLAVESDETALLE as $keyDetalle) {
+      $ARRAYCLAVESDETALLE = array_keys($ARRAYDCARGAAGRUPADO);
+      foreach($ARRAYCLAVESDETALLE as $keyDetalle) {
       $NOMBREDETALLE = '';
       $CALIBREDETALLE = '';
-      $CALIBREDETALLE = $keyDetalle;
+      $CALIBREDETALLE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? $keyDetalle;
       $IDCALIBREDETALLE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['ID_TCALIBRE']
         ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['ID_TCALIBRE'] ?? null);
 
-      $ENVASEAGRUPADO = normalizeNumber($ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0));
-      $NETOAGRUPADO = normalizeNumber($ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0));
-      $BRUTOAGRUPADO = normalizeNumber($ARRAYGROSSKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0));
+      $ENVASEAGRUPADO = normalizeNumber($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0);
+      $NETOAGRUPADO = normalizeNumber($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0);
+      $BRUTOAGRUPADO = normalizeNumber($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0);
 
       $PRECIOAGRUPADO = normalizeNumber(
         $ARRAYDCARGAAGRUPADO[$keyDetalle]['US']
@@ -398,6 +399,7 @@ if($ARRAYICARGA){
         'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
         'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
         'ID_TCALIBRE' => $IDCALIBREDETALLE,
+        'TMANEJO' => $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMANEJO'] ?? '',
         'TMONEDA' => $MONEDAAGRUPADA,
         'US' => $PRECIOAGRUPADO,
         'ENVASESF' => $ENVASEAGRUPADO,
@@ -893,6 +895,7 @@ $html = $html . '
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
+              <th class="color center ">Handling </th>
               <th class="color center ">Type of Caliber </th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
@@ -916,6 +919,7 @@ $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
+                    <td class="center">'.$s['TMANEJO'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
                     <td class="center">'.number_format($s['NETOSF'], 2, ",", ".").'</td>
                     <td class="center">'.number_format($s['BRUTOSF'], 2, ",", ".").'</td>
@@ -936,14 +940,13 @@ if($COSTOFLETEICARGA!=""){
             $html = $html . '
               <tr class="">
                     <td class="center"> - </td>
-                    <td class="center"> - </td>
                     <td class="center">Freight cost </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
-                    <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
+                    <td class="center"> - </td>
                     <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
               </tr>
             ';
@@ -963,6 +966,7 @@ if($COSTOFLETEICARGA!=""){
                           <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
+                          <td class="color center">&nbsp;</td>
                           <td class="color center">&nbsp;</td>
                           <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
