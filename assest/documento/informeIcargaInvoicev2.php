@@ -229,6 +229,7 @@ $ARRAYGROSSKILO = [];
 $ARRAYNETKILO = [];
 $ARRAYENVASEAGRUPADO = [];
 $ARRAYPRECIOPORCALIBRE = [];
+$ARRAYPRECIOPORCALIBREID = [];
 $ARRAYPRECIOPORCALIBRESOLO = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
@@ -334,10 +335,12 @@ if($ARRAYICARGA){
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
       $KEYCALIBRE = $s['TCALIBRE'];
+      $IDTCALIBRE = $s['ID_TCALIBRE'] ?? null;
       if(!isset($ARRAYDCARGAAGRUPADO[$KEYCALIBRE])){
       $ARRAYDCARGAAGRUPADO[$KEYCALIBRE] = [
         'NOMBRE' => $s['NOMBRE'],
         'TCALIBRE' => $s['TCALIBRE'],
+        'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
         'USSF' => normalizeNumber($s['USSF']),
         'US' => normalizeNumber($s['US']),
@@ -352,9 +355,16 @@ if($ARRAYICARGA){
       $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['BRUTOSF'] += $s['BRUTOSF'];
       $ARRAYDCARGAAGRUPADO[$KEYCALIBRE]['TOTALUSSF'] += $s['TOTALUSSF'];
       $ARRAYPRECIOPORCALIBRE[$KEYCALIBRE] = [
+        'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
         'US' => normalizeNumber($s['US']),
       ];
+      if($IDTCALIBRE){
+        $ARRAYPRECIOPORCALIBREID[$IDTCALIBRE] = [
+          'TMONEDA' => $s['TMONEDA'],
+          'US' => normalizeNumber($s['US']),
+        ];
+      }
       $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']] = [
         'TMONEDA' => $s['TMONEDA'],
         'US' => normalizeNumber($s['US']),
@@ -368,6 +378,8 @@ if($ARRAYICARGA){
       $NOMBREDETALLE = '';
       $CALIBREDETALLE = '';
       $CALIBREDETALLE = $keyDetalle;
+      $IDCALIBREDETALLE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['ID_TCALIBRE']
+        ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['ID_TCALIBRE'] ?? null);
 
       $ENVASEAGRUPADO = normalizeNumber($ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0));
       $NETOAGRUPADO = normalizeNumber($ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0));
@@ -385,6 +397,7 @@ if($ARRAYICARGA){
       $ARRAYDETALLEAGRUPADO[$keyDetalle] = [
         'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
         'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
+        'ID_TCALIBRE' => $IDCALIBREDETALLE,
         'TMONEDA' => $MONEDAAGRUPADA,
         'US' => $PRECIOAGRUPADO,
         'ENVASESF' => $ENVASEAGRUPADO,
@@ -893,8 +906,10 @@ $html = $html . '
           ';
           foreach ($ARRAYDETALLEAGRUPADO as $keyDetalle => $s) :
 
-            $PRECIOPORCALIBRE = $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['US'] ?? $s['US'];
-            $MONEDAPORCALIBRE = $ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['TMONEDA'] ?? $s['TMONEDA'];
+            $PRECIOPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['US']
+              ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['US'] ?? $s['US']);
+            $MONEDAPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['TMONEDA']
+              ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['TMONEDA'] ?? $s['TMONEDA']);
             $TOTALPORCALIBRE = $PRECIOPORCALIBRE * $s['ENVASESF'];
 
             $html = $html . '
