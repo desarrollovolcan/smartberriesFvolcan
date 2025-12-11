@@ -147,8 +147,8 @@ if ($EMPRESAS) {
 }
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
-if ($EMPRESAS  && $TEMPORADAS) {
-    $ARRAYEXIEXPORTACION = $EXIEXPORTACION_ADO->listarExiexportacionAgrupadoPorFolioEmpresaTemporada($EMPRESAS,  $TEMPORADAS);
+if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
+    $ARRAYEXIEXPORTACION = $EXIEXPORTACION_ADO->listarExiexportacionAgrupadoPorFolioEmpresaPlantaTemporada($EMPRESAS, $PLANTAS, $TEMPORADAS);
 }
 
 ?>
@@ -475,7 +475,7 @@ if ($EMPRESAS  && $TEMPORADAS) {
                                                 <tbody>
                                                     <?php foreach ($ARRAYEXIEXPORTACION as $s) : ?>
 
-                                                        <?php $ARRAYEXISTENCIA=$EXIEXPORTACION_ADO->listarExiexportacionEmpresaTemporadaPorFolio($EMPRESAS,  $TEMPORADAS,$s['FOLIO_AUXILIAR_EXIEXPORTACION'] );  ?>                                                                                                                    
+                                                        <?php $ARRAYEXISTENCIA=$EXIEXPORTACION_ADO->listarExiexportacionEmpresaPlantaTemporadaPorFolio($EMPRESAS, $PLANTAS, $TEMPORADAS,$s['FOLIO_AUXILIAR_EXIEXPORTACION'] );  ?>
                                                         <?php foreach ($ARRAYEXISTENCIA as $r) : ?>
                                                             <?php  $CONTADOR+=1;   ?>
                                                             <?php
