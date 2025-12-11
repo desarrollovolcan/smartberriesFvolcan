@@ -126,11 +126,44 @@ if (isset($_REQUEST['EMPRESA']) && $_REQUEST['EMPRESA'] != "") {
     $EMPRESABUSCAR = $_REQUEST['EMPRESA'];
 }
 
+//CACHE DE CONSULTAS
+$CACHE_EMPRESA = [];
+$CACHE_PLANTA = [];
+$CACHE_TEMPORADA = [];
+$CACHE_TRANSPORTE = [];
+$CACHE_CONDUCTOR = [];
+$CACHE_DFINAL = [];
+$CACHE_ICARGA = [];
+$CACHE_LDESTINO = [];
+$CACHE_ADESTINO = [];
+$CACHE_PDESTINO = [];
+$CACHE_MERCADO = [];
+$CACHE_RFINAL = [];
+$CACHE_BROKER = [];
+$CACHE_PRODUCTOR = [];
+$CACHE_VESPECIES = [];
+$CACHE_ESPECIES = [];
+$CACHE_EEXPORTACION = [];
+$CACHE_TMANEJO = [];
+$CACHE_TCALIBRE = [];
+$CACHE_TEMBALAJE = [];
+$CACHE_RECEPCIONPT = [];
+$CACHE_DESPACHOPT = [];
+$CACHE_PLANTA2 = [];
+$CACHE_PROCESO = [];
+$CACHE_TPROCESO = [];
+$CACHE_REEMBALAJE = [];
+$CACHE_TREEMBALAJE = [];
+$CACHE_REPALETIZAJE = [];
+$CACHE_FOLIO = [];
+$CACHE_RECEPCIONMPPROC = [];
+$CACHE_RECEPCIONMPREEMB = [];
+
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
 if ($EMPRESABUSCAR && $TEMPORADAS) {
     $ARRAYDESPACHOEX = $DESPACHOEX_ADO->listarDespachoexEmpresaTemporadaCBX($EMPRESABUSCAR, $TEMPORADAS);
-} 
+}
 
 ?>
 
@@ -301,14 +334,22 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                 <?php foreach ($ARRAYDESPACHOEX as $r) : ?>
                                                     <?php
                                                     // Transporte y conductor
-                                                    $ARRAYVERTRANSPORTE = $TRANSPORTE_ADO->verTransporte($r['ID_TRANSPORTE']);
+                                                    $transporteId = $r['ID_TRANSPORTE'];
+                                                    if ($transporteId && !isset($CACHE_TRANSPORTE[$transporteId])) {
+                                                        $CACHE_TRANSPORTE[$transporteId] = $TRANSPORTE_ADO->verTransporte($transporteId);
+                                                    }
+                                                    $ARRAYVERTRANSPORTE = $transporteId ? $CACHE_TRANSPORTE[$transporteId] : [];
                                                     if ($ARRAYVERTRANSPORTE) {
                                                         $NOMBRETRANSPORTE = $ARRAYVERTRANSPORTE[0]['NOMBRE_TRANSPORTE'];
                                                     } else {
                                                         $NOMBRETRANSPORTE = "Sin Datos";
                                                     }
 
-                                                    $ARRAYVERCONDUCTOR = $CONDUCTOR_ADO->verConductor($r['ID_CONDUCTOR']);
+                                                    $conductorId = $r['ID_CONDUCTOR'];
+                                                    if ($conductorId && !isset($CACHE_CONDUCTOR[$conductorId])) {
+                                                        $CACHE_CONDUCTOR[$conductorId] = $CONDUCTOR_ADO->verConductor($conductorId);
+                                                    }
+                                                    $ARRAYVERCONDUCTOR = $conductorId ? $CACHE_CONDUCTOR[$conductorId] : [];
                                                     if ($ARRAYVERCONDUCTOR) {
                                                         $NOMBRECONDUCTOR = $ARRAYVERCONDUCTOR[0]['NOMBRE_CONDUCTOR'];
                                                     } else {
@@ -316,7 +357,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                     }
 
                                                     // Destino final
-                                                    $ARRAYDFINAL = $DFINAL_ADO->verDfinal($r['ID_DFINAL']);
+                                                    $dfinalId = $r['ID_DFINAL'];
+                                                    if ($dfinalId && !isset($CACHE_DFINAL[$dfinalId])) {
+                                                        $CACHE_DFINAL[$dfinalId] = $DFINAL_ADO->verDfinal($dfinalId);
+                                                    }
+                                                    $ARRAYDFINAL = $dfinalId ? $CACHE_DFINAL[$dfinalId] : [];
                                                     if ($ARRAYDFINAL) {
                                                         $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
                                                     } else {
@@ -324,21 +369,33 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                     }
 
                                                     // Empresa, planta, temporada
-                                                    $ARRAYEMPRESA = $EMPRESA_ADO->verEmpresa($r['ID_EMPRESA']);
+                                                    $empresaId = $r['ID_EMPRESA'];
+                                                    if ($empresaId && !isset($CACHE_EMPRESA[$empresaId])) {
+                                                        $CACHE_EMPRESA[$empresaId] = $EMPRESA_ADO->verEmpresa($empresaId);
+                                                    }
+                                                    $ARRAYEMPRESA = $empresaId ? $CACHE_EMPRESA[$empresaId] : [];
                                                     if ($ARRAYEMPRESA) {
                                                         $NOMBREEMPRESA = $ARRAYEMPRESA[0]['NOMBRE_EMPRESA'];
                                                     } else {
                                                         $NOMBREEMPRESA = "Sin Datos";
                                                     }
 
-                                                    $ARRAYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
+                                                    $plantaId = $r['ID_PLANTA'];
+                                                    if ($plantaId && !isset($CACHE_PLANTA[$plantaId])) {
+                                                        $CACHE_PLANTA[$plantaId] = $PLANTA_ADO->verPlanta($plantaId);
+                                                    }
+                                                    $ARRAYPLANTA = $plantaId ? $CACHE_PLANTA[$plantaId] : [];
                                                     if ($ARRAYPLANTA) {
                                                         $NOMBREPLANTA = $ARRAYPLANTA[0]['NOMBRE_PLANTA'];
                                                     } else {
                                                         $NOMBREPLANTA = "Sin Datos";
                                                     }
 
-                                                    $ARRAYTEMPORADA = $TEMPORADA_ADO->verTemporada($r['ID_TEMPORADA']);
+                                                    $temporadaId = $r['ID_TEMPORADA'];
+                                                    if ($temporadaId && !isset($CACHE_TEMPORADA[$temporadaId])) {
+                                                        $CACHE_TEMPORADA[$temporadaId] = $TEMPORADA_ADO->verTemporada($temporadaId);
+                                                    }
+                                                    $ARRAYTEMPORADA = $temporadaId ? $CACHE_TEMPORADA[$temporadaId] : [];
                                                     if ($ARRAYTEMPORADA) {
                                                         $NOMBRETEMPORADA = $ARRAYTEMPORADA[0]['NOMBRE_TEMPORADA'];
                                                     } else {
@@ -349,7 +406,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                     $TERMOGRAFODESPACHOEX = $r['TERMOGRAFO_DESPACHOEX'];
 
                                                     // Datos de ICARGA (si existe)
-                                                    $ARRAYICARGA = $ICARGA_ADO->verIcarga($r["ID_ICARGA"]);
+                                                    $icargaId = $r["ID_ICARGA"];
+                                                    if ($icargaId && !isset($CACHE_ICARGA[$icargaId])) {
+                                                        $CACHE_ICARGA[$icargaId] = $ICARGA_ADO->verIcarga($icargaId);
+                                                    }
+                                                    $ARRAYICARGA = $icargaId ? $CACHE_ICARGA[$icargaId] : [];
                                                     if ($ARRAYICARGA) {
                                                         $NUMEROREFERENCIA   = $ARRAYICARGA[0]['NREFERENCIA_ICARGA'];
                                                         $NUMEROBL    = $ARRAYICARGA[0]['CRT_ICARGA'];
@@ -362,7 +423,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Terrestre";
                                                             $NVIAJE = "No Aplica";
                                                             $NAVE   = "No Aplica";
-                                                            $ARRAYLDESTINO = $LDESTINO_ADO->verLdestino($ARRAYICARGA[0]['ID_LDESTINO']);
+                                                            $ldestinoId = $ARRAYICARGA[0]['ID_LDESTINO'];
+                                                            if ($ldestinoId && !isset($CACHE_LDESTINO[$ldestinoId])) {
+                                                                $CACHE_LDESTINO[$ldestinoId] = $LDESTINO_ADO->verLdestino($ldestinoId);
+                                                            }
+                                                            $ARRAYLDESTINO = $ldestinoId ? $CACHE_LDESTINO[$ldestinoId] : [];
                                                             if ($ARRAYLDESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYLDESTINO[0]["NOMBRE_LDESTINO"];
                                                             } else {
@@ -373,7 +438,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Aereo";
                                                             $NAVE = $ARRAYICARGA[0]['NAVE_ICARGA'];
                                                             $NVIAJE = $ARRAYICARGA[0]['NVIAJE_ICARGA'];
-                                                            $ARRAYADESTINO = $ADESTINO_ADO->verAdestino($ARRAYICARGA[0]['ID_ADESTINO']);
+                                                            $adestinoId = $ARRAYICARGA[0]['ID_ADESTINO'];
+                                                            if ($adestinoId && !isset($CACHE_ADESTINO[$adestinoId])) {
+                                                                $CACHE_ADESTINO[$adestinoId] = $ADESTINO_ADO->verAdestino($adestinoId);
+                                                            }
+                                                            $ARRAYADESTINO = $adestinoId ? $CACHE_ADESTINO[$adestinoId] : [];
                                                             if ($ARRAYADESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYADESTINO[0]["NOMBRE_ADESTINO"];
                                                             } else {
@@ -384,7 +453,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Maritimo";
                                                             $NAVE  = $ARRAYICARGA[0]['NAVE_ICARGA'];
                                                             $NVIAJE = $ARRAYICARGA[0]['NVIAJE_ICARGA'];
-                                                            $ARRAYPDESTINO = $PDESTINO_ADO->verPdestino($ARRAYICARGA[0]['ID_PDESTINO']);
+                                                            $pdestinoId = $ARRAYICARGA[0]['ID_PDESTINO'];
+                                                            if ($pdestinoId && !isset($CACHE_PDESTINO[$pdestinoId])) {
+                                                                $CACHE_PDESTINO[$pdestinoId] = $PDESTINO_ADO->verPdestino($pdestinoId);
+                                                            }
+                                                            $ARRAYPDESTINO = $pdestinoId ? $CACHE_PDESTINO[$pdestinoId] : [];
                                                             if ($ARRAYPDESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYPDESTINO[0]["NOMBRE_PDESTINO"];
                                                             } else {
@@ -392,21 +465,33 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             }
                                                         }
 
-                                                        $ARRAYMERCADO = $MERCADO_ADO->verMercado($ARRAYICARGA[0]["ID_MERCADO"]);
+                                                        $mercadoId = $ARRAYICARGA[0]["ID_MERCADO"];
+                                                        if ($mercadoId && !isset($CACHE_MERCADO[$mercadoId])) {
+                                                            $CACHE_MERCADO[$mercadoId] = $MERCADO_ADO->verMercado($mercadoId);
+                                                        }
+                                                        $ARRAYMERCADO = $mercadoId ? $CACHE_MERCADO[$mercadoId] : [];
                                                         if ($ARRAYMERCADO) {
                                                             $NOMBREMERCADO = $ARRAYMERCADO[0]["NOMBRE_MERCADO"];
                                                         } else {
                                                             $NOMBREMERCADO = "Sin Datos";
                                                         }
 
-                                                        $ARRAYRFINAL = $RFINAL_ADO->verRfinal($ARRAYICARGA[0]["ID_RFINAL"]);
+                                                        $rfinalId = $ARRAYICARGA[0]["ID_RFINAL"];
+                                                        if ($rfinalId && !isset($CACHE_RFINAL[$rfinalId])) {
+                                                            $CACHE_RFINAL[$rfinalId] = $RFINAL_ADO->verRfinal($rfinalId);
+                                                        }
+                                                        $ARRAYRFINAL = $rfinalId ? $CACHE_RFINAL[$rfinalId] : [];
                                                         if ($ARRAYRFINAL) {
                                                             $NOMBRERFINAL = $ARRAYRFINAL[0]["NOMBRE_RFINAL"];
                                                         } else {
                                                             $NOMBRERFINAL = "Sin Datos";
                                                         }
 
-                                                        $ARRAYBROKER = $BROKER_ADO->verBroker($ARRAYICARGA[0]["ID_BROKER"]);
+                                                        $brokerId = $ARRAYICARGA[0]["ID_BROKER"];
+                                                        if ($brokerId && !isset($CACHE_BROKER[$brokerId])) {
+                                                            $CACHE_BROKER[$brokerId] = $BROKER_ADO->verBroker($brokerId);
+                                                        }
+                                                        $ARRAYBROKER = $brokerId ? $CACHE_BROKER[$brokerId] : [];
                                                         if ($ARRAYBROKER) {
                                                             $NOMBREBROKER = $ARRAYBROKER[0]["NOMBRE_BROKER"];
                                                         } else {
@@ -424,7 +509,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Terrestre";
                                                             $NVIAJE = "No Aplica";
                                                             $NAVE = "No Aplica";
-                                                            $ARRAYLDESTINO = $LDESTINO_ADO->verLdestino($r['ID_LDESTINO']);
+                                                            $ldestinoId = $r['ID_LDESTINO'];
+                                                            if ($ldestinoId && !isset($CACHE_LDESTINO[$ldestinoId])) {
+                                                                $CACHE_LDESTINO[$ldestinoId] = $LDESTINO_ADO->verLdestino($ldestinoId);
+                                                            }
+                                                            $ARRAYLDESTINO = $ldestinoId ? $CACHE_LDESTINO[$ldestinoId] : [];
                                                             if ($ARRAYLDESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYLDESTINO[0]["NOMBRE_LDESTINO"];
                                                             } else {
@@ -435,7 +524,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Aereo";
                                                             $NAVE = $r['NAVE_DESPACHOEX'];
                                                             $NVIAJE = $r['NVIAJE_DESPACHOEX'];
-                                                            $ARRAYADESTINO = $ADESTINO_ADO->verAdestino($r['ID_ADESTINO']);
+                                                            $adestinoId = $r['ID_ADESTINO'];
+                                                            if ($adestinoId && !isset($CACHE_ADESTINO[$adestinoId])) {
+                                                                $CACHE_ADESTINO[$adestinoId] = $ADESTINO_ADO->verAdestino($adestinoId);
+                                                            }
+                                                            $ARRAYADESTINO = $adestinoId ? $CACHE_ADESTINO[$adestinoId] : [];
                                                             if ($ARRAYADESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYADESTINO[0]["NOMBRE_ADESTINO"];
                                                             } else {
@@ -446,20 +539,32 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $TEMBARQUE = "Maritimo";
                                                             $NAVE  = $r['NAVE_DESPACHOEX'];
                                                             $NVIAJE = $r['NVIAJE_DESPACHOEX'];
-                                                            $ARRAYPDESTINO = $PDESTINO_ADO->verPdestino($r['ID_PDESTINO']);
+                                                            $pdestinoId = $r['ID_PDESTINO'];
+                                                            if ($pdestinoId && !isset($CACHE_PDESTINO[$pdestinoId])) {
+                                                                $CACHE_PDESTINO[$pdestinoId] = $PDESTINO_ADO->verPdestino($pdestinoId);
+                                                            }
+                                                            $ARRAYPDESTINO = $pdestinoId ? $CACHE_PDESTINO[$pdestinoId] : [];
                                                             if ($ARRAYPDESTINO) {
                                                                 $NOMBREDESTINO = $ARRAYPDESTINO[0]["NOMBRE_PDESTINO"];
                                                             } else {
                                                                 $NOMBREDESTINO = "Sin Datos";
                                                             }
                                                         }
-                                                        $ARRAYMERCADO = $MERCADO_ADO->verMercado($r["ID_MERCADO"]);
+                                                        $mercadoId = $r["ID_MERCADO"];
+                                                        if ($mercadoId && !isset($CACHE_MERCADO[$mercadoId])) {
+                                                            $CACHE_MERCADO[$mercadoId] = $MERCADO_ADO->verMercado($mercadoId);
+                                                        }
+                                                        $ARRAYMERCADO = $mercadoId ? $CACHE_MERCADO[$mercadoId] : [];
                                                         if ($ARRAYMERCADO) {
                                                             $NOMBREMERCADO = $ARRAYMERCADO[0]["NOMBRE_MERCADO"];
                                                         } else {
                                                             $NOMBREMERCADO = "Sin Datos";
                                                         }
-                                                        $ARRAYRFINAL = $RFINAL_ADO->verRfinal($r["ID_RFINAL"]);
+                                                        $rfinalId = $r["ID_RFINAL"];
+                                                        if ($rfinalId && !isset($CACHE_RFINAL[$rfinalId])) {
+                                                            $CACHE_RFINAL[$rfinalId] = $RFINAL_ADO->verRfinal($rfinalId);
+                                                        }
+                                                        $ARRAYRFINAL = $rfinalId ? $CACHE_RFINAL[$rfinalId] : [];
                                                         if ($ARRAYRFINAL) {
                                                             $NOMBRERFINAL = $ARRAYRFINAL[0]["NOMBRE_RFINAL"];
                                                         } else {
@@ -494,7 +599,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Productor
-                                                        $ARRAYVERPRODUCTORID = $PRODUCTOR_ADO->verProductor($s['ID_PRODUCTOR']);
+                                                        $productorId = $s['ID_PRODUCTOR'];
+                                                        if ($productorId && !isset($CACHE_PRODUCTOR[$productorId])) {
+                                                            $CACHE_PRODUCTOR[$productorId] = $PRODUCTOR_ADO->verProductor($productorId);
+                                                        }
+                                                        $ARRAYVERPRODUCTORID = $productorId ? $CACHE_PRODUCTOR[$productorId] : [];
                                                         if ($ARRAYVERPRODUCTORID) {
                                                             $CSGPRODUCTOR = $ARRAYVERPRODUCTORID[0]['CSG_PRODUCTOR'];
                                                             $NOMBREPRODUCTOR = $ARRAYVERPRODUCTORID[0]['NOMBRE_PRODUCTOR'];
@@ -504,10 +613,18 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Variedad / especie
-                                                        $ARRAYVERVESPECIESID = $VESPECIES_ADO->verVespecies($s['ID_VESPECIES']);
+                                                        $vespeciesId = $s['ID_VESPECIES'];
+                                                        if ($vespeciesId && !isset($CACHE_VESPECIES[$vespeciesId])) {
+                                                            $CACHE_VESPECIES[$vespeciesId] = $VESPECIES_ADO->verVespecies($vespeciesId);
+                                                        }
+                                                        $ARRAYVERVESPECIESID = $vespeciesId ? $CACHE_VESPECIES[$vespeciesId] : [];
                                                         if ($ARRAYVERVESPECIESID) {
                                                             $NOMBREVARIEDAD = $ARRAYVERVESPECIESID[0]['NOMBRE_VESPECIES'];
-                                                            $ARRAYVERESPECIESID = $ESPECIES_ADO->verEspecies($ARRAYVERVESPECIESID[0]['ID_ESPECIES']);
+                                                            $especiesId = $ARRAYVERVESPECIESID[0]['ID_ESPECIES'];
+                                                            if ($especiesId && !isset($CACHE_ESPECIES[$especiesId])) {
+                                                                $CACHE_ESPECIES[$especiesId] = $ESPECIES_ADO->verEspecies($especiesId);
+                                                            }
+                                                            $ARRAYVERESPECIESID = $especiesId ? $CACHE_ESPECIES[$especiesId] : [];
                                                             if ($ARRAYVERESPECIESID) {
                                                                 $NOMBRESPECIES = $ARRAYVERESPECIESID[0]['NOMBRE_ESPECIES'];
                                                             } else {
@@ -519,7 +636,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Estandar
-                                                        $ARRAYEVERERECEPCIONID = $EEXPORTACION_ADO->verEstandar($s['ID_ESTANDAR']);
+                                                        $estandarId = $s['ID_ESTANDAR'];
+                                                        if ($estandarId && !isset($CACHE_EEXPORTACION[$estandarId])) {
+                                                            $CACHE_EEXPORTACION[$estandarId] = $EEXPORTACION_ADO->verEstandar($estandarId);
+                                                        }
+                                                        $ARRAYEVERERECEPCIONID = $estandarId ? $CACHE_EEXPORTACION[$estandarId] : [];
                                                         if ($ARRAYEVERERECEPCIONID) {
                                                             $CODIGOESTANDAR = $ARRAYEVERERECEPCIONID[0]['CODIGO_ESTANDAR'];
                                                             $NOMBREESTANDAR = $ARRAYEVERERECEPCIONID[0]['NOMBRE_ESTANDAR'];
@@ -529,21 +650,33 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Tipo manejo / calibre / embalaje
-                                                        $ARRAYTMANEJO = $TMANEJO_ADO->verTmanejo($s['ID_TMANEJO']);
+                                                        $tmanejoId = $s['ID_TMANEJO'];
+                                                        if ($tmanejoId && !isset($CACHE_TMANEJO[$tmanejoId])) {
+                                                            $CACHE_TMANEJO[$tmanejoId] = $TMANEJO_ADO->verTmanejo($tmanejoId);
+                                                        }
+                                                        $ARRAYTMANEJO = $tmanejoId ? $CACHE_TMANEJO[$tmanejoId] : [];
                                                         if ($ARRAYTMANEJO) {
                                                             $NOMBRETMANEJO = $ARRAYTMANEJO[0]['NOMBRE_TMANEJO'];
                                                         } else {
                                                             $NOMBRETMANEJO = "Sin Datos";
                                                         }
 
-                                                        $ARRAYTCALIBRE = $TCALIBRE_ADO->verCalibre($s['ID_TCALIBRE']);
+                                                        $tcalibreId = $s['ID_TCALIBRE'];
+                                                        if ($tcalibreId && !isset($CACHE_TCALIBRE[$tcalibreId])) {
+                                                            $CACHE_TCALIBRE[$tcalibreId] = $TCALIBRE_ADO->verCalibre($tcalibreId);
+                                                        }
+                                                        $ARRAYTCALIBRE = $tcalibreId ? $CACHE_TCALIBRE[$tcalibreId] : [];
                                                         if ($ARRAYTCALIBRE) {
                                                             $NOMBRETCALIBRE = $ARRAYTCALIBRE[0]['NOMBRE_TCALIBRE'];
                                                         } else {
                                                             $NOMBRETCALIBRE = "Sin Datos";
                                                         }
 
-                                                        $ARRAYTEMBALAJE = $TEMBALAJE_ADO->verEmbalaje($s['ID_TEMBALAJE']);
+                                                        $tembalajeId = $s['ID_TEMBALAJE'];
+                                                        if ($tembalajeId && !isset($CACHE_TEMBALAJE[$tembalajeId])) {
+                                                            $CACHE_TEMBALAJE[$tembalajeId] = $TEMBALAJE_ADO->verEmbalaje($tembalajeId);
+                                                        }
+                                                        $ARRAYTEMBALAJE = $tembalajeId ? $CACHE_TEMBALAJE[$tembalajeId] : [];
                                                         if ($ARRAYTEMBALAJE) {
                                                             $NOMBRETEMBALAJE = $ARRAYTEMBALAJE[0]['NOMBRE_TEMBALAJE'];
                                                         } else {
@@ -584,8 +717,16 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Recepción PT / despacho interplanta
-                                                        $ARRAYRECEPCION = $RECEPCIONPT_ADO->verRecepcion2($s['ID_RECEPCION']);
-                                                        $ARRAYDESPACHO2 = $DESPACHOPT_ADO->verDespachopt($s['ID_DESPACHO2']);
+                                                        $recepcionId = $s['ID_RECEPCION'];
+                                                        $despacho2Id = $s['ID_DESPACHO2'];
+                                                        if ($recepcionId && !isset($CACHE_RECEPCIONPT[$recepcionId])) {
+                                                            $CACHE_RECEPCIONPT[$recepcionId] = $RECEPCIONPT_ADO->verRecepcion2($recepcionId);
+                                                        }
+                                                        if ($despacho2Id && !isset($CACHE_DESPACHOPT[$despacho2Id])) {
+                                                            $CACHE_DESPACHOPT[$despacho2Id] = $DESPACHOPT_ADO->verDespachopt($despacho2Id);
+                                                        }
+                                                        $ARRAYRECEPCION = $recepcionId ? $CACHE_RECEPCIONPT[$recepcionId] : [];
+                                                        $ARRAYDESPACHO2 = $despacho2Id ? $CACHE_DESPACHOPT[$despacho2Id] : [];
                                                         if ($ARRAYRECEPCION) {
                                                             $NUMERORECEPCION = $ARRAYRECEPCION[0]["NUMERO_RECEPCION"];
                                                             $FECHARECEPCION = $ARRAYRECEPCION[0]["FECHA"];
@@ -603,7 +744,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                             $NUMEROGUIARECEPCION = $ARRAYDESPACHO2[0]["NUMERO_GUIA_DESPACHO"];
                                                             $TIPORECEPCION = "Interplanta";
                                                             $FECHAGUIARECEPCION = "";
-                                                            $ARRAYPLANTA2 = $PLANTA_ADO->verPlanta($ARRAYDESPACHO2[0]['ID_PLANTA']);
+                                                            $planta2Id = $ARRAYDESPACHO2[0]['ID_PLANTA'];
+                                                            if ($planta2Id && !isset($CACHE_PLANTA2[$planta2Id])) {
+                                                                $CACHE_PLANTA2[$planta2Id] = $PLANTA_ADO->verPlanta($planta2Id);
+                                                            }
+                                                            $ARRAYPLANTA2 = $planta2Id ? $CACHE_PLANTA2[$planta2Id] : [];
                                                             if ($ARRAYPLANTA2) {
                                                                 $ORIGEN = $ARRAYPLANTA2[0]['NOMBRE_PLANTA'];
                                                                 $CSGCSPORIGEN = $ARRAYPLANTA2[0]['CODIGO_SAG_PLANTA'];
@@ -620,14 +765,22 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Proceso
-                                                        $ARRAYPROCESO = $PROCESO_ADO->verProceso2($s['ID_PROCESO']);
+                                                        $procesoId = $s['ID_PROCESO'];
+                                                        if ($procesoId && !isset($CACHE_PROCESO[$procesoId])) {
+                                                            $CACHE_PROCESO[$procesoId] = $PROCESO_ADO->verProceso2($procesoId);
+                                                        }
+                                                        $ARRAYPROCESO = $procesoId ? $CACHE_PROCESO[$procesoId] : [];
                                                         if ($ARRAYPROCESO) {
                                                             $NUMEROPROCESO = $ARRAYPROCESO[0]["NUMERO_PROCESO"];
                                                             $FECHAPROCESO = $ARRAYPROCESO[0]["FECHA"];
                                                             $PORCENTAJEEXPO = number_format($ARRAYPROCESO[0]["PDEXPORTACION_PROCESO"], 2);
                                                             $PORCENTAJEINDUSTRIAL = number_format($ARRAYPROCESO[0]["PDINDUSTRIAL_PROCESO"], 2);
                                                             $PORCENTAJETOTAL = number_format($ARRAYPROCESO[0]["PORCENTAJE_PROCESO"], 2);
-                                                            $ARRAYTPROCESO = $TPROCESO_ADO->verTproceso($ARRAYPROCESO[0]["ID_TPROCESO"]);
+                                                            $tprocesoId = $ARRAYPROCESO[0]["ID_TPROCESO"];
+                                                            if ($tprocesoId && !isset($CACHE_TPROCESO[$tprocesoId])) {
+                                                                $CACHE_TPROCESO[$tprocesoId] = $TPROCESO_ADO->verTproceso($tprocesoId);
+                                                            }
+                                                            $ARRAYTPROCESO = $tprocesoId ? $CACHE_TPROCESO[$tprocesoId] : [];
                                                             if ($ARRAYTPROCESO) {
                                                                 $TPROCESO = $ARRAYTPROCESO[0]["NOMBRE_TPROCESO"];
                                                             } else {
@@ -643,11 +796,19 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Reembalaje
-                                                        $ARRAYREEMBALAJE = $REEMBALAJE_ADO->verReembalaje2($s['ID_REEMBALAJE']);
+                                                        $reembalajeId = $s['ID_REEMBALAJE'];
+                                                        if ($reembalajeId && !isset($CACHE_REEMBALAJE[$reembalajeId])) {
+                                                            $CACHE_REEMBALAJE[$reembalajeId] = $REEMBALAJE_ADO->verReembalaje2($reembalajeId);
+                                                        }
+                                                        $ARRAYREEMBALAJE = $reembalajeId ? $CACHE_REEMBALAJE[$reembalajeId] : [];
                                                         if ($ARRAYREEMBALAJE) {
                                                             $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
                                                             $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
-                                                            $ARRAYTREEMBALAJE = $TREEMBALAJE_ADO->verTreembalaje($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"]);
+                                                            $treembalajeId = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                            if ($treembalajeId && !isset($CACHE_TREEMBALAJE[$treembalajeId])) {
+                                                                $CACHE_TREEMBALAJE[$treembalajeId] = $TREEMBALAJE_ADO->verTreembalaje($treembalajeId);
+                                                            }
+                                                            $ARRAYTREEMBALAJE = $treembalajeId ? $CACHE_TREEMBALAJE[$treembalajeId] : [];
                                                             if ($ARRAYTREEMBALAJE) {
                                                                 $TREEMBALAJE = $ARRAYTREEMBALAJE[0]["NOMBRE_TREEMBALAJE"];
                                                             } else {
@@ -660,8 +821,14 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Recepción MP origen (proceso / reembalaje)
-                                                        $ARRAYRECEPCIONMPORIGEN1 = $PROCESO_ADO->buscarRecepcionMpExistenciaEnProceso($s['ID_PROCESO']);
-                                                        $ARRAYRECEPCIONMPORIGEN2 = $REEMBALAJE_ADO->buscarProcesoRecepcionMpExistenciaEnReembalaje($s['ID_REEMBALAJE']);
+                                                        if ($procesoId && !isset($CACHE_RECEPCIONMPPROC[$procesoId])) {
+                                                            $CACHE_RECEPCIONMPPROC[$procesoId] = $PROCESO_ADO->buscarRecepcionMpExistenciaEnProceso($procesoId);
+                                                        }
+                                                        if ($reembalajeId && !isset($CACHE_RECEPCIONMPREEMB[$reembalajeId])) {
+                                                            $CACHE_RECEPCIONMPREEMB[$reembalajeId] = $REEMBALAJE_ADO->buscarProcesoRecepcionMpExistenciaEnReembalaje($reembalajeId);
+                                                        }
+                                                        $ARRAYRECEPCIONMPORIGEN1 = $procesoId ? $CACHE_RECEPCIONMPPROC[$procesoId] : [];
+                                                        $ARRAYRECEPCIONMPORIGEN2 = $reembalajeId ? $CACHE_RECEPCIONMPREEMB[$reembalajeId] : [];
                                                         if ($ARRAYRECEPCIONMPORIGEN1) {
                                                             $NUMERORECEPCIONMP = $ARRAYRECEPCIONMPORIGEN1[0]["NUMERO"];
                                                             $FECHARECEPCIONMP = $ARRAYRECEPCIONMPORIGEN1[0]["FECHA"];
@@ -689,7 +856,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Repaletizaje
-                                                        $ARRATREPALETIZAJE = $REPALETIZAJEEX_ADO->verRepaletizaje2($s['ID_REPALETIZAJE']);
+                                                        $repaletizajeId = $s['ID_REPALETIZAJE'];
+                                                        if ($repaletizajeId && !isset($CACHE_REPALETIZAJE[$repaletizajeId])) {
+                                                            $CACHE_REPALETIZAJE[$repaletizajeId] = $REPALETIZAJEEX_ADO->verRepaletizaje2($repaletizajeId);
+                                                        }
+                                                        $ARRATREPALETIZAJE = $repaletizajeId ? $CACHE_REPALETIZAJE[$repaletizajeId] : [];
                                                         if ($ARRATREPALETIZAJE) {
                                                             $FECHAREPALETIZAJE = $ARRATREPALETIZAJE[0]["INGRESO"];
                                                             $NUMEROREPALETIZAJE = $ARRATREPALETIZAJE[0]["NUMERO_REPALETIZAJE"];
@@ -699,7 +870,11 @@ if ($EMPRESABUSCAR && $TEMPORADAS) {
                                                         }
 
                                                         // Termógrafo por pallet (folio)
-                                                        $ArrayTermografoPallet = $EXIEXPORTACION_ADO->verFolio($s['FOLIO_AUXILIAR_EXIEXPORTACION']);
+                                                        $folioId = $s['FOLIO_AUXILIAR_EXIEXPORTACION'];
+                                                        if ($folioId && !isset($CACHE_FOLIO[$folioId])) {
+                                                            $CACHE_FOLIO[$folioId] = $EXIEXPORTACION_ADO->verFolio($folioId);
+                                                        }
+                                                        $ArrayTermografoPallet = $folioId ? $CACHE_FOLIO[$folioId] : [];
                                                         if ($ArrayTermografoPallet) {
                                                             $termografoPallet = $ArrayTermografoPallet[0]["N_TERMOGRAFO"];
                                                         } else {
