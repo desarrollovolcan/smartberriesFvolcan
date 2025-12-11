@@ -1385,17 +1385,7 @@ if (isset($_POST)) {
 
                         $estadoCabecera = isset($_REQUEST['TESTADOSAG']) && $_REQUEST['TESTADOSAG'] !== '' ? $_REQUEST['TESTADOSAG'] : '0';
 
-                        $tinpsagSeleccionado = isset($_REQUEST['TINPSAGE']) ? $_REQUEST['TINPSAGE'] : (isset($_REQUEST['TINPSAG']) ? $_REQUEST['TINPSAG'] : null);
-                        $esMuestreoUsda = false;
-                        if ($tinpsagSeleccionado) {
-                            $arrayTinpsagNombre = $TINPSAG_ADO->verTinpsag($tinpsagSeleccionado);
-                            if ($arrayTinpsagNombre && isset($arrayTinpsagNombre[0]['NOMBRE_TINPSAG'])) {
-                                $nombreTipo = strtoupper($arrayTinpsagNombre[0]['NOMBRE_TINPSAG']);
-                                $esMuestreoUsda = (strpos($nombreTipo, 'USDA') !== false && strpos($nombreTipo, 'MUESTREO') !== false);
-                            }
-                        }
-
-                        if ($esMuestreoUsda && $arrayEstadosSag !== null && is_array($arrayEstadosSag)) {
+                        if ($arrayEstadosSag !== null && is_array($arrayEstadosSag)) {
 
                             $contadorActualizados = 0;
 
