@@ -917,9 +917,13 @@ $html = $html . '
           ';
           foreach ($ARRAYDETALLEAGRUPADO as $keyDetalle => $s) :
 
-            $PRECIOPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['US']
+            $PRECIOPORCALIBRE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['US']
+              ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['US'] ?? null)
+              ?? ($ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['US'] ?? null)
               ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['US'] ?? $s['US']);
-            $MONEDAPORCALIBRE = $ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['TMONEDA']
+            $MONEDAPORCALIBRE = $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMONEDA']
+              ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['TMONEDA'] ?? null)
+              ?? ($ARRAYPRECIOPORCALIBREID[$s['ID_TCALIBRE']]['TMONEDA'] ?? null)
               ?? ($ARRAYPRECIOPORCALIBRESOLO[$s['TCALIBRE']]['TMONEDA'] ?? $s['TMONEDA']);
             $TOTALPORCALIBRE = $PRECIOPORCALIBRE * $s['ENVASESF'];
 
@@ -968,7 +972,7 @@ if($COSTOFLETEICARGA!=""){
                     
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
-                          <th class="color right">Overall Kilogram </td>
+                          <th class="color center">Totals</th>
                           <td class="color center">&nbsp;</td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
