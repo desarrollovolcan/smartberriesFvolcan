@@ -184,6 +184,19 @@ $TOTALBRUTOV = 0;
 $TOTALUS = 0;
 $TOTALUSV = 0;
 
+function normalizeNumber($value) {
+  if ($value === null || $value === '') {
+    return 0;
+  }
+  if (is_numeric($value)) {
+    return (float) $value;
+  }
+
+  $value = str_replace(['.', ' '], '', $value);
+  $value = str_replace(',', '.', $value);
+  return (float) $value;
+}
+
 //INICIALIZAR ARREGLOS
 $ARRAYEMPRESA = "";
 $ARRAYPLANTA = "";
@@ -325,8 +338,8 @@ if($ARRAYICARGA){
         'NOMBRE' => $s['NOMBRE'],
         'TCALIBRE' => $s['TCALIBRE'],
         'TMONEDA' => $s['TMONEDA'],
-        'USSF' => $s['USSF'],
-        'US' => $s['US'],
+        'USSF' => normalizeNumber($s['USSF']),
+        'US' => normalizeNumber($s['US']),
         'ENVASESF' => 0,
         'NETOSF' => 0,
         'BRUTOSF' => 0,
@@ -339,7 +352,7 @@ if($ARRAYICARGA){
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TOTALUSSF'] += $s['TOTALUSSF'];
       $ARRAYPRECIOPORCALIBRE[$KEYDETALLE] = [
         'TMONEDA' => $s['TMONEDA'],
-        'US' => $s['US'],
+        'US' => normalizeNumber($s['US']),
       ];
     }
     }
@@ -347,10 +360,10 @@ if($ARRAYICARGA){
 
     $ARRAYCLAVESDETALLE = array_unique(array_merge(array_keys($ARRAYENVASEAGRUPADO), array_keys($ARRAYDCARGAAGRUPADO)));
     foreach($ARRAYCLAVESDETALLE as $keyDetalle) {
-      $ENVASEAGRUPADO = $ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0);
-      $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0);
-      $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0);
-      $PRECIOAGRUPADO = $ARRAYDCARGAAGRUPADO[$keyDetalle]['US'] ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['US'] ?? 0);
+      $ENVASEAGRUPADO = normalizeNumber($ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0));
+      $NETOAGRUPADO = normalizeNumber($ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0));
+      $BRUTOAGRUPADO = normalizeNumber($ARRAYGROSSKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0));
+      $PRECIOAGRUPADO = normalizeNumber($ARRAYDCARGAAGRUPADO[$keyDetalle]['US'] ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['US'] ?? 0));
       $MONEDAAGRUPADA = $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMONEDA'] ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['TMONEDA'] ?? "");
 
       $NOMBREDETALLE = '';
@@ -382,6 +395,7 @@ if($ARRAYICARGA){
       $FECHAETD = $ARRAYICARGA[0]['FECHAETD'];
       $FECHAETA = $ARRAYICARGA[0]['FECHAETA'];
       $FECHAETDREAL = $ARRAYICARGA[0]['FECHAETDREAL_ICARGA'];
+      $FECHASTACKING = $ARRAYICARGA[0]['FECHAESTACKING'] ?? null;
       if($FECHAETDREAL){
         $FECHAETDREAL = date("d/m/Y", strtotime($FECHAETDREAL));
       }else{
@@ -401,7 +415,7 @@ if($ARRAYICARGA){
 
       $OBSERVACIONES = $ARRAYICARGA[0]['OBSERVACION_ICARGA'];
       $OBSERVACIONESI = $ARRAYICARGA[0]['OBSERVACIONI_ICARGA'];
-      $COSTOFLETEICARGA = $ARRAYICARGA[0]['COSTO_FLETE_ICARGA'];
+      $COSTOFLETEICARGA = normalizeNumber($ARRAYICARGA[0]['COSTO_FLETE_ICARGA']);
       if($ARRAYICARGA[0]['FUMIGADO_ICARGA']==1){
         $FUMIGADO="Si";
       }else if($ARRAYICARGA[0]['FUMIGADO_ICARGA']==2){
