@@ -211,9 +211,11 @@ $ARRAYSEGURO = "";
 $ARRAYPRODUCTOR = "";
 $ARRAYDCARGA = "";
 $ARRAYDCARGAAGRUPADO = [];
+$ARRAYDETALLEAGRUPADO = [];
 $ARRAYGROSSKILO = [];
 $ARRAYNETKILO = [];
 $ARRAYENVASEAGRUPADO = [];
+$ARRAYPRECIOPORCALIBRE = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
 $ARRAYVERNOTADCNC="";
@@ -305,15 +307,15 @@ if($ARRAYICARGA){
           if(!isset($ARRAYNETKILO[$KEYDETALLE])){
             $ARRAYNETKILO[$KEYDETALLE] = 0;
           }
-          if(!isset($ARRAYENVASEAGRUPADO[$KEYDETALLE])){
-            $ARRAYENVASEAGRUPADO[$KEYDETALLE] = 0;
-          }
-          $ARRAYGROSSKILO[$KEYDETALLE] = $ARRAYGROSSKILO[$KEYDETALLE] + $r['BRUTO'];
-          $ARRAYNETKILO[$KEYDETALLE] = $ARRAYNETKILO[$KEYDETALLE] + $r['NETO'];
-          $ARRAYENVASEAGRUPADO[$KEYDETALLE] = $ARRAYENVASEAGRUPADO[$KEYDETALLE] + $r['ENVASE'];
-        endforeach;
-      endforeach;
-    }
+      if(!isset($ARRAYENVASEAGRUPADO[$KEYDETALLE])){
+        $ARRAYENVASEAGRUPADO[$KEYDETALLE] = 0;
+      }
+      $ARRAYGROSSKILO[$KEYDETALLE] = $ARRAYGROSSKILO[$KEYDETALLE] + $r['BRUTO'];
+      $ARRAYNETKILO[$KEYDETALLE] = $ARRAYNETKILO[$KEYDETALLE] + $r['NETO'];
+      $ARRAYENVASEAGRUPADO[$KEYDETALLE] = $ARRAYENVASEAGRUPADO[$KEYDETALLE] + $r['ENVASE'];
+    endforeach;
+  endforeach;
+}
 
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
@@ -323,6 +325,7 @@ if($ARRAYICARGA){
           'NOMBRE' => $s['NOMBRE'],
           'TCALIBRE' => $s['TCALIBRE'],
           'TMONEDA' => $s['TMONEDA'],
+          'USSF' => $s['USSF'],
           'US' => $s['US'],
           'ENVASESF' => 0,
           'NETOSF' => 0,
@@ -334,10 +337,43 @@ if($ARRAYICARGA){
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['NETOSF'] += $s['NETOSF'];
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['BRUTOSF'] += $s['BRUTOSF'];
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TOTALUSSF'] += $s['TOTALUSSF'];
+      $ARRAYPRECIOPORCALIBRE[$KEYDETALLE] = [
+        'TMONEDA' => $s['TMONEDA'],
+        'USSF' => $s['USSF'],
+      ];
     }
     }
-    
-      
+
+
+    $ARRAYCLAVESDETALLE = array_unique(array_merge(array_keys($ARRAYENVASEAGRUPADO), array_keys($ARRAYDCARGAAGRUPADO)));
+    foreach($ARRAYCLAVESDETALLE as $keyDetalle) {
+      $ENVASEAGRUPADO = $ARRAYENVASEAGRUPADO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['ENVASESF'] ?? 0);
+      $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NETOSF'] ?? 0);
+      $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle] ?? ($ARRAYDCARGAAGRUPADO[$keyDetalle]['BRUTOSF'] ?? 0);
+      $PRECIOAGRUPADO = $ARRAYDCARGAAGRUPADO[$keyDetalle]['USSF'] ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['USSF'] ?? 0);
+      $MONEDAAGRUPADA = $ARRAYDCARGAAGRUPADO[$keyDetalle]['TMONEDA'] ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['TMONEDA'] ?? "");
+
+      $NOMBREDETALLE = '';
+      $CALIBREDETALLE = '';
+      if(strpos($keyDetalle, '|') !== false){
+        $DETALLEDATA = explode('|', $keyDetalle);
+        $NOMBREDETALLE = $DETALLEDATA[0];
+        $CALIBREDETALLE = $DETALLEDATA[1] ?? '';
+      }
+
+      $ARRAYDETALLEAGRUPADO[$keyDetalle] = [
+        'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? ''),
+        'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
+        'TMONEDA' => $MONEDAAGRUPADA,
+        'USSF' => $PRECIOAGRUPADO,
+        'ENVASESF' => $ENVASEAGRUPADO,
+        'NETOSF' => $NETOAGRUPADO,
+        'BRUTOSF' => $BRUTOAGRUPADO,
+        'TOTALUSSF' => $PRECIOAGRUPADO * $ENVASEAGRUPADO,
+      ];
+    }
+
+
       $NUMEROICARGA=$ARRAYICARGA[0]["NUMERO_ICARGA"];
       $NUMEROIREFERENCIA=$ARRAYICARGA[0]["NREFERENCIA_ICARGA"];
       $FECHA=$ARRAYICARGA[0]["FECHA"];
@@ -351,6 +387,7 @@ if($ARRAYICARGA){
       }else{
         $FECHAETDREAL = "Sin Datos";
       }
+      $FECHAETAREAL = $ARRAYICARGA[0]['FECHAETAREAL'];
         $BOLAWBCRTINSTRUCTIVO = $ARRAYICARGA[0]['CRT_ICARGA'];
         if(!$BOLAWBCRTINSTRUCTIVO){
           $BOLAWBCRTINSTRUCTIVO = "Sin Datos";
@@ -730,6 +767,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
       ';
     }
     if ($TEMBARQUE == "2") {
@@ -738,6 +776,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
      }
@@ -747,6 +786,7 @@ $html = '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
         <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
     }
@@ -827,39 +867,25 @@ $html = $html . '
               
             </tr>
           </thead>
-           <tbody>
+          <tbody>
           ';
-          foreach ($ARRAYDCARGAAGRUPADO as $keyDetalle => $s) :
-            $NETOAGRUPADO = $s['NETOSF'];
-            $BRUTOAGRUPADO = $s['BRUTOSF'];
-            if(isset($ARRAYNETKILO[$keyDetalle])){
-              $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $NETOAGRUPADO = ($ARRAYNETKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
-              }
-            }
-            if(isset($ARRAYGROSSKILO[$keyDetalle])){
-              $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $BRUTOAGRUPADO = ($ARRAYGROSSKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
-              }
-            }
+          foreach ($ARRAYDETALLEAGRUPADO as $keyDetalle => $s) :
 
             $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
                     <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TCALIBRE'].'</td>
-                    <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
-                    <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
+                    <td class="center">'.number_format($s['NETOSF'], 2, ",", ".").'</td>
+                    <td class="center">'.number_format($s['BRUTOSF'], 2, ",", ".").'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.$s['US'].'</td>
+                    <td class="center">'.number_format($s['USSF'], 2, ",", ".").'</td>
                     <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
               </tr>
             ';
             $TOTALENVASEV += $s['ENVASESF'];
-            $TOTALNETOV += $NETOAGRUPADO;
-            $TOTALBRUTOV += $BRUTOAGRUPADO;
+            $TOTALNETOV += $s['NETOSF'];
+            $TOTALBRUTOV += $s['BRUTOSF'];
             $TOTALUSV += $s['TOTALUSSF'];
             endforeach;
 
