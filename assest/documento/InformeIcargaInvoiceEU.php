@@ -848,6 +848,8 @@ $html = $html . '
             $NOMBREECOMERCIAL = $s['NOMBRE'] ?? ($DETALLEPARTS[0] ?? '');
             $NOMBRETMANEJO = $s['TMANEJO'] ?? ($DETALLEPARTS[1] ?? '');
             $NOMBRETCALIBRE = $s['TCALIBRE'] ?? ($DETALLEPARTS[2] ?? '');
+            $NOMBRETMONEDA = $s['TMONEDA'] ?? '';
+            $PRECIOUS = $s['US'] ?? '';
 
             if($NOMBRETMANEJO === '' && isset($DETALLEPARTS[1])){
               $NOMBRETMANEJO = $DETALLEPARTS[1];
@@ -876,6 +878,16 @@ $html = $html . '
               }
             }
 
+            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
+              $DETALLEAGRUPADOUSO = $ARRAYDCARGAAGRUPADO[$KEYDETALLEUSO] ?? [];
+              if($NOMBRETMONEDA === '' && isset($DETALLEAGRUPADOUSO['TMONEDA']) && $DETALLEAGRUPADOUSO['TMONEDA'] !== ''){
+                $NOMBRETMONEDA = $DETALLEAGRUPADOUSO['TMONEDA'];
+              }
+              if($PRECIOUS === '' && isset($DETALLEAGRUPADOUSO['US']) && $DETALLEAGRUPADOUSO['US'] !== ''){
+                $PRECIOUS = $DETALLEAGRUPADOUSO['US'];
+              }
+            }
+
             $NETOAGRUPADO = $s['NETOSF'];
             $BRUTOAGRUPADO = $s['BRUTOSF'];
             if(isset($ARRAYNETKILO[$KEYDETALLEUSO])){
@@ -900,8 +912,8 @@ $html = $html . '
                     <td class="center">'.$NOMBRETCALIBRE.'</td>
                     <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
-                    <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.$s['US'].'</td>
+                    <td class="center" style="text-transform: uppercase;">'.$NOMBRETMONEDA.'</td>
+                    <td class="center">'.$PRECIOUS.'</td>
                     <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
               </tr>
             ';
