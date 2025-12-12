@@ -197,6 +197,15 @@ function normalizeNumber($value) {
   return (float) $value;
 }
 
+function removeCaliberFromName($name, $caliber) {
+  if (!$name || !$caliber) {
+    return $name;
+  }
+
+  $cleanName = str_ireplace($caliber, '', $name);
+  return trim(preg_replace('/\s+/', ' ', $cleanName));
+}
+
 //INICIALIZAR ARREGLOS
 $ARRAYEMPRESA = "";
 $ARRAYPLANTA = "";
@@ -404,8 +413,11 @@ if($ARRAYICARGA){
         ?? ($ARRAYPRECIOPORCALIBRE[$keyDetalle]['TMONEDA'] ?? null)
         ?? ($ARRAYPRECIOPORCALIBRESOLO[$CALIBREDETALLE]['TMONEDA'] ?? "");
 
+      $NOMBREDETALLE = $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE);
+      $NOMBREDESCRIPCION = removeCaliberFromName($NOMBREDETALLE, $CALIBREDETALLE) ?: $NOMBREDETALLE;
+
       $ARRAYDETALLEAGRUPADO[$keyDetalle] = [
-        'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
+        'NOMBRE' => $NOMBREDESCRIPCION,
         'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
         'ID_TCALIBRE' => $IDCALIBREDETALLE,
         'TMANEJO' => $MANEJODETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TMANEJO'] ?? ''),
