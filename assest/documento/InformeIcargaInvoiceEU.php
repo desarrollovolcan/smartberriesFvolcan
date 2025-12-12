@@ -197,8 +197,6 @@ function normalizeNumber($value) {
   return (float) $value;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 function removeCaliberFromName($name, $caliber) {
   if (!$name || !$caliber) {
     return $name;
@@ -228,10 +226,6 @@ function removeCaliberFromName($name, $caliber) {
   return trim(preg_replace('/\s+/', ' ', $cleanName));
 }
 
-=======
->>>>>>> parent of 4bb62b3 (Improve caliber stripping in EU invoice report)
-=======
->>>>>>> parent of 4bb62b3 (Improve caliber stripping in EU invoice report)
 //INICIALIZAR ARREGLOS
 $ARRAYEMPRESA = "";
 $ARRAYPLANTA = "";
@@ -380,7 +374,7 @@ if($ARRAYICARGA){
       $IDTCALIBRE = $s['ID_TCALIBRE'] ?? null;
       if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
-        'NOMBRE' => $s['NOMBRE'],
+        'NOMBRE' => removeCaliberFromName($s['NOMBRE'], $s['TCALIBRE']),
         'TCALIBRE' => $s['TCALIBRE'],
         'ID_TCALIBRE' => $IDTCALIBRE,
         'TMONEDA' => $s['TMONEDA'],
@@ -440,7 +434,7 @@ if($ARRAYICARGA){
         ?? ($ARRAYPRECIOPORCALIBRESOLO[$CALIBREDETALLE]['TMONEDA'] ?? "");
 
       $ARRAYDETALLEAGRUPADO[$keyDetalle] = [
-        'NOMBRE' => $NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE),
+        'NOMBRE' => removeCaliberFromName($NOMBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['NOMBRE'] ?? $CALIBREDETALLE), $CALIBREDETALLE),
         'TCALIBRE' => $CALIBREDETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TCALIBRE'] ?? ''),
         'ID_TCALIBRE' => $IDCALIBREDETALLE,
         'TMANEJO' => $MANEJODETALLE ?: ($ARRAYDCARGAAGRUPADO[$keyDetalle]['TMANEJO'] ?? ''),
