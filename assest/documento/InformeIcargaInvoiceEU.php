@@ -1,4 +1,4 @@
-<?php
+/assest/documento/informeIcargaInvoiceEU.php<?php
 
 //BASE
 include_once '../../assest/controlador/TUSUARIO_ADO.php';
