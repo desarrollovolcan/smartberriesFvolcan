@@ -1,4 +1,4 @@
-<?php
+/assest/documento/informeIcargaInvoiceEU.php<?php
 
 //BASE
 include_once '../../assest/controlador/TUSUARIO_ADO.php';
@@ -894,6 +894,7 @@ if($COSTOFLETEICARGA!=""){
                     
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
+                          <td class="color center">&nbsp;</td>
                           <th class="color right">Overall Kilogram </td>
                           <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
                           <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
