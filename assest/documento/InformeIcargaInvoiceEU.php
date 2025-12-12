@@ -210,6 +210,7 @@ $ARRAYSEGURO = "";
 $ARRAYPRODUCTOR = "";
 $ARRAYDCARGA = "";
 $ARRAYDCARGAAGRUPADO = [];
+$ARRAYPRECIOSTMONEDA = [];
 $ARRAYCALIBRE = "";
 $ARRAYNUMERO = "";
 $ARRAYVERNOTADCNC="";
@@ -237,12 +238,12 @@ if (isset($_REQUEST['parametro'])) {
 $ARRAYICARGA=$ICARGA_ADO->verIcarga2($IDOP);
 if($ARRAYICARGA){
       
-    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
-    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
+    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     if($ARRAYDCARGA1){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
     }else if($ARRAYDCARGA2){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     }
     
 
@@ -279,7 +280,7 @@ if($ARRAYICARGA){
     }
 
     if($ARRAYDESPACHOEX){
-      foreach ($ARRAYDESPACHOEX as $despacho) :
+    foreach ($ARRAYDESPACHOEX as $despacho) :
         $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPordespachoEx($despacho['ID_DESPACHOEX']);
         foreach ($ARRAYTOMADO as $r) :
           $NOMBREECOMERCIAL = "Sin Datos";
@@ -297,7 +298,14 @@ if($ARRAYICARGA){
               $NOMBRETMANEJO = $ARRAYTMANEJO[0]['NOMBRE_TMANEJO'];
             }
           }
-          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO;
+          $NOMBRETCALIBRE = "Sin Datos";
+          if(isset($r['ID_TCALIBRE'])){
+            $ARRAYTCALIBRE = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
+            if($ARRAYTCALIBRE){
+              $NOMBRETCALIBRE = $ARRAYTCALIBRE[0]['NOMBRE_TCALIBRE'];
+            }
+          }
+          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO.'|'.$NOMBRETCALIBRE;
           if(!isset($ARRAYGROSSKILO[$KEYDETALLE])){
             $ARRAYGROSSKILO[$KEYDETALLE] = 0;
           }
@@ -314,14 +322,97 @@ if($ARRAYICARGA){
       endforeach;
     }
 
+    // Preload price and currency per instructive detail to recover missing values
+    $ARRAYDICARGADETALLE = $DICARGA_ADO->buscarPorIcarga($IDOP);
+    if($ARRAYDICARGADETALLE){
+      $CACHEESTANDAR = [];
+      $CACHEECOMERCIAL = [];
+      $CACHETMANEJO = [];
+      $CACHETCALIBRE = [];
+      $CACHETMONEDA = [];
+      $CACHETMONEDANOMBRE = [];
+      foreach($ARRAYDICARGADETALLE as $d){
+        $NOMBRECOMERCIALDET = '';
+        $NOMBRETMANEODET = '';
+        $NOMBRETCALIBREDET = '';
+        if(isset($d['ID_ESTANDAR'])){
+          if(!isset($CACHEESTANDAR[$d['ID_ESTANDAR']])){
+            $CACHEESTANDAR[$d['ID_ESTANDAR']] = $EEXPORTACION_ADO->verEstandar($d['ID_ESTANDAR']);
+          }
+          $ARRAYESTANDARDET = $CACHEESTANDAR[$d['ID_ESTANDAR']];
+          if($ARRAYESTANDARDET){
+            $IDECOMERCIALDET = $ARRAYESTANDARDET[0]['ID_ECOMERCIAL'];
+            if(!isset($CACHEECOMERCIAL[$IDECOMERCIALDET])){
+              $CACHEECOMERCIAL[$IDECOMERCIALDET] = $ECOMERCIAL_ADO->verEcomercial($IDECOMERCIALDET);
+            }
+            $ARRAYECOMERCIALDET = $CACHEECOMERCIAL[$IDECOMERCIALDET];
+            if($ARRAYECOMERCIALDET){
+              $NOMBRECOMERCIALDET = $ARRAYECOMERCIALDET[0]['NOMBRE_ECOMERCIAL'];
+            }
+          }
+        }
+        if(isset($d['ID_TMANEJO'])){
+          if(!isset($CACHETMANEJO[$d['ID_TMANEJO']])){
+            $CACHETMANEJO[$d['ID_TMANEJO']] = $TMANEJO_ADO->verTmanejo($d['ID_TMANEJO']);
+          }
+          $ARRAYTMANEJODET = $CACHETMANEJO[$d['ID_TMANEJO']];
+          if($ARRAYTMANEJODET){
+            $NOMBRETMANEODET = $ARRAYTMANEJODET[0]['NOMBRE_TMANEJO'];
+          }
+        }
+        if(isset($d['ID_TCALIBRE'])){
+          if(!isset($CACHETCALIBRE[$d['ID_TCALIBRE']])){
+            $CACHETCALIBRE[$d['ID_TCALIBRE']] = $TCALIBRE_ADO->verCalibre($d['ID_TCALIBRE']);
+          }
+          $ARRAYTCALIBREDET = $CACHETCALIBRE[$d['ID_TCALIBRE']];
+          if($ARRAYTCALIBREDET){
+            $NOMBRETCALIBREDET = $ARRAYTCALIBREDET[0]['NOMBRE_TCALIBRE'];
+          }
+        }
+        $KEYPRECIO = $NOMBRECOMERCIALDET.'|'.$NOMBRETMANEODET.'|'.$NOMBRETCALIBREDET;
+        if(!isset($ARRAYPRECIOSTMONEDA[$KEYPRECIO])){
+          $ARRAYPRECIOSTMONEDA[$KEYPRECIO] = [
+            'TMONEDA' => '',
+            'US' => '',
+          ];
+        }
+        if($ARRAYPRECIOSTMONEDA[$KEYPRECIO]['TMONEDA'] === ''){
+          if(isset($d['ID_TMONEDA'])){
+            if(!isset($CACHETMONEDA[$d['ID_TMONEDA']])){
+              $CACHETMONEDA[$d['ID_TMONEDA']] = $TMONEDA_ADO->verTmoneda($d['ID_TMONEDA']);
+            }
+            $ARRAYTMONEDADET = $CACHETMONEDA[$d['ID_TMONEDA']];
+            if($ARRAYTMONEDADET){
+              $ARRAYPRECIOSTMONEDA[$KEYPRECIO]['TMONEDA'] = $ARRAYTMONEDADET[0]['NOMBRE_TMONEDA'];
+            }
+          }
+        }
+        if($ARRAYPRECIOSTMONEDA[$KEYPRECIO]['US'] === '' && isset($d['PRECIO_US_DICARGA'])){
+          $ARRAYPRECIOSTMONEDA[$KEYPRECIO]['US'] = $d['PRECIO_US_DICARGA'];
+        }
+      }
+    }
+
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
-      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TMANEJO'];
+      $TMONEDANOMBRE = $s['TMONEDA'];
+      if($TMONEDANOMBRE !== '' && is_numeric($TMONEDANOMBRE)){
+        if(!isset($CACHETMONEDANOMBRE[$TMONEDANOMBRE])){
+          $CACHETMONEDANOMBRE[$TMONEDANOMBRE] = $TMONEDA_ADO->verTmoneda($TMONEDANOMBRE);
+        }
+        $ARRAYTMONEDANOMBRE = $CACHETMONEDANOMBRE[$TMONEDANOMBRE];
+        if($ARRAYTMONEDANOMBRE){
+          $TMONEDANOMBRE = $ARRAYTMONEDANOMBRE[0]['NOMBRE_TMONEDA'];
+        }
+      }
+
+      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TMANEJO'].'|'.$s['TCALIBRE'];
       if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
         $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
           'NOMBRE' => $s['NOMBRE'],
           'TMANEJO' => $s['TMANEJO'],
-          'TMONEDA' => $s['TMONEDA'],
+          'TCALIBRE' => $s['TCALIBRE'],
+          'TMONEDA' => $TMONEDANOMBRE,
           'US' => $s['US'],
           'ENVASESF' => 0,
           'NETOSF' => 0,
@@ -329,6 +420,25 @@ if($ARRAYICARGA){
           'TOTALUSSF' => 0,
         ];
       }
+      if((!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA'] === '') && $TMONEDANOMBRE !== ''){
+        $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA'] = $TMONEDANOMBRE;
+      }
+      if((!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US'] === '') && ($s['US'] !== '' || isset($s['USSF']))){
+        $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US'] = $s['US'] !== '' ? $s['US'] : ($s['USSF'] ?? '');
+      }
+        if(
+          (!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA'] === '') ||
+          (!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US'] === '')
+        ) {
+          if(isset($ARRAYPRECIOSTMONEDA[$KEYDETALLE])){
+            if((!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA'] === '') && $ARRAYPRECIOSTMONEDA[$KEYDETALLE]['TMONEDA'] !== ''){
+              $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['TMONEDA'] = $ARRAYPRECIOSTMONEDA[$KEYDETALLE]['TMONEDA'];
+            }
+            if((!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US']) || $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US'] === '') && $ARRAYPRECIOSTMONEDA[$KEYDETALLE]['US'] !== ''){
+              $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['US'] = $ARRAYPRECIOSTMONEDA[$KEYDETALLE]['US'];
+            }
+          }
+        }
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['ENVASESF'] += $s['ENVASESF'];
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['NETOSF'] += $s['NETOSF'];
       $ARRAYDCARGAAGRUPADO[$KEYDETALLE]['BRUTOSF'] += $s['BRUTOSF'];
@@ -819,12 +929,13 @@ $html = $html . '
         <table border="0" cellspacing="0" cellpadding="0">
           <thead>
             <tr>
-              <th colspan="8" class="center">DETAIL.</th>
+              <th colspan="9" class="center">DETAIL.</th>
             </tr>
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
               <th class="color center ">Handling</th>
+              <th class="color center ">Type of Caliber</th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
               <th class="color center ">Type of currency </th>
@@ -835,30 +946,110 @@ $html = $html . '
            <tbody>
           ';
           foreach ($ARRAYDCARGAAGRUPADO as $keyDetalle => $s) :
-            $NETOAGRUPADO = $s['NETOSF'];
-            $BRUTOAGRUPADO = $s['BRUTOSF'];
-            if(isset($ARRAYNETKILO[$keyDetalle])){
-              $NETOAGRUPADO = $ARRAYNETKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $NETOAGRUPADO = ($ARRAYNETKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
+            $DETALLEPARTS = explode('|', $keyDetalle);
+            $NOMBREECOMERCIAL = $s['NOMBRE'] ?? ($DETALLEPARTS[0] ?? '');
+            $NOMBRETMANEJO = $s['TMANEJO'] ?? ($DETALLEPARTS[1] ?? '');
+            $NOMBRETCALIBRE = $s['TCALIBRE'] ?? ($DETALLEPARTS[2] ?? '');
+            if($NOMBRETMANEJO === '' && isset($DETALLEPARTS[1])){
+              $NOMBRETMANEJO = $DETALLEPARTS[1];
+            }
+            if($NOMBRETCALIBRE === '' && isset($DETALLEPARTS[2])){
+              $NOMBRETCALIBRE = $DETALLEPARTS[2];
+            }
+
+            $KEYDETALLEUSO = $keyDetalle;
+            if(($NOMBRETMANEJO === '' || $NOMBRETCALIBRE === '') && is_array($ARRAYNETKILO) && count($ARRAYNETKILO) > 0){
+              foreach (array_keys($ARRAYNETKILO) as $keyAgrupado) {
+                $PARTESAGRUPADO = explode('|', $keyAgrupado);
+                if(($PARTESAGRUPADO[0] ?? '') === $NOMBREECOMERCIAL){
+                  $COINCIDECALIBRE = $NOMBRETCALIBRE === '' || ($PARTESAGRUPADO[2] ?? '') === $NOMBRETCALIBRE;
+                  if($COINCIDECALIBRE){
+                    $KEYDETALLEUSO = $keyAgrupado;
+                    if($NOMBRETMANEJO === '' && isset($PARTESAGRUPADO[1])){
+                      $NOMBRETMANEJO = $PARTESAGRUPADO[1];
+                    }
+                    if($NOMBRETCALIBRE === '' && isset($PARTESAGRUPADO[2])){
+                      $NOMBRETCALIBRE = $PARTESAGRUPADO[2];
+                    }
+                    break;
+                  }
+                }
               }
             }
-            if(isset($ARRAYGROSSKILO[$keyDetalle])){
-              $BRUTOAGRUPADO = $ARRAYGROSSKILO[$keyDetalle];
-              if(isset($ARRAYENVASEAGRUPADO[$keyDetalle]) && $ARRAYENVASEAGRUPADO[$keyDetalle] > 0){
-                $BRUTOAGRUPADO = ($ARRAYGROSSKILO[$keyDetalle] / $ARRAYENVASEAGRUPADO[$keyDetalle]) * $s['ENVASESF'];
+
+            $DETALLEAGRUPADOUSO = $ARRAYDCARGAAGRUPADO[$KEYDETALLEUSO] ?? [];
+            $NOMBRETMONEDA = $DETALLEAGRUPADOUSO['TMONEDA'] ?? ($s['TMONEDA'] ?? '');
+            $PRECIOUS = $DETALLEAGRUPADOUSO['US'] ?? ($s['US'] ?? '');
+            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
+              $keyPrecioCompleto = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO.'|'.$NOMBRETCALIBRE;
+              if(isset($ARRAYPRECIOSTMONEDA[$keyPrecioCompleto])){
+                if($NOMBRETMONEDA === ''){
+                  $NOMBRETMONEDA = $ARRAYPRECIOSTMONEDA[$keyPrecioCompleto]['TMONEDA'];
+                }
+                if($PRECIOUS === ''){
+                  $PRECIOUS = $ARRAYPRECIOSTMONEDA[$keyPrecioCompleto]['US'];
+                }
+              }
+            }
+
+            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
+              if(isset($ARRAYPRECIOSTMONEDA[$KEYDETALLEUSO])){
+                if($NOMBRETMONEDA === ''){
+                  $NOMBRETMONEDA = $ARRAYPRECIOSTMONEDA[$KEYDETALLEUSO]['TMONEDA'];
+                }
+                if($PRECIOUS === ''){
+                  $PRECIOUS = $ARRAYPRECIOSTMONEDA[$KEYDETALLEUSO]['US'];
+                }
+              }
+            }
+
+            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
+              foreach ($ARRAYPRECIOSTMONEDA as $keyPrecio => $precioDato) {
+                $partesPrecio = explode('|', $keyPrecio);
+                if(($partesPrecio[0] ?? '') !== $NOMBREECOMERCIAL){
+                  continue;
+                }
+                $coincideManejo = $NOMBRETMANEJO === '' || ($partesPrecio[1] ?? '') === $NOMBRETMANEJO;
+                $coincideCalibre = $NOMBRETCALIBRE === '' || ($partesPrecio[2] ?? '') === $NOMBRETCALIBRE;
+                if($coincideManejo && $coincideCalibre){
+                  if($NOMBRETMONEDA === '' && $precioDato['TMONEDA'] !== ''){
+                    $NOMBRETMONEDA = $precioDato['TMONEDA'];
+                  }
+                  if($PRECIOUS === '' && $precioDato['US'] !== ''){
+                    $PRECIOUS = $precioDato['US'];
+                  }
+                  if($NOMBRETMONEDA !== '' && $PRECIOUS !== ''){
+                    break;
+                  }
+                }
+              }
+            }
+
+            $NETOAGRUPADO = $s['NETOSF'];
+            $BRUTOAGRUPADO = $s['BRUTOSF'];
+            if(isset($ARRAYNETKILO[$KEYDETALLEUSO])){
+              $NETOAGRUPADO = $ARRAYNETKILO[$KEYDETALLEUSO];
+              if(isset($ARRAYENVASEAGRUPADO[$KEYDETALLEUSO]) && $ARRAYENVASEAGRUPADO[$KEYDETALLEUSO] > 0){
+                $NETOAGRUPADO = ($ARRAYNETKILO[$KEYDETALLEUSO] / $ARRAYENVASEAGRUPADO[$KEYDETALLEUSO]) * $s['ENVASESF'];
+              }
+            }
+            if(isset($ARRAYGROSSKILO[$KEYDETALLEUSO])){
+              $BRUTOAGRUPADO = $ARRAYGROSSKILO[$KEYDETALLEUSO];
+              if(isset($ARRAYENVASEAGRUPADO[$KEYDETALLEUSO]) && $ARRAYENVASEAGRUPADO[$KEYDETALLEUSO] > 0){
+                $BRUTOAGRUPADO = ($ARRAYGROSSKILO[$KEYDETALLEUSO] / $ARRAYENVASEAGRUPADO[$KEYDETALLEUSO]) * $s['ENVASESF'];
               }
             }
 
             $html = $html . '
               <tr class="">
-                    <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
-                    <td class="center">'.$s['NOMBRE'].'</td>
-                    <td class="center">'.$s['TMANEJO'].'</td>
+                    <td class="center">'.$s['ENVASESF'].'</td>
+                    <td class="center">'.$NOMBREECOMERCIAL.'</td>
+                    <td class="center">'.$NOMBRETMANEJO.'</td>
+                    <td class="center">'.$NOMBRETCALIBRE.'</td>
                     <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
-                    <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
-                    <td class="center">'.$s['US'].'</td>
+                    <td class="center" style="text-transform: uppercase;">'.$NOMBRETMONEDA.'</td>
+                    <td class="center">'.$PRECIOUS.'</td>
                     <td class="center">'.number_format($s['TOTALUSSF'], 2, ",", ".").'</td>
               </tr>
             ';
@@ -877,7 +1068,9 @@ if($COSTOFLETEICARGA!=""){
                     <td class="center">Freight cost </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
-                    <td class="center"></td>
+                    <td class="center"> - </td>
+                    <td class="center"> - </td>
+                    <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
               </tr>
@@ -894,13 +1087,15 @@ if($COSTOFLETEICARGA!=""){
                     
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
-                          <th class="color right">Overall Kilogram </td>
-                          <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
-                          <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
-                          <td class="color center">&nbsp;</td>
-                          <td class="color center">&nbsp;</td>
-                          <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
-                        </tr>
+                            <th class="color right">Overall Kilogram </td>
+                            <th class="color center">&nbsp;</th>
+                            <th class="color center">&nbsp;</th>
+                            <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
+                            <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
+                            <td class="color center">&nbsp;</td>
+                            <td class="color center">&nbsp;</td>
+                            <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
+                          </tr>
                     ';
             
             
