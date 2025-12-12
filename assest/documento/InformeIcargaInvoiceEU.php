@@ -202,7 +202,15 @@ function removeCaliberFromName($name, $caliber) {
     return $name;
   }
 
-  $cleanName = str_ireplace($caliber, '', $name);
+  $caliberPattern = preg_quote($caliber, '/');
+  $patterns = [
+    '/\(\s*' . $caliberPattern . '\s*\)/i',
+    '/\bcalibre\s*' . $caliberPattern . '\b/i',
+    '/\bcaliber\s*' . $caliberPattern . '\b/i',
+    '/\b' . $caliberPattern . '\b/i',
+  ];
+
+  $cleanName = preg_replace($patterns, '', $name);
   return trim(preg_replace('/\s+/', ' ', $cleanName));
 }
 
