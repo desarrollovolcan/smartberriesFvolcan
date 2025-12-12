@@ -850,11 +850,10 @@ $html = $html . '
               }
             }
 
-            $DESCRIPCIONDETALLE = $OBSERVACIONESI ? $OBSERVACIONESI : $s['NOMBRE'];
             $html = $html . '
               <tr class="">
                     <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
-                    <td class="center">'.$DESCRIPCIONDETALLE.'</td>
+                    <td class="center">'.$s['NOMBRE'].'</td>
                     <td class="center">'.$s['TMANEJO'].'</td>
                     <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
