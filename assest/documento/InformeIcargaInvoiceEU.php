@@ -237,12 +237,12 @@ if (isset($_REQUEST['parametro'])) {
 $ARRAYICARGA=$ICARGA_ADO->verIcarga2($IDOP);
 if($ARRAYICARGA){
       
-    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
-    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+    $ARRAYDCARGA1 = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
+    $ARRAYDCARGA2 = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     if($ARRAYDCARGA1){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoicePorIcargaPorCalibre($IDOP);
     }else if($ARRAYDCARGA2){
-      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcarga($IDOP);
+      $ARRAYDCARGA = $DICARGA_ADO->buscarInvoiceIntPorIcargaPorCalibre($IDOP);
     }
     
 
@@ -279,7 +279,7 @@ if($ARRAYICARGA){
     }
 
     if($ARRAYDESPACHOEX){
-      foreach ($ARRAYDESPACHOEX as $despacho) :
+    foreach ($ARRAYDESPACHOEX as $despacho) :
         $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPordespachoEx($despacho['ID_DESPACHOEX']);
         foreach ($ARRAYTOMADO as $r) :
           $NOMBREECOMERCIAL = "Sin Datos";
@@ -297,7 +297,14 @@ if($ARRAYICARGA){
               $NOMBRETMANEJO = $ARRAYTMANEJO[0]['NOMBRE_TMANEJO'];
             }
           }
-          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO;
+          $NOMBRETCALIBRE = "Sin Datos";
+          if(isset($r['ID_TCALIBRE'])){
+            $ARRAYTCALIBRE = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
+            if($ARRAYTCALIBRE){
+              $NOMBRETCALIBRE = $ARRAYTCALIBRE[0]['NOMBRE_TCALIBRE'];
+            }
+          }
+          $KEYDETALLE = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO.'|'.$NOMBRETCALIBRE;
           if(!isset($ARRAYGROSSKILO[$KEYDETALLE])){
             $ARRAYGROSSKILO[$KEYDETALLE] = 0;
           }
@@ -316,11 +323,12 @@ if($ARRAYICARGA){
 
     if($ARRAYDCARGA){
     foreach ($ARRAYDCARGA as $s) {
-      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TMANEJO'];
+      $KEYDETALLE = $s['NOMBRE'].'|'.$s['TMANEJO'].'|'.$s['TCALIBRE'];
       if(!isset($ARRAYDCARGAAGRUPADO[$KEYDETALLE])){
         $ARRAYDCARGAAGRUPADO[$KEYDETALLE] = [
           'NOMBRE' => $s['NOMBRE'],
           'TMANEJO' => $s['TMANEJO'],
+          'TCALIBRE' => $s['TCALIBRE'],
           'TMONEDA' => $s['TMONEDA'],
           'US' => $s['US'],
           'ENVASESF' => 0,
@@ -819,12 +827,13 @@ $html = $html . '
         <table border="0" cellspacing="0" cellpadding="0">
           <thead>
             <tr>
-              <th colspan="8" class="center">DETAIL.</th>
+              <th colspan="9" class="center">DETAIL.</th>
             </tr>
             <tr>
               <th class="color center ">Quantity Boxes</th>
               <th class="color center ">Description of goods </th>
               <th class="color center ">Handling</th>
+              <th class="color center ">Type of Caliber</th>
               <th class="color center ">Net Kilo </th>
               <th class="color center ">Gross Kilo </th>
               <th class="color center ">Type of currency </th>
@@ -835,6 +844,18 @@ $html = $html . '
            <tbody>
           ';
           foreach ($ARRAYDCARGAAGRUPADO as $keyDetalle => $s) :
+            $DETALLEPARTS = explode('|', $keyDetalle);
+            $NOMBREECOMERCIAL = $s['NOMBRE'] ?? ($DETALLEPARTS[0] ?? '');
+            $NOMBRETMANEJO = $s['TMANEJO'] ?? ($DETALLEPARTS[1] ?? '');
+            $NOMBRETCALIBRE = $s['TCALIBRE'] ?? ($DETALLEPARTS[2] ?? '');
+
+            if($NOMBRETMANEJO === '' && isset($DETALLEPARTS[1])){
+              $NOMBRETMANEJO = $DETALLEPARTS[1];
+            }
+            if($NOMBRETCALIBRE === '' && isset($DETALLEPARTS[2])){
+              $NOMBRETCALIBRE = $DETALLEPARTS[2];
+            }
+
             $NETOAGRUPADO = $s['NETOSF'];
             $BRUTOAGRUPADO = $s['BRUTOSF'];
             if(isset($ARRAYNETKILO[$keyDetalle])){
@@ -852,9 +873,10 @@ $html = $html . '
 
             $html = $html . '
               <tr class="">
-                    <td class="center">'.number_format($s['ENVASESF'], 2, ",", ".").'</td>
-                    <td class="center">'.$s['NOMBRE'].'</td>
-                    <td class="center">'.$s['TMANEJO'].'</td>
+                    <td class="center">'.$s['ENVASESF'].'</td>
+                    <td class="center">'.$NOMBREECOMERCIAL.'</td>
+                    <td class="center">'.$NOMBRETMANEJO.'</td>
+                    <td class="center">'.$NOMBRETCALIBRE.'</td>
                     <td class="center">'.number_format($NETOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center">'.number_format($BRUTOAGRUPADO, 2, ",", ".").'</td>
                     <td class="center" style="text-transform: uppercase;">'.$s['TMONEDA'].'</td>
@@ -877,7 +899,9 @@ if($COSTOFLETEICARGA!=""){
                     <td class="center">Freight cost </td>
                     <td class="center"> - </td>
                     <td class="center"> - </td>
-                    <td class="center"></td>
+                    <td class="center"> - </td>
+                    <td class="center"> - </td>
+                    <td class="center"> - </td>
                     <td class="center"> - </td>
                     <td class="center">'.number_format($COSTOFLETEICARGA, 2, ",", ".").'</td>
               </tr>
@@ -894,13 +918,15 @@ if($COSTOFLETEICARGA!=""){
                     
                         <tr class="bt">
                           <th class="color center">'.number_format($TOTALENVASEV, 2, ",", ".").'</th>
-                          <th class="color right">Overall Kilogram </td>
-                          <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
-                          <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
-                          <td class="color center">&nbsp;</td>
-                          <td class="color center">&nbsp;</td>
-                          <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
-                        </tr>
+                            <th class="color right">Overall Kilogram </td>
+                            <th class="color center">&nbsp;</th>
+                            <th class="color center">&nbsp;</th>
+                            <th class="color center">'.number_format($TOTALNETOV, 2, ",", ".").'</th>
+                            <th class="color center">'.number_format($TOTALBRUTOV, 2, ",", ".").'</th>
+                            <td class="color center">&nbsp;</td>
+                            <td class="color center">&nbsp;</td>
+                            <th class="color center">'.number_format($TOTALUSV, 2, ",", ".").'</th>
+                          </tr>
                     ';
             
             
