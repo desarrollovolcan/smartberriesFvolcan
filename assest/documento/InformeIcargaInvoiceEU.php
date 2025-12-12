@@ -208,8 +208,8 @@ function removeCaliberFromName($name, $caliber) {
     '/\(\s*' . $caliberPattern . '\s*\)/i',
     '/\[\s*' . $caliberPattern . '\s*\]/i',
     '/\b(?:calibre|caliber|size|cl)\s*:?' . '\s*' . $caliberPattern . '\b/i',
-    '/(?:^|\s|-)\s*' . $caliberPattern . '(?=\s|$)/i',
-    '/(?:^|\s|-)\s*' . $caliberPattern . '\b/i',
+    '/(?:^|\s|[-\/xX])\s*' . $caliberPattern . '(?=\s|$)/i',
+    '/(?:^|\s|[-\/xX])\s*' . $caliberPattern . '\b/i',
   ];
 
   if ($caliberCompact && $caliberCompact !== $caliberPattern) {
@@ -217,12 +217,20 @@ function removeCaliberFromName($name, $caliber) {
       '/\(\s*' . $caliberCompact . '\s*\)/i',
       '/\[\s*' . $caliberCompact . '\s*\]/i',
       '/\b(?:calibre|caliber|size|cl)\s*:?' . '\s*' . $caliberCompact . '\b/i',
-      '/(?:^|\s|-)\s*' . $caliberCompact . '(?=\s|$)/i',
-      '/(?:^|\s|-)\s*' . $caliberCompact . '\b/i',
+      '/(?:^|\s|[-\/xX])\s*' . $caliberCompact . '(?=\s|$)/i',
+      '/(?:^|\s|[-\/xX])\s*' . $caliberCompact . '\b/i',
     ]);
   }
 
   $cleanName = preg_replace($patterns, '', $name);
+
+  // As a final guard, strip any remaining literal caliber tokens so descriptions
+  // stay free of caliber text even when it appears without separators.
+  $cleanName = str_ireplace($caliber, '', $cleanName);
+  if ($caliberCompact && $caliberCompact !== $caliber) {
+    $cleanName = str_ireplace($caliberCompact, '', $cleanName);
+  }
+
   return trim(preg_replace('/\s+/', ' ', $cleanName));
 }
 
