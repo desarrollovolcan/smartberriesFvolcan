@@ -981,6 +981,18 @@ $html = $html . '
             $NOMBRETMONEDA = $DETALLEAGRUPADOUSO['TMONEDA'] ?? ($s['TMONEDA'] ?? '');
             $PRECIOUS = $DETALLEAGRUPADOUSO['US'] ?? ($s['US'] ?? '');
             if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
+              $keyPrecioCompleto = $NOMBREECOMERCIAL.'|'.$NOMBRETMANEJO.'|'.$NOMBRETCALIBRE;
+              if(isset($ARRAYPRECIOSTMONEDA[$keyPrecioCompleto])){
+                if($NOMBRETMONEDA === ''){
+                  $NOMBRETMONEDA = $ARRAYPRECIOSTMONEDA[$keyPrecioCompleto]['TMONEDA'];
+                }
+                if($PRECIOUS === ''){
+                  $PRECIOUS = $ARRAYPRECIOSTMONEDA[$keyPrecioCompleto]['US'];
+                }
+              }
+            }
+
+            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
               if(isset($ARRAYPRECIOSTMONEDA[$KEYDETALLEUSO])){
                 if($NOMBRETMONEDA === ''){
                   $NOMBRETMONEDA = $ARRAYPRECIOSTMONEDA[$KEYDETALLEUSO]['TMONEDA'];
