@@ -848,9 +848,6 @@ $html = $html . '
             $NOMBREECOMERCIAL = $s['NOMBRE'] ?? ($DETALLEPARTS[0] ?? '');
             $NOMBRETMANEJO = $s['TMANEJO'] ?? ($DETALLEPARTS[1] ?? '');
             $NOMBRETCALIBRE = $s['TCALIBRE'] ?? ($DETALLEPARTS[2] ?? '');
-            $NOMBRETMONEDA = $s['TMONEDA'] ?? '';
-            $PRECIOUS = $s['US'] ?? '';
-
             if($NOMBRETMANEJO === '' && isset($DETALLEPARTS[1])){
               $NOMBRETMANEJO = $DETALLEPARTS[1];
             }
@@ -878,15 +875,9 @@ $html = $html . '
               }
             }
 
-            if($NOMBRETMONEDA === '' || $PRECIOUS === ''){
-              $DETALLEAGRUPADOUSO = $ARRAYDCARGAAGRUPADO[$KEYDETALLEUSO] ?? [];
-              if($NOMBRETMONEDA === '' && isset($DETALLEAGRUPADOUSO['TMONEDA']) && $DETALLEAGRUPADOUSO['TMONEDA'] !== ''){
-                $NOMBRETMONEDA = $DETALLEAGRUPADOUSO['TMONEDA'];
-              }
-              if($PRECIOUS === '' && isset($DETALLEAGRUPADOUSO['US']) && $DETALLEAGRUPADOUSO['US'] !== ''){
-                $PRECIOUS = $DETALLEAGRUPADOUSO['US'];
-              }
-            }
+            $DETALLEAGRUPADOUSO = $ARRAYDCARGAAGRUPADO[$KEYDETALLEUSO] ?? [];
+            $NOMBRETMONEDA = $DETALLEAGRUPADOUSO['TMONEDA'] ?? ($s['TMONEDA'] ?? '');
+            $PRECIOUS = $DETALLEAGRUPADOUSO['US'] ?? ($s['US'] ?? '');
 
             $NETOAGRUPADO = $s['NETOSF'];
             $BRUTOAGRUPADO = $s['BRUTOSF'];
