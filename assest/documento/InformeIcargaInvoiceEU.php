@@ -1,4 +1,4 @@
-<?php
+/assest/documento/informeIcargaInvoiceEU.php<?php
 
 //BASE
 include_once '../../assest/controlador/TUSUARIO_ADO.php';
@@ -891,6 +891,7 @@ $html = $html . '
               }
             }
 
+            $DESCRIPCIONDETALLE = $OBSERVACIONESI ? $OBSERVACIONESI : $s['NOMBRE'];
             $html = $html . '
               <tr class="">
                     <td class="center">'.$s['ENVASESF'].'</td>
