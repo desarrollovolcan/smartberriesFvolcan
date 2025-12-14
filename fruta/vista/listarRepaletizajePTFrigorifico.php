@@ -1,6 +1,5 @@
 <?php
 
-<?php
 
 include_once "../../assest/config/validarUsuarioFruta.php";
 

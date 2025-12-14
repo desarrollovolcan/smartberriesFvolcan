@@ -21,6 +21,9 @@ include_once '../../assest/controlador/EEXPORTACION_ADO.php';
 include_once '../../assest/controlador/TMANEJO_ADO.php';
 include_once '../../assest/controlador/TCALIBRE_ADO.php';
 include_once '../../assest/controlador/TEMBALAJE_ADO.php';
+include_once '../../assest/controlador/DESPACHOEX_ADO.php';
+include_once '../../assest/controlador/DESPACHOPT_ADO.php';
+include_once '../../assest/controlador/INPSAG_ADO.php';
 
 include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
@@ -47,6 +50,9 @@ $EXIEXPORTACION_ADO =  new EXIEXPORTACION_ADO();
 $TMANEJO_ADO =  new TMANEJO_ADO();
 $TCALIBRE_ADO =  new TCALIBRE_ADO();
 $TEMBALAJE_ADO =  new TEMBALAJE_ADO();
+$DESPACHOEX_ADO = new DESPACHOEX_ADO();
+$DESPACHOPT_ADO = new DESPACHOPT_ADO();
+$INPSAG_ADO = new INPSAG_ADO();
 
 $EEXPORTACION_ADO =  new EEXPORTACION_ADO();
 $REPALETIZAJEEX_ADO =  new REPALETIZAJEEX_ADO();
@@ -826,6 +832,7 @@ if ($_POST) {
                                                         <tr class="text-center">
                                                             <th>Estado</th>
                                                             <th>Folio Nuevo</th>
+                                                            <th>Estado Folio</th>
                                                             <th class="text-center">Operaciónes</th>
                                                             <th>Fecha Embalado </th>
                                                             <th>Código Estandar </th>
@@ -893,8 +900,47 @@ if ($_POST) {
                                                                     $NOMBRETEMBALAJE = "Sin Datos";
                                                                 }
                                                                 ?>
+                                                                <?php
+                                                                $detalleExistencia = $EXIEXPORTACION_ADO->buscarPorFolio($r['FOLIO_NUEVO_DREPALETIZAJE']);
+                                                                $etiquetasFolio = [];
+
+                                                                if ($detalleExistencia) {
+                                                                    $idDespacho = $detalleExistencia[0]['ID_DESPACHOEX'] ? $detalleExistencia[0]['ID_DESPACHOEX'] : $detalleExistencia[0]['ID_DESPACHO'];
+                                                                    $idInpsag = $detalleExistencia[0]['ID_INPSAG'];
+
+                                                                    if ($idDespacho) {
+                                                                        $numeroDespacho = null;
+                                                                        if ($detalleExistencia[0]['ID_DESPACHOEX']) {
+                                                                            $despacho = $DESPACHOEX_ADO->verDespachoex($idDespacho);
+                                                                            $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHOEX'] : null;
+                                                                            $urlDespacho = "registroDespachoEX.php?op&id={$idDespacho}&a=ver";
+                                                                        } else {
+                                                                            $despacho = $DESPACHOPT_ADO->verDespachopt($idDespacho);
+                                                                            $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO'] : null;
+                                                                            $urlDespacho = "registroDespachopt.php?op&id={$idDespacho}&a=ver";
+                                                                        }
+
+                                                                        $etiquetasFolio[] = [
+                                                                            'texto' => $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
+                                                                            'clase' => 'badge-danger',
+                                                                            'url' => $urlDespacho
+                                                                        ];
+                                                                    }
+
+                                                                    if ($idInpsag) {
+                                                                        $inpsag = $INPSAG_ADO->verInpsag3($idInpsag);
+                                                                        $numeroInpsag = $inpsag ? $inpsag[0]['NUMERO_INPSAG'] . ($inpsag[0]['CORRELATIVO_INPSAG'] ? '-' . $inpsag[0]['CORRELATIVO_INPSAG'] : '') : null;
+
+                                                                        $etiquetasFolio[] = [
+                                                                            'texto' => $numeroInpsag ? "Inspección #{$numeroInpsag}" : 'Inspeccionado',
+                                                                            'clase' => 'badge-primary',
+                                                                            'url' => "registroInpsag.php?op&id={$idInpsag}&a=ver"
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                ?>
                                                                 <tr class="text-center">
-                                                                <?php 
+                                                                <?php
                                                                 //echo 'dataaaa : '.$r['ESTADO_FOLIO'];
                                                                 switch($r['ESTADO_FOLIO']){
                                                                     case 1: echo '<td style="background: #18d26b; color: white;">P. Completado</td>';
@@ -907,6 +953,21 @@ if ($_POST) {
                                                                 }
                                                             ?>
                                                                     <td> <?php echo $r['FOLIO_NUEVO_DREPALETIZAJE']; ?> </td>
+                                                                    <td>
+                                                                        <?php if ($etiquetasFolio) { ?>
+                                                                            <div class="estado-folio-col">
+                                                                                <?php foreach ($etiquetasFolio as $etiqueta) : ?>
+                                                                                    <?php if (!empty($etiqueta['url'])) { ?>
+                                                                                        <a href="<?php echo $etiqueta['url']; ?>" class="badge badge-estado-folio <?php echo $etiqueta['clase']; ?>" target="_blank"><?php echo $etiqueta['texto']; ?></a>
+                                                                                    <?php } else { ?>
+                                                                                        <span class="badge badge-estado-folio <?php echo $etiqueta['clase']; ?>"><?php echo $etiqueta['texto']; ?></span>
+                                                                                    <?php } ?>
+                                                                                <?php endforeach; ?>
+                                                                            </div>
+                                                                        <?php } else { ?>
+                                                                            <span class="text-muted">Sin operación</span>
+                                                                        <?php } ?>
+                                                                    </td>
                                                                     <td class="text-center">
                                                                         <form method="post" id="form3">
                                                                             <input type="hidden" class="form-control" id="FOLIOELIMINAR" name="FOLIOELIMINAR" value="<?php echo $r['FOLIO_NUEVO_DREPALETIZAJE']; ?>" />
