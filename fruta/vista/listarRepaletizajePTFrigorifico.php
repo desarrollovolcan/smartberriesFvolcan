@@ -15,6 +15,8 @@ include_once '../../assest/modelo/REPALETIZAJEEX.php';
 include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
 include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 include_once '../../assest/controlador/DREPALETIZAJEEX_ADO.php';
+include_once '../../assest/controlador/EMPRESA_ADO.php';
+include_once '../../assest/controlador/PLANTA_ADO.php';
 
 //INICIALIZAR CONTROLADOR
 
@@ -22,6 +24,8 @@ include_once '../../assest/controlador/DREPALETIZAJEEX_ADO.php';
 $REPALETIZAJEEX_ADO =  new REPALETIZAJEEX_ADO();
 $EXIEXPORTACION_ADO =  new EXIEXPORTACION_ADO();
 $DREPALETIZAJEEX_ADO =  new DREPALETIZAJEEX_ADO();
+$EMPRESA_ADO = new EMPRESA_ADO();
+$PLANTA_ADO = new PLANTA_ADO();
 
 $REPALETIZAJEEX = new REPALETIZAJEEX();
 
@@ -195,11 +199,30 @@ function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuari
     return [true, null];
 }
 
-function obtenerDatosCorreoRepaletizaje($repaletizaje)
+function obtenerDatosCorreoRepaletizaje($repaletizaje, $EMPRESA_ADO, $PLANTA_ADO)
 {
+    $empresa = '';
+    $planta = '';
+
+    if (!empty($repaletizaje['ID_EMPRESA'])) {
+        $empresaData = $EMPRESA_ADO->verEmpresa($repaletizaje['ID_EMPRESA']);
+        if ($empresaData) {
+            $empresa = $empresaData[0]['NOMBRE_EMPRESA'];
+        }
+    }
+
+    if (!empty($repaletizaje['ID_PLANTA'])) {
+        $plantaData = $PLANTA_ADO->verPlanta($repaletizaje['ID_PLANTA']);
+        if ($plantaData) {
+            $planta = $plantaData[0]['NOMBRE_PLANTA'];
+        }
+    }
+
     return [
         'numero' => $repaletizaje['NUMERO_REPALETIZAJE'] ?? '',
         'motivo' => $repaletizaje['MOTIVO_REPALETIZAJE'] ?? '',
+        'empresa' => $empresa,
+        'planta' => $planta,
     ];
 }
 
@@ -210,7 +233,7 @@ if ($_POST) {
 
     $detalleRepaletizaje = $IDREPALETIZAJE ? $REPALETIZAJEEX_ADO->verRepaletizaje2($IDREPALETIZAJE) : [];
     $datosRepaletizaje = $detalleRepaletizaje ? $detalleRepaletizaje[0] : [];
-    $datosCorreo = obtenerDatosCorreoRepaletizaje($datosRepaletizaje);
+    $datosCorreo = obtenerDatosCorreoRepaletizaje($datosRepaletizaje, $EMPRESA_ADO, $PLANTA_ADO);
     $estaCerrado = ($datosRepaletizaje['ESTADO'] ?? null) == 0;
 
     if (isset($_REQUEST['SOLICITAR_ELIMINAR'])) {
@@ -230,6 +253,8 @@ if ($_POST) {
             $mensajeCorreo = "Se solicitó eliminar un repaletizaje." . "\r\n\r\n" .
                 "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
                 "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
                 "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
@@ -270,6 +295,8 @@ if ($_POST) {
             $mensajeCorreo = "Se confirmó la eliminación del repaletizaje." . "\r\n\r\n" .
                 "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
                 "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado de registro fue desactivado.";
 
@@ -305,6 +332,8 @@ if ($_POST) {
             $mensajeCorreo = "Se solicitó abrir un repaletizaje cerrado." . "\r\n\r\n" .
                 "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
                 "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
                 "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
@@ -342,6 +371,8 @@ if ($_POST) {
             $mensajeCorreo = "Se confirmó la apertura del repaletizaje." . "\r\n\r\n" .
                 "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
                 "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado fue marcado como abierto.";
 

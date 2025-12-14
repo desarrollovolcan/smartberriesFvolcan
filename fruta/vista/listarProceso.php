@@ -222,7 +222,7 @@ function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuari
     return [true, null];
 }
 
-function obtenerDatosCorreoProceso($proceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ESPECIES_ADO, $TPROCESO_ADO)
+function obtenerDatosCorreoProceso($proceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ESPECIES_ADO, $TPROCESO_ADO, $EMPRESA_ADO, $PLANTA_ADO, $TEMPORADA_ADO)
 {
     $numero = $proceso['NUMERO_PROCESO'] ?? 'Sin datos';
     $fecha = $proceso['FECHA_PROCESO'] ?? 'Sin datos';
@@ -230,6 +230,9 @@ function obtenerDatosCorreoProceso($proceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ES
     $productor = 'Sin datos';
     $variedad = 'Sin datos';
     $especie = 'Sin datos';
+    $empresa = 'Sin datos';
+    $planta = 'Sin datos';
+    $temporada = 'Sin datos';
 
     if (!empty($proceso['ID_TPROCESO'])) {
         $tproceso = $TPROCESO_ADO->verTproceso($proceso['ID_TPROCESO']);
@@ -256,6 +259,27 @@ function obtenerDatosCorreoProceso($proceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ES
         }
     }
 
+    if (!empty($proceso['ID_EMPRESA'])) {
+        $empresaData = $EMPRESA_ADO->verEmpresa($proceso['ID_EMPRESA']);
+        if ($empresaData) {
+            $empresa = $empresaData[0]['NOMBRE_EMPRESA'];
+        }
+    }
+
+    if (!empty($proceso['ID_PLANTA'])) {
+        $plantaData = $PLANTA_ADO->verPlanta($proceso['ID_PLANTA']);
+        if ($plantaData) {
+            $planta = $plantaData[0]['NOMBRE_PLANTA'];
+        }
+    }
+
+    if (!empty($proceso['ID_TEMPORADA'])) {
+        $temporadaData = $TEMPORADA_ADO->verTemporada($proceso['ID_TEMPORADA']);
+        if ($temporadaData) {
+            $temporada = $temporadaData[0]['NOMBRE_TEMPORADA'];
+        }
+    }
+
     return [
         'numero' => $numero,
         'fecha' => $fecha,
@@ -263,6 +287,9 @@ function obtenerDatosCorreoProceso($proceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ES
         'productor' => $productor,
         'variedad' => $variedad,
         'especie' => $especie,
+        'empresa' => $empresa,
+        'planta' => $planta,
+        'temporada' => $temporada,
     ];
 }
 
@@ -273,7 +300,7 @@ if ($_POST) {
 
     $detalleProceso = $IDPROCESO ? $PROCESO_ADO->verProceso($IDPROCESO) : [];
     $datosProceso = $detalleProceso ? $detalleProceso[0] : [];
-    $datosCorreo = obtenerDatosCorreoProceso($datosProceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ESPECIES_ADO, $TPROCESO_ADO);
+    $datosCorreo = obtenerDatosCorreoProceso($datosProceso, $PRODUCTOR_ADO, $VESPECIES_ADO, $ESPECIES_ADO, $TPROCESO_ADO, $EMPRESA_ADO, $PLANTA_ADO, $TEMPORADA_ADO);
 
     if (isset($_REQUEST['SOLICITARELIMINAR'])) {
         $foliosMateriaPrima = $IDPROCESO ? $EXIMATERIAPRIMA_ADO->buscarPorProceso($IDPROCESO) : [];
@@ -297,6 +324,9 @@ if ($_POST) {
                 "Productor: " . $datosCorreo['productor'] . "\r\n" .
                 "Especie: " . $datosCorreo['especie'] . "\r\n" .
                 "Variedad: " . $datosCorreo['variedad'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
                 "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
@@ -346,6 +376,9 @@ if ($_POST) {
                 "Productor: " . $datosCorreo['productor'] . "\r\n" .
                 "Especie: " . $datosCorreo['especie'] . "\r\n" .
                 "Variedad: " . $datosCorreo['variedad'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado de registro fue desactivado.";
 
@@ -386,6 +419,9 @@ if ($_POST) {
                 "Productor: " . $datosCorreo['productor'] . "\r\n" .
                 "Especie: " . $datosCorreo['especie'] . "\r\n" .
                 "Variedad: " . $datosCorreo['variedad'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
                 "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
@@ -434,6 +470,9 @@ if ($_POST) {
                 "Productor: " . $datosCorreo['productor'] . "\r\n" .
                 "Especie: " . $datosCorreo['especie'] . "\r\n" .
                 "Variedad: " . $datosCorreo['variedad'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado del proceso cambió a abierto.";
 
