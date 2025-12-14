@@ -43,8 +43,9 @@ $FOLIOORIGINAL="";
 $FOLIONUEVO="";
 $DISABLEDT="";
 $DISABLEDS="";
-$MENSAJE = "";
-$MENSAJEENVIO = "";
+$MENSAJE = $_SESSION['MENSAJE_REPALETIZAJE'] ?? "";
+$MENSAJEENVIO = $_SESSION['MENSAJEENVIO_REPALETIZAJE'] ?? "";
+unset($_SESSION['MENSAJE_REPALETIZAJE'], $_SESSION['MENSAJEENVIO_REPALETIZAJE']);
 
 //INICIALIZAR ARREGLOS
 $ARRAYREPALETIZAJEEX = "";
@@ -112,24 +113,87 @@ function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuari
     $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
 
     if (!$conexion) {
-        return [false, "No se pudo conectar al servidor de correo: {$errstr} ({$errno})"];
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
     }
 
-    $remitenteCabecera = "From: {$remitente}\r\n" .
-        'MIME-Version: 1.0' . "\r\n" .
-        'Content-type: text/plain; charset=utf-8' . "\r\n";
+    if (function_exists('stream_set_timeout')) {
+        stream_set_timeout($conexion, $timeout);
+    }
 
-    $envioOk = true;
-    $error = '';
-    foreach ($destinatarios as $destinatario) {
-        if (!@mail($destinatario, $asunto, $mensaje, $remitenteCabecera)) {
-            $envioOk = false;
-            $error = "No se pudo enviar el correo a {$destinatario}.";
-            break;
+    $leerRespuesta = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] === ' ') {
+                break;
+            }
         }
+        return $respuesta;
+    };
+
+    $comando = function ($instruccion, $codigoEsperado) use ($conexion, $leerRespuesta) {
+        fwrite($conexion, $instruccion . "\r\n");
+        $respuesta = $leerRespuesta();
+        if (substr($respuesta, 0, 3) !== $codigoEsperado) {
+            throw new Exception("Error SMTP en '{$instruccion}': {$respuesta}");
+        }
+        return $respuesta;
+    };
+
+    $respuestaInicial = $leerRespuesta();
+    if (substr($respuestaInicial, 0, 3) !== '220') {
+        fclose($conexion);
+        return [false, "El servidor SMTP no respondió correctamente: {$respuestaInicial}"];
     }
 
-    return [$envioOk, $error];
+    $hostEhlo = $host ?: 'localhost';
+    try {
+        $comando('EHLO ' . $hostEhlo, '250');
+    } catch (Exception $e) {
+        $comando('HELO ' . $hostEhlo, '250');
+    }
+
+    try {
+        $comando('AUTH LOGIN', '334');
+        $comando(base64_encode($usuario), '334');
+        $comando(base64_encode($contrasena), '235');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error de autenticación SMTP: " . $e->getMessage()];
+    }
+
+    try {
+        $comando("MAIL FROM:<{$remitente}>", '250');
+        foreach ($destinatarios as $correo) {
+            $comando("RCPT TO:<{$correo}>", '250');
+        }
+        $comando('DATA', '354');
+
+        $cabeceras = "Date: " . date('r') . "\r\n" .
+            "Message-ID: <" . uniqid() . "@" . ($hostEhlo ?: 'localhost') . ">\r\n" .
+            "From: {$remitente}\r\n" .
+            "Return-Path: {$remitente}\r\n" .
+            "Reply-To: {$remitente}\r\n" .
+            "To: " . implode(', ', $destinatarios) . "\r\n" .
+            "Subject: {$asunto}\r\n" .
+            "MIME-Version: 1.0\r\n" .
+            "X-Mailer: PHP/" . phpversion() . "\r\n" .
+            "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+
+        $mensajeNormalizado = str_replace(["\r\n", "\n"], "\r\n", $mensaje);
+        fwrite($conexion, $cabeceras . $mensajeNormalizado . "\r\n.\r\n");
+        $respuestaData = $leerRespuesta();
+        if (substr($respuestaData, 0, 3) !== '250') {
+            throw new Exception("Error SMTP tras DATA: {$respuestaData}");
+        }
+        $comando('QUIT', '221');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error al enviar correo: " . $e->getMessage()];
+    }
+
+    fclose($conexion);
+    return [true, null];
 }
 
 function obtenerDatosCorreoRepaletizaje($repaletizaje)
@@ -148,8 +212,9 @@ if ($_POST) {
     $detalleRepaletizaje = $IDREPALETIZAJE ? $REPALETIZAJEEX_ADO->verRepaletizaje2($IDREPALETIZAJE) : [];
     $datosRepaletizaje = $detalleRepaletizaje ? $detalleRepaletizaje[0] : [];
     $datosCorreo = obtenerDatosCorreoRepaletizaje($datosRepaletizaje);
+    $estaCerrado = ($datosRepaletizaje['ESTADO'] ?? null) == 0;
 
-    if (isset($_REQUEST['SOLICITARELIMINAR'])) {
+    if (isset($_REQUEST['SOLICITAR_ELIMINAR'])) {
         $foliosEntrada = $IDREPALETIZAJE ? $EXIEXPORTACION_ADO->buscarPorRepaletizajeAgrupado($IDREPALETIZAJE) : [];
         $foliosSalida = $IDREPALETIZAJE ? $DREPALETIZAJEEX_ADO->buscarDrepaletizaje($IDREPALETIZAJE) : [];
 
@@ -216,34 +281,44 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Repaletizaje eliminado (estado de registro desactivado)." : ($errorEnvio ?: "El repaletizaje se eliminó, pero hubo un problema al enviar la notificación.");
+            $_SESSION['MENSAJEENVIO_REPALETIZAJE'] = $MENSAJEENVIO;
             unset($_SESSION['REPALETIZAJE_ELIMINAR_CODIGO'], $_SESSION['REPALETIZAJE_ELIMINAR_ID'], $_SESSION['REPALETIZAJE_ELIMINAR_TIEMPO']);
+            header('Location: listarRepaletizajePTFrigorifico.php');
+            exit;
         }
     }
 
     if (isset($_REQUEST['SOLICITAR_ABRIR'])) {
-        $codigoAutorizacion = generarCodigoAutorizacion();
-        $_SESSION['REPALETIZAJE_ABRIR_CODIGO'] = $codigoAutorizacion;
-        $_SESSION['REPALETIZAJE_ABRIR_ID'] = $IDREPALETIZAJE;
-        $_SESSION['REPALETIZAJE_ABRIR_TIEMPO'] = time();
+        if (!$estaCerrado) {
+            $MENSAJE = "El repaletizaje debe estar cerrado para solicitar apertura.";
+        } else {
+            $codigoAutorizacion = generarCodigoAutorizacion();
+            $_SESSION['REPALETIZAJE_ABRIR_CODIGO'] = $codigoAutorizacion;
+            $_SESSION['REPALETIZAJE_ABRIR_ID'] = $IDREPALETIZAJE;
+            $_SESSION['REPALETIZAJE_ABRIR_TIEMPO'] = time();
 
-        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
-        $asunto = 'Autorización apertura repaletizaje #' . $datosCorreo['numero'];
-        $mensajeCorreo = "Se solicitó abrir un repaletizaje cerrado." . "\r\n\r\n" .
-            "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
-            "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
-            "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
-            "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
-            "El código tiene validez de 15 minutos.";
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Autorización apertura repaletizaje #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se solicitó abrir un repaletizaje cerrado." . "\r\n\r\n" .
+                "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
+                "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+                "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+                "El código tiene validez de 15 minutos.";
 
-        $remitente = 'informevolcan@gocreative.cl';
-        $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-        $hostSMTP = 'mail.gocreative.cl';
-        $puertoSMTP = 465;
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
 
-        [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
-        $MENSAJEENVIO = $envioOk ? "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla." : ($errorEnvio ?: "No fue posible enviar el correo de autorización.");
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla." : ($errorEnvio ?: "No fue posible enviar el correo de autorización.");
+        }
     }
 
     if (isset($_REQUEST['CONFIRMAR_ABRIR'])) {
@@ -251,7 +326,9 @@ if ($_POST) {
         $idSesion = $_SESSION['REPALETIZAJE_ABRIR_ID'] ?? null;
         $tiempoSesion = $_SESSION['REPALETIZAJE_ABRIR_TIEMPO'] ?? 0;
 
-        if (!$codigoSesion || !$idSesion || $idSesion != $IDREPALETIZAJE) {
+        if (!$estaCerrado) {
+            $MENSAJE = "Solo los repaletizajes cerrados pueden solicitar apertura.";
+        } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDREPALETIZAJE) {
             $MENSAJE = "No hay una solicitud de apertura vigente para este repaletizaje.";
         } elseif ((time() - $tiempoSesion) > 900) {
             $MENSAJE = "El código de autorización ha expirado.";
@@ -276,8 +353,14 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Repaletizaje abierto correctamente." : ($errorEnvio ?: "Repaletizaje abierto, pero hubo un problema al enviar la notificación.");
+            $_SESSION['MENSAJEENVIO_REPALETIZAJE'] = $MENSAJEENVIO;
             unset($_SESSION['REPALETIZAJE_ABRIR_CODIGO'], $_SESSION['REPALETIZAJE_ABRIR_ID'], $_SESSION['REPALETIZAJE_ABRIR_TIEMPO']);
+            header('Location: listarRepaletizajePTFrigorifico.php');
+            exit;
         }
     }
 }
@@ -352,6 +435,16 @@ if ($_POST) {
                     <section class="content">
                         <div class="box">
                             <div class="box-body">
+                                <?php if ($MENSAJE) { ?>
+                                    <div class="alert alert-danger" role="alert">
+                                        <?php echo $MENSAJE; ?>
+                                    </div>
+                                <?php } ?>
+                                <?php if ($MENSAJEENVIO) { ?>
+                                    <div class="alert alert-success" role="alert">
+                                        <?php echo $MENSAJEENVIO; ?>
+                                    </div>
+                                <?php } ?>
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
@@ -360,7 +453,8 @@ if ($_POST) {
                                                     <tr class="text-center">
                                                         <th>Número </th>
                                                         <th>Estado </th>
-                                                        <th class="text-center">Operaciónes </th>
+                                                        <th class="text-center">Administración</th>
+                                                        <th class="text-center">Autorizaciones</th>
                                                         <th>Folio Original </th>
                                                         <th>Folio Nuevo </th>
                                                         <th>Cantidad Envase </th>
@@ -466,32 +560,6 @@ if ($_POST) {
                                                                                         </button>
                                                                                     </span>
                                                                                 <?php } ?>
-                                                                                <?php if ($r['ESTADO'] == "0") { ?>
-                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Abrir repaletizaje">
-                                                                                        <button type="submit" class="btn btn-primary btn-block" id="SOLICITAR_ABRIR" name="SOLICITAR_ABRIR">
-                                                                                            <i class="fa fa-unlock"></i> Solicitar abrir
-                                                                                        </button>
-                                                                                    </span>
-                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Confirmar apertura">
-                                                                                        <input type="text" class="form-control mb-1" id="CODIGO_ABRIR" name="CODIGO_ABRIR" placeholder="Código autorización">
-                                                                                        <button type="submit" class="btn btn-success btn-block" id="CONFIRMAR_ABRIR" name="CONFIRMAR_ABRIR">
-                                                                                            <i class="fa fa-check"></i> Confirmar abrir
-                                                                                        </button>
-                                                                                    </span>
-                                                                                <?php } ?>
-                                                                                <?php if ($r['ESTADO'] == "1") { ?>
-                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Solicitar eliminar">
-                                                                                        <button type="submit" class="btn btn-danger btn-block" id="SOLICITARELIMINAR" name="SOLICITARELIMINAR">
-                                                                                            <i class="fa fa-envelope"></i> Solicitar eliminar
-                                                                                        </button>
-                                                                                    </span>
-                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Confirmar eliminación">
-                                                                                        <input type="text" class="form-control mb-1" id="CODIGO_ELIMINAR" name="CODIGO_ELIMINAR" placeholder="Código autorización">
-                                                                                        <button type="submit" class="btn btn-outline-danger btn-block" id="CONFIRMAR_ELIMINAR" name="CONFIRMAR_ELIMINAR">
-                                                                                            <i class="fa fa-trash"></i> Confirmar eliminar
-                                                                                        </button>
-                                                                                    </span>
-                                                                                <?php } ?>
                                                                                 <hr>
                                                                                 <span href="#" class="dropdown-item" data-toggle="tooltip" title="Informe">
                                                                                     <button type="button" class="btn  btn-danger  btn-block" id="defecto" name="informe" title="Informe" <?php if ($r['ESTADO'] == "1") { echo "disabled"; } ?> Onclick="abrirPestana('../../assest/documento/informeRepaletizajePT.php?parametro=<?php echo $r['ID_REPALETIZAJE']; ?>&&usuario=<?php echo $IDUSUARIOS; ?>'); ">
@@ -512,6 +580,20 @@ if ($_POST) {
                                                                         </div>
                                                                     </div>
                                                                 </form>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <div class="d-grid gap-1">
+                                                                    <?php if ($r['ESTADO'] == "1") { ?>
+                                                                        <button type="button" class="btn btn-outline-danger btn-sm btn-block" data-toggle="modal" data-target="#modalEliminarRepaletizaje" data-id="<?php echo $r['ID_REPALETIZAJE']; ?>" data-numero="<?php echo $r['NUMERO_REPALETIZAJE']; ?>">
+                                                                            Eliminar repaletizaje
+                                                                        </button>
+                                                                    <?php } ?>
+                                                                    <?php if ($r['ESTADO'] == "0") { ?>
+                                                                        <button type="button" class="btn btn-outline-success btn-sm btn-block" data-toggle="modal" data-target="#modalAbrirRepaletizaje" data-id="<?php echo $r['ID_REPALETIZAJE']; ?>" data-numero="<?php echo $r['NUMERO_REPALETIZAJE']; ?>">
+                                                                            Abrir repaletizaje
+                                                                        </button>
+                                                                    <?php } ?>
+                                                                </div>
                                                             </td>
                                                             <td><?php echo $FOLIOORIGINAL; ?> </td>
                                                             <td><?php echo $FOLIONUEVO; ?> </td>
@@ -575,6 +657,71 @@ if ($_POST) {
         </div>
         <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
             <?php include_once "../../assest/config/urlBase.php"; ?>
+
+        <!-- Modal Eliminar Repaletizaje -->
+        <div class="modal fade" id="modalEliminarRepaletizaje" tabindex="-1" role="dialog" aria-labelledby="modalEliminarRepaletizajeLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalEliminarRepaletizajeLabel">Autorización para eliminar repaletizaje</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="font-weight-bold">Repaletizaje N° <span class="numero-repaletizaje-eliminar"></span></p>
+                            <input type="hidden" name="ID" value="">
+                            <input type="hidden" name="URL" value="registroRepaletizajePTFrigorifico">
+                            <input type="hidden" name="URLO" value="listarRepaletizajePTFrigorifico">
+                            <div class="form-group">
+                                <label for="codigoEliminar">Código de autorización</label>
+                                <input type="text" class="form-control" id="codigoEliminar" name="CODIGO_ELIMINAR" placeholder="Ingresa el código recibido">
+                                <small class="form-text text-muted">El código tiene validez de 15 minutos.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-danger" name="SOLICITAR_ELIMINAR">Solicitar código</button>
+                            <button type="submit" class="btn btn-danger" name="CONFIRMAR_ELIMINAR">Eliminar repaletizaje</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Abrir Repaletizaje -->
+        <div class="modal fade" id="modalAbrirRepaletizaje" tabindex="-1" role="dialog" aria-labelledby="modalAbrirRepaletizajeLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalAbrirRepaletizajeLabel">Autorización para abrir repaletizaje</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="font-weight-bold">Repaletizaje N° <span class="numero-repaletizaje-abrir"></span></p>
+                            <input type="hidden" name="ID" value="">
+                            <input type="hidden" name="URL" value="registroRepaletizajePTFrigorifico">
+                            <input type="hidden" name="URLO" value="listarRepaletizajePTFrigorifico">
+                            <div class="form-group">
+                                <label for="codigoAbrir">Código de autorización</label>
+                                <input type="text" class="form-control" id="codigoAbrir" name="CODIGO_ABRIR" placeholder="Ingresa el código recibido">
+                                <small class="form-text text-muted">El código tiene validez de 15 minutos.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-success" name="SOLICITAR_ABRIR">Solicitar código</button>
+                            <button type="submit" class="btn btn-success" name="CONFIRMAR_ABRIR">Abrir repaletizaje</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script>
             const Toast = Swal.mixin({
                 toast: true,
@@ -588,6 +735,26 @@ if ($_POST) {
                 title: "Informacion importante",
                 html: "<label>Los <b>repaletizajes</b> tienen que estar <b>Cerrados</b> para que los folios nuevos estén disponible para inspeccionar.</label>"
             })
+
+            $(document).ready(function () {
+                $('#modalEliminarRepaletizaje').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget);
+                    var idRepaletizaje = button.data('id');
+                    var numero = button.data('numero');
+                    var modal = $(this);
+                    modal.find('input[name="ID"]').val(idRepaletizaje);
+                    modal.find('.numero-repaletizaje-eliminar').text(numero || '');
+                });
+
+                $('#modalAbrirRepaletizaje').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget);
+                    var idRepaletizaje = button.data('id');
+                    var numero = button.data('numero');
+                    var modal = $(this);
+                    modal.find('input[name="ID"]').val(idRepaletizaje);
+                    modal.find('.numero-repaletizaje-abrir').text(numero || '');
+                });
+            });
         </script>
 </body>
 
