@@ -358,6 +358,9 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Recepción eliminada correctamente." : ($errorEnvio ?: "La recepción se eliminó pero hubo un problema al enviar la notificación.");
             unset($_SESSION['RECEPCION_CERRAR_CODIGO']);
             unset($_SESSION['RECEPCION_CERRAR_ID']);
@@ -433,6 +436,9 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Recepción abierta correctamente." : ($errorEnvio ?: "La recepción se abrió pero hubo un problema al enviar la notificación.");
             unset($_SESSION['RECEPCION_ABRIR_CODIGO']);
             unset($_SESSION['RECEPCION_ABRIR_ID']);
