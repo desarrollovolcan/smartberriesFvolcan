@@ -88,6 +88,21 @@ function generarCodigoAutorizacion()
     return mt_rand(100000, 999999);
 }
 
+function obtenerDestinatariosAutorizacion($correoSolicitante)
+{
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correoSolicitante = trim((string) $correoSolicitante);
+
+    if ($correoSolicitante !== '') {
+        $correosBase = array_filter(
+            $correosBase,
+            fn($correo) => strcasecmp($correo, $correoSolicitante) !== 0
+        );
+    }
+
+    return array_values(array_filter(array_unique($correosBase)));
+}
+
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
 {
     $destinatarios = (array) $destinatarios;
@@ -275,7 +290,7 @@ if ($_POST) {
             $_SESSION['RECEPCION_CERRAR_ID'] = $IDRECEPCION;
             $_SESSION['RECEPCION_CERRAR_TIEMPO'] = time();
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Autorización eliminación recepción #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se solicitó eliminar una recepción de materia prima." . "\r\n\r\n" .
                 "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
@@ -324,7 +339,7 @@ if ($_POST) {
             $RECEPCIONMP_ADO->cerrado($RECEPCIONMP);
             $RECEPCIONMP_ADO->deshabilitar($RECEPCIONMP);
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Confirmación eliminación recepción #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se confirmó la eliminación de la recepción." . "\r\n\r\n" .
                 "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
@@ -356,7 +371,7 @@ if ($_POST) {
         $_SESSION['RECEPCION_ABRIR_ID'] = $IDRECEPCION;
         $_SESSION['RECEPCION_ABRIR_TIEMPO'] = time();
 
-        $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
         $asunto = 'Autorización apertura recepción #' . $datosCorreo['numero'];
         $mensajeCorreo = "Se solicitó abrir una recepción de materia prima." . "\r\n\r\n" .
             "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .
@@ -399,7 +414,7 @@ if ($_POST) {
             $RECEPCIONMP->__SET('ESTADO', 1);
             $RECEPCIONMP_ADO->abierto($RECEPCIONMP);
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Confirmación apertura recepción #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se confirmó la apertura de la recepción." . "\r\n\r\n" .
                 "Número de recepción: " . $datosCorreo['numero'] . "\r\n" .

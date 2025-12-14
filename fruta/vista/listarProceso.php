@@ -109,6 +109,22 @@ function generarCodigoAutorizacion()
 }
 
 
+function obtenerDestinatariosAutorizacion($correoSolicitante)
+{
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correoSolicitante = trim((string) $correoSolicitante);
+
+    if ($correoSolicitante !== '') {
+        $correosBase = array_filter(
+            $correosBase,
+            fn($correo) => strcasecmp($correo, $correoSolicitante) !== 0
+        );
+    }
+
+    return array_values(array_filter(array_unique($correosBase)));
+}
+
+
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
 {
     $destinatarios = (array) $destinatarios;
@@ -272,7 +288,7 @@ if ($_POST) {
             $_SESSION['PROCESO_ELIMINAR_ID'] = $IDPROCESO;
             $_SESSION['PROCESO_ELIMINAR_TIEMPO'] = time();
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Autorización eliminación proceso #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se solicitó eliminar un proceso." . "\r\n\r\n" .
                 "Número de proceso: " . $datosCorreo['numero'] . "\r\n" .
@@ -321,7 +337,7 @@ if ($_POST) {
             $PROCESO->__SET('ID_PROCESO', $IDPROCESO);
             $PROCESO_ADO->deshabilitar($PROCESO);
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Confirmación eliminación proceso #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se confirmó la eliminación del proceso." . "\r\n\r\n" .
                 "Número de proceso: " . $datosCorreo['numero'] . "\r\n" .
@@ -358,7 +374,7 @@ if ($_POST) {
             $_SESSION['PROCESO_ABRIR_ID'] = $IDPROCESO;
             $_SESSION['PROCESO_ABRIR_TIEMPO'] = time();
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Autorización apertura proceso #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se solicitó la apertura de un proceso cerrado." . "\r\n\r\n" .
                 "Número de proceso: " . $datosCorreo['numero'] . "\r\n" .
@@ -406,7 +422,7 @@ if ($_POST) {
             $PROCESO_ADO->habilitar($PROCESO);
             $PROCESO_ADO->abierto($PROCESO);
 
-            $destinatarios = array_values(array_filter(array_unique(['maperez@fvolcan.cl', 'eisla@fvolcan.cl', $CORREOUSUARIO])));
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
             $asunto = 'Confirmación apertura proceso #' . $datosCorreo['numero'];
             $mensajeCorreo = "Se confirmó la apertura del proceso." . "\r\n\r\n" .
                 "Número de proceso: " . $datosCorreo['numero'] . "\r\n" .

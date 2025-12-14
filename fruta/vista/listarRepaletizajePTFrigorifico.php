@@ -9,6 +9,8 @@ include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/VESPECIES_ADO.php';
 include_once '../../assest/controlador/FOLIO_ADO.php';
 
+include_once '../../assest/modelo/REPALETIZAJEEX.php';
+
 include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
 include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 include_once '../../assest/controlador/DREPALETIZAJEEX_ADO.php';
@@ -19,6 +21,8 @@ include_once '../../assest/controlador/DREPALETIZAJEEX_ADO.php';
 $REPALETIZAJEEX_ADO =  new REPALETIZAJEEX_ADO();
 $EXIEXPORTACION_ADO =  new EXIEXPORTACION_ADO();
 $DREPALETIZAJEEX_ADO =  new DREPALETIZAJEEX_ADO();
+
+$REPALETIZAJEEX = new REPALETIZAJEEX();
 
 $ERECEPCION_ADO =  new ERECEPCION_ADO();
 $PRODUCTOR_ADO =  new PRODUCTOR_ADO();
@@ -37,6 +41,8 @@ $FOLIOORIGINAL="";
 $FOLIONUEVO="";
 $DISABLEDT="";
 $DISABLEDS="";
+$MENSAJE = "";
+$MENSAJEENVIO = "";
 
 //INICIALIZAR ARREGLOS
 $ARRAYREPALETIZAJEEX = "";
@@ -52,6 +58,227 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
 }
 include_once "../../assest/config/validarDatosUrl.php";
 include_once "../../assest/config/datosUrLP.php";
+
+$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
+if ($ARRAYUSUARIO) {
+    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
+    $NOMBRECOMPLETOUSUARIO = trim(
+        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
+    );
+    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
+}
+
+function generarCodigoAutorizacion()
+{
+    if (function_exists('random_int')) {
+        return random_int(100000, 999999);
+    }
+
+    return mt_rand(100000, 999999);
+}
+
+
+function obtenerDestinatariosAutorizacion($correoSolicitante)
+{
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correoSolicitante = trim((string) $correoSolicitante);
+
+    if ($correoSolicitante !== '') {
+        $correosBase = array_filter(
+            $correosBase,
+            fn($correo) => strcasecmp($correo, $correoSolicitante) !== 0
+        );
+    }
+
+    return array_values(array_filter(array_unique($correosBase)));
+}
+
+function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
+{
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
+
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
+
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor de correo: {$errstr} ({$errno})"];
+    }
+
+    $remitenteCabecera = "From: {$remitente}\r\n" .
+        'MIME-Version: 1.0' . "\r\n" .
+        'Content-type: text/plain; charset=utf-8' . "\r\n";
+
+    $envioOk = true;
+    $error = '';
+    foreach ($destinatarios as $destinatario) {
+        if (!@mail($destinatario, $asunto, $mensaje, $remitenteCabecera)) {
+            $envioOk = false;
+            $error = "No se pudo enviar el correo a {$destinatario}.";
+            break;
+        }
+    }
+
+    return [$envioOk, $error];
+}
+
+function obtenerDatosCorreoRepaletizaje($repaletizaje)
+{
+    return [
+        'numero' => $repaletizaje['NUMERO_REPALETIZAJE'] ?? '',
+        'motivo' => $repaletizaje['MOTIVO_REPALETIZAJE'] ?? '',
+    ];
+}
+
+if ($_POST) {
+    $IDREPALETIZAJE = $_REQUEST['ID'] ?? null;
+    $CODIGOVERIFICACION = $_REQUEST['CODIGO_ELIMINAR'] ?? '';
+    $CODIGOAPERTURA = $_REQUEST['CODIGO_ABRIR'] ?? '';
+
+    $detalleRepaletizaje = $IDREPALETIZAJE ? $REPALETIZAJEEX_ADO->verRepaletizaje2($IDREPALETIZAJE) : [];
+    $datosRepaletizaje = $detalleRepaletizaje ? $detalleRepaletizaje[0] : [];
+    $datosCorreo = obtenerDatosCorreoRepaletizaje($datosRepaletizaje);
+
+    if (isset($_REQUEST['SOLICITARELIMINAR'])) {
+        $foliosEntrada = $IDREPALETIZAJE ? $EXIEXPORTACION_ADO->buscarPorRepaletizajeAgrupado($IDREPALETIZAJE) : [];
+        $foliosSalida = $IDREPALETIZAJE ? $DREPALETIZAJEEX_ADO->buscarDrepaletizaje($IDREPALETIZAJE) : [];
+
+        if ($foliosEntrada || $foliosSalida) {
+            $MENSAJE = "No es posible eliminar el repaletizaje porque existen registros de entrada o salida asociados.";
+        } else {
+            $codigoAutorizacion = generarCodigoAutorizacion();
+            $_SESSION['REPALETIZAJE_ELIMINAR_CODIGO'] = $codigoAutorizacion;
+            $_SESSION['REPALETIZAJE_ELIMINAR_ID'] = $IDREPALETIZAJE;
+            $_SESSION['REPALETIZAJE_ELIMINAR_TIEMPO'] = time();
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Autorización eliminación repaletizaje #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se solicitó eliminar un repaletizaje." . "\r\n\r\n" .
+                "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
+                "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+                "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+                "El código tiene validez de 15 minutos.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla." : ($errorEnvio ?: "No fue posible enviar el correo de autorización.");
+        }
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_ELIMINAR'])) {
+        $codigoSesion = $_SESSION['REPALETIZAJE_ELIMINAR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['REPALETIZAJE_ELIMINAR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['REPALETIZAJE_ELIMINAR_TIEMPO'] ?? 0;
+
+        $foliosEntrada = $IDREPALETIZAJE ? $EXIEXPORTACION_ADO->buscarPorRepaletizajeAgrupado($IDREPALETIZAJE) : [];
+        $foliosSalida = $IDREPALETIZAJE ? $DREPALETIZAJEEX_ADO->buscarDrepaletizaje($IDREPALETIZAJE) : [];
+
+        if ($foliosEntrada || $foliosSalida) {
+            $MENSAJE = "El repaletizaje tiene registros asociados y no puede eliminarse.";
+        } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDREPALETIZAJE) {
+            $MENSAJE = "No hay una solicitud de eliminación vigente para este repaletizaje.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOVERIFICACION || $CODIGOVERIFICACION != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $REPALETIZAJEEX->__SET('ID_REPALETIZAJE', $IDREPALETIZAJE);
+            $REPALETIZAJEEX_ADO->deshabilitar($REPALETIZAJEEX);
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Confirmación eliminación repaletizaje #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la eliminación del repaletizaje." . "\r\n\r\n" .
+                "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
+                "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado de registro fue desactivado.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Repaletizaje eliminado (estado de registro desactivado)." : ($errorEnvio ?: "El repaletizaje se eliminó, pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['REPALETIZAJE_ELIMINAR_CODIGO'], $_SESSION['REPALETIZAJE_ELIMINAR_ID'], $_SESSION['REPALETIZAJE_ELIMINAR_TIEMPO']);
+        }
+    }
+
+    if (isset($_REQUEST['SOLICITAR_ABRIR'])) {
+        $codigoAutorizacion = generarCodigoAutorizacion();
+        $_SESSION['REPALETIZAJE_ABRIR_CODIGO'] = $codigoAutorizacion;
+        $_SESSION['REPALETIZAJE_ABRIR_ID'] = $IDREPALETIZAJE;
+        $_SESSION['REPALETIZAJE_ABRIR_TIEMPO'] = time();
+
+        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+        $asunto = 'Autorización apertura repaletizaje #' . $datosCorreo['numero'];
+        $mensajeCorreo = "Se solicitó abrir un repaletizaje cerrado." . "\r\n\r\n" .
+            "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
+            "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+            "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+            "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+            "El código tiene validez de 15 minutos.";
+
+        $remitente = 'informevolcan@gocreative.cl';
+        $usuarioSMTP = 'informevolcan@gocreative.cl';
+        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+        $hostSMTP = 'mail.gocreative.cl';
+        $puertoSMTP = 465;
+
+        [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+        $MENSAJEENVIO = $envioOk ? "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla." : ($errorEnvio ?: "No fue posible enviar el correo de autorización.");
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_ABRIR'])) {
+        $codigoSesion = $_SESSION['REPALETIZAJE_ABRIR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['REPALETIZAJE_ABRIR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['REPALETIZAJE_ABRIR_TIEMPO'] ?? 0;
+
+        if (!$codigoSesion || !$idSesion || $idSesion != $IDREPALETIZAJE) {
+            $MENSAJE = "No hay una solicitud de apertura vigente para este repaletizaje.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOAPERTURA || $CODIGOAPERTURA != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $REPALETIZAJEEX->__SET('ID_REPALETIZAJE', $IDREPALETIZAJE);
+            $REPALETIZAJEEX_ADO->abierto($REPALETIZAJEEX);
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Confirmación apertura repaletizaje #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la apertura del repaletizaje." . "\r\n\r\n" .
+                "Número de repaletizaje: " . $datosCorreo['numero'] . "\r\n" .
+                "Motivo: " . $datosCorreo['motivo'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado fue marcado como abierto.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            $MENSAJEENVIO = $envioOk ? "Repaletizaje abierto correctamente." : ($errorEnvio ?: "Repaletizaje abierto, pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['REPALETIZAJE_ABRIR_CODIGO'], $_SESSION['REPALETIZAJE_ABRIR_ID'], $_SESSION['REPALETIZAJE_ABRIR_TIEMPO']);
+        }
+    }
+}
 
 
 
@@ -234,6 +461,32 @@ include_once "../../assest/config/datosUrLP.php";
                                                                                     <span href="#" class="dropdown-item" data-toggle="tooltip" title="Editar">
                                                                                         <button type="submit" class="btn  btn-warning btn-block" id="EDITARURL" name="EDITARURL">
                                                                                             <i class="ti-pencil-alt"></i> Editar
+                                                                                        </button>
+                                                                                    </span>
+                                                                                <?php } ?>
+                                                                                <?php if ($r['ESTADO'] == "0") { ?>
+                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Abrir repaletizaje">
+                                                                                        <button type="submit" class="btn btn-primary btn-block" id="SOLICITAR_ABRIR" name="SOLICITAR_ABRIR">
+                                                                                            <i class="fa fa-unlock"></i> Solicitar abrir
+                                                                                        </button>
+                                                                                    </span>
+                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Confirmar apertura">
+                                                                                        <input type="text" class="form-control mb-1" id="CODIGO_ABRIR" name="CODIGO_ABRIR" placeholder="Código autorización">
+                                                                                        <button type="submit" class="btn btn-success btn-block" id="CONFIRMAR_ABRIR" name="CONFIRMAR_ABRIR">
+                                                                                            <i class="fa fa-check"></i> Confirmar abrir
+                                                                                        </button>
+                                                                                    </span>
+                                                                                <?php } ?>
+                                                                                <?php if ($r['ESTADO'] == "1") { ?>
+                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Solicitar eliminar">
+                                                                                        <button type="submit" class="btn btn-danger btn-block" id="SOLICITARELIMINAR" name="SOLICITARELIMINAR">
+                                                                                            <i class="fa fa-envelope"></i> Solicitar eliminar
+                                                                                        </button>
+                                                                                    </span>
+                                                                                    <span href="#" class="dropdown-item" data-toggle="tooltip" title="Confirmar eliminación">
+                                                                                        <input type="text" class="form-control mb-1" id="CODIGO_ELIMINAR" name="CODIGO_ELIMINAR" placeholder="Código autorización">
+                                                                                        <button type="submit" class="btn btn-outline-danger btn-block" id="CONFIRMAR_ELIMINAR" name="CONFIRMAR_ELIMINAR">
+                                                                                            <i class="fa fa-trash"></i> Confirmar eliminar
                                                                                         </button>
                                                                                     </span>
                                                                                 <?php } ?>
