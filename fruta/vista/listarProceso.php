@@ -356,6 +356,9 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Proceso eliminado (estado de registro desactivado)." : ($errorEnvio ?: "El proceso se eliminó pero hubo un problema al enviar la notificación.");
             unset($_SESSION['PROCESO_ELIMINAR_CODIGO']);
             unset($_SESSION['PROCESO_ELIMINAR_ID']);
@@ -441,6 +444,9 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Proceso abierto correctamente." : ($errorEnvio ?: "El proceso se abrió pero hubo un problema al enviar la notificación.");
             unset($_SESSION['PROCESO_ABRIR_CODIGO']);
             unset($_SESSION['PROCESO_ABRIR_ID']);

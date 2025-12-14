@@ -42,8 +42,9 @@ $FOLIOORIGINAL="";
 $FOLIONUEVO="";
 $DISABLEDT="";
 $DISABLEDS="";
-$MENSAJE = "";
-$MENSAJEENVIO = "";
+$MENSAJE = $_SESSION['MENSAJE_REPALETIZAJE'] ?? "";
+$MENSAJEENVIO = $_SESSION['MENSAJEENVIO_REPALETIZAJE'] ?? "";
+unset($_SESSION['MENSAJE_REPALETIZAJE'], $_SESSION['MENSAJEENVIO_REPALETIZAJE']);
 
 //INICIALIZAR ARREGLOS
 $ARRAYREPALETIZAJEEX = "";
@@ -279,8 +280,14 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Repaletizaje eliminado (estado de registro desactivado)." : ($errorEnvio ?: "El repaletizaje se eliminó, pero hubo un problema al enviar la notificación.");
+            $_SESSION['MENSAJEENVIO_REPALETIZAJE'] = $MENSAJEENVIO;
             unset($_SESSION['REPALETIZAJE_ELIMINAR_CODIGO'], $_SESSION['REPALETIZAJE_ELIMINAR_ID'], $_SESSION['REPALETIZAJE_ELIMINAR_TIEMPO']);
+            header('Location: listarRepaletizajePTFrigorifico.php');
+            exit;
         }
     }
 
@@ -345,8 +352,14 @@ if ($_POST) {
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
             $MENSAJEENVIO = $envioOk ? "Repaletizaje abierto correctamente." : ($errorEnvio ?: "Repaletizaje abierto, pero hubo un problema al enviar la notificación.");
+            $_SESSION['MENSAJEENVIO_REPALETIZAJE'] = $MENSAJEENVIO;
             unset($_SESSION['REPALETIZAJE_ABRIR_CODIGO'], $_SESSION['REPALETIZAJE_ABRIR_ID'], $_SESSION['REPALETIZAJE_ABRIR_TIEMPO']);
+            header('Location: listarRepaletizajePTFrigorifico.php');
+            exit;
         }
     }
 }
