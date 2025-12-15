@@ -1260,7 +1260,6 @@ if (isset($_POST)) {
                                                             return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
                                                         }, $etiquetasFolio)) : '';
                                                     $tieneOperaciones = !empty($etiquetasFolio);
-                                                    $operacionesRegistradasJson = json_encode($operacionesRegistradas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                                                     ?>
                                                     <tr class="text-center">
                                                         <td>
@@ -1300,7 +1299,7 @@ if (isset($_POST)) {
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
                                                                             <?php if ($tieneOperaciones) { ?>
-                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio(<?php echo $operacionesRegistradasJson; ?>);" data-toggle="tooltip" title="Editar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Editar Detalle" <?php echo $DISABLED2; ?>>
                                                                                     <i class="ti-pencil-alt"></i>
                                                                                     <span class="d-none d-md-inline">Editar</span>
                                                                                 </button>
@@ -1315,7 +1314,7 @@ if (isset($_POST)) {
                                                                                 <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
                                                                             <?php if ($tieneOperaciones) { ?>
-                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio(<?php echo $operacionesRegistradasJson; ?>);" data-toggle="tooltip" title="Eliminar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Eliminar Detalle" <?php echo $DISABLED2; ?>>
                                                                                     <i class="ti-close"></i>
                                                                                     <span class="d-none d-md-inline">Eliminar</span>
                                                                                 </button>
@@ -1389,7 +1388,6 @@ if (isset($_POST)) {
                                                             return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
                                                         }, $etiquetasFolioIndustrial)) : '';
                                                         $tieneOperacionesIndustrial = !empty($etiquetasFolioIndustrial);
-                                                        $operacionesRegistradasIndustrialJson = json_encode($operacionesRegistradasIndustrial, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                                                         ?>
                                                         <tr class="text-center">
                                                             <td><span class="text-muted">No aplica</span></td>
@@ -1423,7 +1421,7 @@ if (isset($_POST)) {
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
                                                                             <?php if ($tieneOperacionesIndustrial) { ?>
-                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio(<?php echo $operacionesRegistradasIndustrialJson; ?>);" data-toggle="stooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradasIndustrial, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="stooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
                                                                                     <i class="ti-pencil-alt"></i>
                                                                                     <span class="d-none d-md-inline">Editar</span>
                                                                                 </button>
@@ -1438,7 +1436,7 @@ if (isset($_POST)) {
                                                                                 <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
                                                                             <?php if ($tieneOperacionesIndustrial) { ?>
-                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio(<?php echo $operacionesRegistradasIndustrialJson; ?>);" data-togglse="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradasIndustrial, ENT_QUOTES, 'UTF-8'); ?>');" data-togglse="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
                                                                                     <i class="ti-close"></i>
                                                                                     <span class="d-none d-md-inline">Eliminar</span>
                                                                                 </button>
