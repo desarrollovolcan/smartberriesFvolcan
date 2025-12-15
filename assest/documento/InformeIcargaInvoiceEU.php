@@ -844,8 +844,8 @@ $html = '
       $html = $html . '
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
-        <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
-        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
+        <div class="address"> <b>  Date ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date ETA:  </b>  '.$FECHAETAREAL.' </div>
       ';
     }
     if ($TEMBARQUE == "2") {
@@ -853,8 +853,8 @@ $html = '
 
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
-        <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
-        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
+        <div class="address"> <b>  Date ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
      }
@@ -863,8 +863,8 @@ $html = '
 
         <div class="address"> <b>  Container number:  </b> '.$NUMEROCONTENEDOR.'  </div>
         <div class="address"> <b>  FDA Packing:  </b> '.$FDADESPACHOEX.'  </div>
-        <div class="address"> <b>  Date Real ETD :   </b>  '.$FECHAETDREAL.'</div>
-        <div class="address"> <b>  Date Real ETA:  </b>  '.$FECHAETAREAL.' </div>
+        <div class="address"> <b>  Date ETD :   </b>  '.$FECHAETDREAL.'</div>
+        <div class="address"> <b>  Date ETA:  </b>  '.$FECHAETAREAL.' </div>
 
         ';
     }
