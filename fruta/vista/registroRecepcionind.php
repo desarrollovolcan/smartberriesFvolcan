@@ -45,6 +45,11 @@ include_once '../../assest/controlador/DESPACHOIND_ADO.php';
 include_once '../../assest/controlador/RECHAZOMP_ADO.php';
 include_once '../../assest/controlador/LEVANTAMIENTOMP_ADO.php';
 
+include_once '../../assest/controlador/PROCESO_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
+include_once '../../assest/controlador/RECHAZOMP_ADO.php';
+include_once '../../assest/controlador/LEVANTAMIENTOMP_ADO.php';
+
 include_once '../../assest/controlador/RECEPCIONE_ADO.php';
 include_once '../../assest/controlador/INVENTARIOE_ADO.php';
 

@@ -15,13 +15,13 @@ include_once __DIR__ . '/../../assest/controlador/RMERCADO_ADO.php';
 include_once __DIR__ . '/../../assest/controlador/MERCADO_ADO.php';
 
 
-include_once __DIR__ . '/../../assest/controlador/TREEMBALAJE_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/REEMBALAJE_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/REPALETIZAJEEX_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/DESPACHOEX_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/DESPACHOPT_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/DESPACHOIND_ADO.php';
-include_once __DIR__ . '/../../assest/controlador/INPSAG_ADO.php';
+include_once '../../assest/controlador/TREEMBALAJE_ADO.php';
+include_once '../../assest/controlador/REEMBALAJE_ADO.php';
+include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
+include_once '../../assest/controlador/DESPACHOEX_ADO.php';
+include_once '../../assest/controlador/DESPACHOPT_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
+include_once '../../assest/controlador/INPSAG_ADO.php';
 
 
 include_once __DIR__ . '/../../assest/controlador/ERECEPCION_ADO.php';
