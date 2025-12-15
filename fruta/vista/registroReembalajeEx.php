@@ -60,6 +60,9 @@ $EXIINDUSTRIAL_ADO =  new EXIINDUSTRIAL_ADO();
 $DRINDUSTRIAL_ADO =  new DRINDUSTRIAL_ADO();
 $DREXPORTACION_ADO =  new DREXPORTACION_ADO();
 
+// Evitar avisos si se consulta el estado u operaciones del folio sin inicializar
+$etiquetasFolio = [];
+
 $REPALETIZAJEEX_ADO =  new REPALETIZAJEEX_ADO();
 $DESPACHOEX_ADO =  new DESPACHOEX_ADO();
 $DESPACHOPT_ADO =  new DESPACHOPT_ADO();
