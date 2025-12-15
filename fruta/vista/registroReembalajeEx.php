@@ -1,7 +1,6 @@
 <?php
 
-// Asegura rutas relativas consistentes tanto en CLI como en servidor web
-chdir(__DIR__);
+// Carga dependencias con rutas absolutas para mantener la resolución estable
 include_once __DIR__ . "/../../assest/config/validarUsuarioFruta.php";
 
 
