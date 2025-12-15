@@ -1133,6 +1133,10 @@ if (isset($_POST)) {
                                                                 $estadoFolioClase = 'badge-warning';
                                                                 $estadoFolioTexto = 'Incompleto';
                                                                 break;
+                                                            case 3:
+                                                                $estadoFolioClase = 'badge-info';
+                                                                $estadoFolioTexto = 'Muestra';
+                                                                break;
                                                             default:
                                                                 $estadoFolioClase = 'badge-secondary';
                                                                 $estadoFolioTexto = 'Sin estado';
@@ -1423,6 +1427,10 @@ if (isset($_POST)) {
                                                             case 2:
                                                                 $estadoFolioClase = 'badge-warning';
                                                                 $estadoFolioTexto = 'Incompleto';
+                                                                break;
+                                                            case 3:
+                                                                $estadoFolioClase = 'badge-info';
+                                                                $estadoFolioTexto = 'Muestra';
                                                                 break;
                                                             default:
                                                                 $estadoFolioClase = 'badge-secondary';
