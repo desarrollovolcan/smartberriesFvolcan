@@ -105,48 +105,99 @@ function obtenerDestinatariosAutorizacion($correoSolicitante)
 
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
 {
-    $headers = [
-        'MIME-Version: 1.0',
-        'Content-type: text/plain; charset=UTF-8',
-        'From: ' . $remitente,
-    ];
-
-    $opcionesSMTP = [
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
         'ssl' => [
             'verify_peer' => false,
             'verify_peer_name' => false,
-            'allow_self_signed' => true,
-        ],
-    ];
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
 
-    $resultado = [false, ''];
-    $destinatarios = (array) $destinatarios;
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
 
-    foreach ($destinatarios as $destinatario) {
-        try {
-            $transport = (new Swift_SmtpTransport($host, $puerto, 'ssl'))
-                ->setUsername($usuario)
-                ->setPassword($contrasena)
-                ->setTimeout($timeout)
-                ->setStreamOptions($opcionesSMTP);
-
-            $mailer = new Swift_Mailer($transport);
-            $mensajeCorreo = (new Swift_Message($asunto))
-                ->setFrom([$remitente => 'Sistema de Gestión'])
-                ->setTo([$destinatario])
-                ->setBody($mensaje);
-
-            $enviado = $mailer->send($mensajeCorreo);
-
-            if ($enviado) {
-                $resultado = [true, null];
-            }
-        } catch (Exception $e) {
-            $resultado = [false, $e->getMessage()];
-        }
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
     }
 
-    return $resultado;
+    if (function_exists('stream_set_timeout')) {
+        stream_set_timeout($conexion, $timeout);
+    }
+
+    $leerRespuesta = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] === ' ') {
+                break;
+            }
+        }
+        return $respuesta;
+    };
+
+    $comando = function ($instruccion, $codigoEsperado) use ($conexion, $leerRespuesta) {
+        fwrite($conexion, $instruccion . "\r\n");
+        $respuesta = $leerRespuesta();
+        if (substr($respuesta, 0, 3) !== $codigoEsperado) {
+            throw new Exception("Error SMTP en '{$instruccion}': {$respuesta}");
+        }
+        return $respuesta;
+    };
+
+    $respuestaInicial = $leerRespuesta();
+    if (substr($respuestaInicial, 0, 3) !== '220') {
+        fclose($conexion);
+        return [false, "El servidor SMTP no respondió correctamente: {$respuestaInicial}"];
+    }
+
+    $hostEhlo = $host ?: 'localhost';
+    try {
+        $comando('EHLO ' . $hostEhlo, '250');
+    } catch (Exception $e) {
+        $comando('HELO ' . $hostEhlo, '250');
+    }
+
+    try {
+        $comando('AUTH LOGIN', '334');
+        $comando(base64_encode($usuario), '334');
+        $comando(base64_encode($contrasena), '235');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error de autenticación SMTP: " . $e->getMessage()];
+    }
+
+    try {
+        $comando("MAIL FROM:<{$remitente}>", '250');
+        foreach ($destinatarios as $correo) {
+            $comando("RCPT TO:<{$correo}>", '250');
+        }
+        $comando('DATA', '354');
+
+        $cabeceras = "Date: " . date('r') . "\r\n" .
+            "Message-ID: <" . uniqid() . "@" . ($hostEhlo ?: 'localhost') . ">\r\n" .
+            "From: {$remitente}\r\n" .
+            "Return-Path: {$remitente}\r\n" .
+            "Reply-To: {$remitente}\r\n" .
+            "To: " . implode(', ', $destinatarios) . "\r\n" .
+            "Subject: {$asunto}\r\n" .
+            "MIME-Version: 1.0\r\n" .
+            "X-Mailer: PHP/" . phpversion() . "\r\n" .
+            "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+
+        $mensajeNormalizado = str_replace(["\r\n", "\n"], "\r\n", $mensaje);
+        fwrite($conexion, $cabeceras . $mensajeNormalizado . "\r\n.\r\n");
+        $respuestaData = $leerRespuesta();
+        if (substr($respuestaData, 0, 3) !== '250') {
+            throw new Exception("Error SMTP tras DATA: {$respuestaData}");
+        }
+        $comando('QUIT', '221');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error al enviar correo: " . $e->getMessage()];
+    }
+
+    fclose($conexion);
+    return [true, null];
 }
 
 function obtenerDatosCorreoDespacho($despacho, $PRODUCTOR_ADO, $PLANTA_ADO, $COMPRADOR_ADO, $EMPRESA_ADO, $TEMPORADA_ADO)
@@ -266,7 +317,9 @@ if ($_POST) {
             $foliosDespacho = $EXIMATERIAPRIMA_ADO->buscarPorDespacho($IDDESPACHO);
 
             if ($foliosDespacho) {
-                $MENSAJE = "El despacho no puede eliminarse porque tiene registros de entrada o salida asociados.";
+                unset($_SESSION['DESPACHOMP_ELIMINAR_CODIGO'], $_SESSION['DESPACHOMP_ELIMINAR_ID'], $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO']);
+                $MENSAJEENVIO = '';
+                $MENSAJE = "El despacho no puede eliminarse porque tiene registros de entrada o salida asociados y no se envió código de autorización.";
             } else {
                 $codigoAutorizacion = generarCodigoAutorizacion();
                 $_SESSION['DESPACHOMP_ELIMINAR_CODIGO'] = $codigoAutorizacion;
