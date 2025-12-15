@@ -293,11 +293,6 @@ if ($ARRAYUSUARIO) {
 
 
 
-if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
-    $ARRAYDESPACHOPT = $DESPACHOMP_ADO->listarDespachompEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
-}
-
-
 include_once "../../assest/config/validarDatosUrl.php";
 include_once "../../assest/config/datosUrLP.php";
 
@@ -315,11 +310,12 @@ if ($_POST) {
             $MENSAJE = "No se ha seleccionado un despacho válido.";
         } else {
             $foliosDespacho = $EXIMATERIAPRIMA_ADO->buscarPorDespacho($IDDESPACHO);
+            $guiasDespacho = $MGUIAMP_ADO->listarMguiaDespachoCBX($IDDESPACHO);
 
-            if ($foliosDespacho) {
+            if ($foliosDespacho || $guiasDespacho) {
                 unset($_SESSION['DESPACHOMP_ELIMINAR_CODIGO'], $_SESSION['DESPACHOMP_ELIMINAR_ID'], $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO']);
                 $MENSAJEENVIO = '';
-                $MENSAJE = "El despacho no puede eliminarse porque tiene registros de entrada o salida asociados y no se envió código de autorización.";
+                $MENSAJE = "El despacho no puede eliminarse porque tiene registros asociados y no se envió código de autorización.";
             } else {
                 $codigoAutorizacion = generarCodigoAutorizacion();
                 $_SESSION['DESPACHOMP_ELIMINAR_CODIGO'] = $codigoAutorizacion;
@@ -361,9 +357,10 @@ if ($_POST) {
         $idSesion = $_SESSION['DESPACHOMP_ELIMINAR_ID'] ?? null;
         $tiempoSesion = $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO'] ?? 0;
         $foliosDespacho = $IDDESPACHO ? $EXIMATERIAPRIMA_ADO->buscarPorDespacho($IDDESPACHO) : [];
+        $guiasDespacho = $IDDESPACHO ? $MGUIAMP_ADO->listarMguiaDespachoCBX($IDDESPACHO) : [];
 
-        if ($foliosDespacho) {
-            $MENSAJE = "El despacho tiene registros de entrada o salida asociados y no puede ser eliminado.";
+        if ($foliosDespacho || $guiasDespacho) {
+            $MENSAJE = "El despacho tiene registros asociados y no puede ser eliminado.";
         } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDDESPACHO) {
             $MENSAJE = "No hay una solicitud de eliminación vigente para este despacho.";
         } elseif ((time() - $tiempoSesion) > 900) {
@@ -495,6 +492,10 @@ if ($_POST) {
     }
 }
 
+if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
+    $ARRAYDESPACHOPT = $DESPACHOMP_ADO->listarDespachompEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
+}
+
 
 
 
@@ -575,6 +576,16 @@ if ($_POST) {
                     <div class="box">
 
                         <div class="box-body">
+                            <?php if ($MENSAJE) { ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <?php echo $MENSAJE; ?>
+                                </div>
+                            <?php } ?>
+                            <?php if ($MENSAJEENVIO) { ?>
+                                <div class="alert alert-success" role="alert">
+                                    <?php echo $MENSAJEENVIO; ?>
+                                </div>
+                            <?php } ?>
                             <div class="row">
                                 <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                                     <div class="table-responsive">
@@ -875,7 +886,7 @@ if ($_POST) {
                     </div>
                     <form method="post">
                         <div class="modal-body">
-                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="mb-3">Se enviará un código de confirmación a Maria de los Ángeles y Erwin Isla. Ingrésalo para completar la eliminación.</p>
                             <p class="font-weight-bold">Despacho N° <span class="numero-despacho-eliminar"></span></p>
                             <input type="hidden" name="ID" value="">
                             <input type="hidden" name="URL" value="registroDespachomp">
@@ -907,7 +918,7 @@ if ($_POST) {
                     </div>
                     <form method="post">
                         <div class="modal-body">
-                            <p class="mb-3">El código se envía a Maria de los Ángeles y Erwin Isla.</p>
+                            <p class="mb-3">Solicita y confirma el código enviado a Maria de los Ángeles y Erwin Isla para abrir el despacho cerrado.</p>
                             <p class="font-weight-bold">Despacho N° <span class="numero-despacho-abrir"></span></p>
                             <input type="hidden" name="ID" value="">
                             <input type="hidden" name="URL" value="registroDespachomp">
