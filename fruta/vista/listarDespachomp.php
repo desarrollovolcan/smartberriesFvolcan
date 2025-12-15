@@ -67,18 +67,6 @@ $ARRAYVERCONDUCTOR = "";
 $ARRAYMGUIAMP = "";
 $DESPACHOMP = new DESPACHOMP();
 
-$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
-if ($ARRAYUSUARIO) {
-    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
-    $NOMBRECOMPLETOUSUARIO = trim(
-        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
-        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
-        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
-        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
-    );
-    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
-}
-
 function generarCodigoAutorizacion()
 {
     if (function_exists('random_int')) {
@@ -287,6 +275,18 @@ function obtenerDatosCorreoDespacho($despacho, $PRODUCTOR_ADO, $PLANTA_ADO, $COM
         'planta' => $planta,
         'temporada' => $temporada,
     ];
+}
+
+$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
+if ($ARRAYUSUARIO) {
+    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
+    $NOMBRECOMPLETOUSUARIO = trim(
+        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
+    );
+    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
 }
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
