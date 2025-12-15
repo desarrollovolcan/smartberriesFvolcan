@@ -1046,7 +1046,6 @@ if (isset($_POST)) {
                                                 <tr class="text-center">
                                                     <th>Estado</th>
                                                     <th>Folio </th>
-                                                    <th>Estado Folio</th>
                                                     <th class="text-center">Operaciónes</th>
                                                     <th>Fecha Embalado </th>
                                                     <th>Código Estandar </th>
@@ -1203,21 +1202,6 @@ if (isset($_POST)) {
                                                             <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
                                                         </td>
                                                             <td><?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?> </td>
-                                                            <td>
-                                                                <?php if ($etiquetasFolio) { ?>
-                                                                    <div class="estado-folio-col">
-                                                                        <?php foreach ($etiquetasFolio as $etiqueta) : ?>
-                                                                            <?php if (!empty($etiqueta['url'])) { ?>
-                                                                                <a href="<?php echo $etiqueta['url']; ?>" class="badge badge-estado-folio <?php echo $etiqueta['clase']; ?>" target="_blank"><?php echo $etiqueta['texto']; ?></a>
-                                                                            <?php } else { ?>
-                                                                                <span class="badge badge-estado-folio <?php echo $etiqueta['clase']; ?>"><?php echo $etiqueta['texto']; ?></span>
-                                                                            <?php } ?>
-                                                                        <?php endforeach; ?>
-                                                                    </div>
-                                                                <?php } else { ?>
-                                                                    <span class="text-muted">Sin operación</span>
-                                                                <?php } ?>
-                                                            </td>
                                                             <td class="text-center">
                                                                 <form method="post" id="form1">
                                                                     <input type="hidden" class="form-control" id="IDQUITAR" name="IDQUITAR" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />
@@ -1344,7 +1328,7 @@ if (isset($_POST)) {
                                         <table id="salida" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr class="text-center">
-                                                <th>Estado</th>
+                                                    <th>Estado</th>
                                                     <th>P. Terminado/Industrial</th>
                                                     <th>Folio</th>
                                                     <th>Estado Folio</th>
@@ -1579,10 +1563,7 @@ if (isset($_POST)) {
                                                         }
                                                         ?>
                                                         <tr class="text-center">
-                                                            <td>-</td>
-                                                            <td>P. Industrial</td>
-                                                            <td><?php echo $r['FOLIO_DRINDUSTRIAL']; ?></td>
-                                                            <?php
+                                                        <?php
                                                             $detalleExistenciaIndustrial = $EXIINDUSTRIAL_ADO->buscarPorFolio2($r['FOLIO_DRINDUSTRIAL']);
                                                             $etiquetasFolio = [];
                                                             $estadoFolioClase = 'badge-secondary';
@@ -1625,6 +1606,8 @@ if (isset($_POST)) {
                                                             <td>
                                                                 <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
                                                             </td>
+                                                            <td>P. Industrial</td>
+                                                            <td><?php echo $r['FOLIO_DRINDUSTRIAL']; ?></td>
                                                             <td>
                                                                 <?php if ($etiquetasFolio) { ?>
                                                                     <div class="estado-folio-col">
