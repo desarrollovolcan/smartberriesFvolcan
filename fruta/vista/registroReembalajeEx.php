@@ -1248,10 +1248,10 @@ if (isset($_POST)) {
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="salida" class="table-hover " style="width: 100%;">
+                                        <table id="salida" class="table table-sm table-hover table-striped table-minimal" style="width: 100%;">
                                             <thead>
                                                 <tr class="text-center">
-                                                <th>Estado</th>
+                                                    <th>Estado</th>
                                                     <th>P. Terminado/Industrial</th>
                                                     <th>Folio</th>
                                                     <th>Estado Folio</th>
@@ -1317,29 +1317,80 @@ if (isset($_POST)) {
                                                         } 
                                                         ?>
                                                         <tr class="text-center">
-                                                        <?php
-                                                        $estadoFolioClase = 'badge-secondary';
-                                                        $estadoFolioTexto = 'Sin estado';
+                                                            <?php
+                                                            $detalleExistencia = $EXIEXPORTACION_ADO->buscarPorFolio($r['FOLIO_DREXPORTACION']);
+                                                            $etiquetasFolio = [];
+                                                            $estadoFolioClase = 'badge-secondary';
+                                                            $estadoFolioTexto = 'Sin estado';
 
-                                                        switch ($r['ESTADO_FOLIO']) {
-                                                            case 1:
-                                                                $estadoFolioClase = 'badge-success';
-                                                                $estadoFolioTexto = 'Completo';
-                                                                break;
-                                                            case 2:
-                                                                $estadoFolioClase = 'badge-warning';
-                                                                $estadoFolioTexto = 'Incompleto';
-                                                                break;
-                                                            default:
-                                                                $estadoFolioClase = 'badge-secondary';
-                                                                $estadoFolioTexto = 'Sin estado';
-                                                                break;
-                                                        }
+                                                            switch ($r['ESTADO_FOLIO']) {
+                                                                case 1:
+                                                                    $estadoFolioClase = 'badge-success';
+                                                                    $estadoFolioTexto = 'Completo';
+                                                                    break;
+                                                                case 2:
+                                                                    $estadoFolioClase = 'badge-warning';
+                                                                    $estadoFolioTexto = 'Incompleto';
+                                                                    break;
+                                                                default:
+                                                                    $estadoFolioClase = 'badge-secondary';
+                                                                    $estadoFolioTexto = 'Sin estado';
+                                                                    break;
+                                                            }
 
-                                                        ?>
-                                                        <td>
-                                                            <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
-                                                        </td>
+                                                            if ($detalleExistencia) {
+                                                                $estadoExistencia = (int) $detalleExistencia[0]['ESTADO'];
+                                                                $idRepaletizaje = $detalleExistencia[0]['ID_REPALETIZAJE'];
+                                                                $idDespacho = $detalleExistencia[0]['ID_DESPACHOEX'] ? $detalleExistencia[0]['ID_DESPACHOEX'] : $detalleExistencia[0]['ID_DESPACHO'];
+                                                                $idInpsag = $detalleExistencia[0]['ID_INPSAG'];
+
+                                                                if ($estadoExistencia === 1) {
+                                                                    $estadoFolioClase = 'badge-success';
+                                                                    $estadoFolioTexto = 'Disponible';
+                                                                }
+
+                                                                if ($idRepaletizaje) {
+                                                                    $repaletizaje = $REPALETIZAJEEX_ADO->verRepaletizaje2($idRepaletizaje);
+                                                                    $numeroRepaletizaje = $repaletizaje ? $repaletizaje[0]['NUMERO_REPALETIZAJE'] : null;
+                                                                    $etiquetasFolio[] = [
+                                                                        'texto' => $numeroRepaletizaje ? "Repaletizaje #{$numeroRepaletizaje}" : 'Repaletizado',
+                                                                        'clase' => 'badge-info',
+                                                                        'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
+                                                                    ];
+                                                                }
+
+                                                                if ($idDespacho) {
+                                                                    if ($detalleExistencia[0]['ID_DESPACHOEX']) {
+                                                                        $despacho = $DESPACHOEX_ADO->verDespachoex($idDespacho);
+                                                                        $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO_EX'] : null;
+                                                                        $urlDespacho = "registroDespachoEX.php?op&id={$idDespacho}&a=ver";
+                                                                    } else {
+                                                                        $despacho = $DESPACHOPT_ADO->verDespachopt($idDespacho);
+                                                                        $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO'] : null;
+                                                                        $urlDespacho = "registroDespachopt.php?op&id={$idDespacho}&a=ver";
+                                                                    }
+
+                                                                    $etiquetasFolio[] = [
+                                                                        'texto' => $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
+                                                                        'clase' => 'badge-danger',
+                                                                        'url' => $urlDespacho
+                                                                    ];
+                                                                }
+
+                                                                if ($idInpsag) {
+                                                                    $inpsag = $INPSAG_ADO->verInpsag3($idInpsag);
+                                                                    $numeroInpsag = $inpsag ? $inpsag[0]['NUMERO_INPSAG'] . ($inpsag[0]['CORRELATIVO_INPSAG'] ? '-' . $inpsag[0]['CORRELATIVO_INPSAG'] : '') : null;
+                                                                    $etiquetasFolio[] = [
+                                                                        'texto' => $numeroInpsag ? "Inspección #{$numeroInpsag}" : 'Inspeccionado',
+                                                                        'clase' => 'badge-primary',
+                                                                        'url' => "registroInpsag.php?op&id={$idInpsag}&a=ver"
+                                                                    ];
+                                                                }
+                                                            }
+                                                            ?>
+                                                            <td>
+                                                                <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
+                                                            </td>
                                                             <td>P. Terminado</td>
                                                             <td><?php echo $r['FOLIO_DREXPORTACION']; ?></td>
                                                             <td>
@@ -1354,7 +1405,7 @@ if (isset($_POST)) {
                                                                         <?php endforeach; ?>
                                                                     </div>
                                                                 <?php } else { ?>
-                                                                    <span class="text-muted">Sin operación</span>
+                                                                    <span class="text-muted">Sin operacion</span>
                                                                 <?php } ?>
                                                             </td>
                                                             <td class="text-center">
@@ -1364,21 +1415,25 @@ if (isset($_POST)) {
                                                                     <input type="hidden" class="form-control" placeholder="OP PROCESO" id="OPP" name="OPP" value="<?php echo $OP; ?>" />
                                                                     <input type="hidden" class="form-control" placeholder="URL PROCESO" id="URLP" name="URLP" value="registroReembalajeEx" />
                                                                     <input type="hidden" class="form-control" placeholder="URL DPEXPORTACION" id="URLD" name="URLD" value="registroDreembalajeExportacion" />
-                                                                    <div class="btn-group  btn-block" role="group" aria-label="Operaciones Detalle">
+                                                                    <div class="btn-group btn-group-sm btn-block" role="group" aria-label="Operaciones Detalle">
                                                                         <?php if ($ESTADO == "0") { ?>
-                                                                            <button type="submit" class="btn btn-sm btn-info   " id="VERDURL" name="VERDURL" data-toggle="tooltip" title="Ver Detalle ">
-                                                                                <i class="ti-eye"></i><br> Ver
+                                                                            <button type="submit" class="btn btn-info" id="VERDURL" name="VERDURL" data-toggle="tooltip" title="Ver Detalle ">
+                                                                                <i class="ti-eye"></i>
+                                                                                <span class="d-none d-md-inline">Ver</span>
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn  btn-sm   btn-warning  " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i><br> Editar
+                                                                            <button type="submit" class="btn btn-warning" id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="ti-pencil-alt"></i>
+                                                                                <span class="d-none d-md-inline">Editar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-sm  btn-secondary  " id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="fa fa-fw fa-copy"></i><br> Duplicar
+                                                                            <button type="submit" class="btn btn-secondary" id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="fa fa-fw fa-copy"></i>
+                                                                                <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-sm   btn-danger  " id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i><br> Eliminar
+                                                                            <button type="submit" class="btn btn-danger" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="ti-close"></i>
+                                                                                <span class="d-none d-md-inline">Eliminar</span>
                                                                             </button>
                                                                         <?php } ?>
                                                                     </div>
@@ -1416,16 +1471,28 @@ if (isset($_POST)) {
                                                         <tr class="text-center">
                                                             <?php
                                                             $detalleExistenciaIndustrial = $EXIINDUSTRIAL_ADO->buscarPorFolio2($r['FOLIO_DRINDUSTRIAL']);
+                                                            $etiquetasFolio = [];
                                                             $estadoFolioClase = 'badge-secondary';
                                                             $estadoFolioTexto = 'Sin estado';
 
                                                             if ($detalleExistenciaIndustrial) {
                                                                 $detalle = $detalleExistenciaIndustrial[0];
                                                                 $estadoExistencia = (int) $detalle['ESTADO'];
+                                                                $idDespacho = $detalle['ID_DESPACHO'];
 
                                                                 if ($estadoExistencia === 1) {
                                                                     $estadoFolioClase = 'badge-success';
                                                                     $estadoFolioTexto = 'Disponible';
+                                                                }
+
+                                                                if ($idDespacho) {
+                                                                    $despacho = $DESPACHOIND_ADO->verDespachomp($idDespacho);
+                                                                    $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO'] : null;
+                                                                    $etiquetasFolio[] = [
+                                                                        'texto' => $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
+                                                                        'clase' => 'badge-danger',
+                                                                        'url' => "registroDespachoind.php?op&id={$idDespacho}&a=ver"
+                                                                    ];
                                                                 }
                                                             }
                                                             ?>
@@ -1446,7 +1513,7 @@ if (isset($_POST)) {
                                                                         <?php endforeach; ?>
                                                                     </div>
                                                                 <?php } else { ?>
-                                                                    <span class="text-muted">Sin operación</span>
+                                                                    <span class="text-muted">Sin operacion</span>
                                                                 <?php } ?>
                                                             </td>
                                                             <td class="text-center">
@@ -1456,21 +1523,25 @@ if (isset($_POST)) {
                                                                     <input type="hidden" class="form-control" placeholder="OP PROCESO" id="OPP" name="OPP" value="<?php echo $OP; ?>" />
                                                                     <input type="hidden" class="form-control" placeholder="URL PROCESO" id="URLP" name="URLP" value="registroReembalajeEx" />
                                                                     <input type="hidden" class="form-control" placeholder="URL DPINDUSTRIAL" id="URLD" name="URLD" value="registroDreembalajIndustrial" />
-                                                                    <div class="btn-group btn-block" role="group" aria-label="Operaciones Detalle">
+                                                                    <div class="btn-group btn-group-sm btn-block" role="group" aria-label="Operaciones Detalle">
                                                                         <?php if ($ESTADO == "0") { ?>
-                                                                            <button type="submit" class="btn btn-sm btn-info   " id="VERDURL" name="VERDURL" data-toggle="tooltip" title="Ver Detalle ">
-                                                                                <i class="ti-eye"></i><br> Ver
+                                                                            <button type="submit" class="btn btn-info" id="VERDURL" name="VERDURL" data-toggle="tooltip" title="Ver Detalle ">
+                                                                                <i class="ti-eye"></i>
+                                                                                <span class="d-none d-md-inline">Ver</span>
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn  btn-sm   btn-warning  " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i><br> Editar
+                                                                            <button type="submit" class="btn btn-warning" id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="ti-pencil-alt"></i>
+                                                                                <span class="d-none d-md-inline">Editar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-sm  btn-secondary  " id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="fa fa-fw fa-copy"></i><br> Duplicar
+                                                                            <button type="submit" class="btn btn-secondary" id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="fa fa-fw fa-copy"></i>
+                                                                                <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-sm   btn-danger  " id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i><br> Eliminar
+                                                                            <button type="submit" class="btn btn-danger" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="ti-close"></i>
+                                                                                <span class="d-none d-md-inline">Eliminar</span>
                                                                             </button>
                                                                         <?php } ?>
                                                                     </div>
