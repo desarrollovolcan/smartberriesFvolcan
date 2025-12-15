@@ -656,8 +656,8 @@ if (isset($_POST)) {
                             return false;
                         }
 
-                        // Si todo está bien, proceder con confirmación
-                        return confirm("¿Está seguro que desea cerrar el proceso de reembalaje?\n\nLa diferencia de kilos es 0, el proceso está balanceado.\n\nEsta acción no se puede deshacer.");
+                        // Si todo está bien, continuar sin mensaje de confirmación
+                        return true;
                         
                     } catch (error) {
                         console.error("Error en validacionCerrar:", error); // Debug
@@ -1133,6 +1133,10 @@ if (isset($_POST)) {
                                                                 $estadoFolioClase = 'badge-warning';
                                                                 $estadoFolioTexto = 'Incompleto';
                                                                 break;
+                                                            case 3:
+                                                                $estadoFolioClase = 'badge-info';
+                                                                $estadoFolioTexto = 'Muestra';
+                                                                break;
                                                             default:
                                                                 $estadoFolioClase = 'badge-secondary';
                                                                 $estadoFolioTexto = 'Sin estado';
@@ -1424,6 +1428,10 @@ if (isset($_POST)) {
                                                                 $estadoFolioClase = 'badge-warning';
                                                                 $estadoFolioTexto = 'Incompleto';
                                                                 break;
+                                                            case 3:
+                                                                $estadoFolioClase = 'badge-info';
+                                                                $estadoFolioTexto = 'Muestra';
+                                                                break;
                                                             default:
                                                                 $estadoFolioClase = 'badge-secondary';
                                                                 $estadoFolioTexto = 'Sin estado';
@@ -1612,12 +1620,6 @@ if (isset($_POST)) {
                                                                 }
 
                                                                 $numeroReembalaje = null;
-                                                                if ($idReembalaje) {
-                                                                    $estadoFolioClase = '';
-                                                                    $estadoFolioTexto = '';
-                                                                    $mostrarEstadoFolio = false;
-                                                                }
-
                                                                 if ($idReembalaje) {
                                                                     $estadoFolioClase = '';
                                                                     $estadoFolioTexto = '';
