@@ -293,11 +293,6 @@ if ($ARRAYUSUARIO) {
 
 
 
-if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
-    $ARRAYDESPACHOPT = $DESPACHOMP_ADO->listarDespachompEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
-}
-
-
 include_once "../../assest/config/validarDatosUrl.php";
 include_once "../../assest/config/datosUrLP.php";
 
@@ -495,6 +490,10 @@ if ($_POST) {
             unset($_SESSION['DESPACHOMP_ABRIR_TIEMPO']);
         }
     }
+}
+
+if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
+    $ARRAYDESPACHOPT = $DESPACHOMP_ADO->listarDespachompEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
 }
 
 
