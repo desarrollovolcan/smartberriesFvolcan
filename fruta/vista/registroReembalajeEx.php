@@ -1,52 +1,54 @@
 <?php
 
-include_once "../../assest/config/validarUsuarioFruta.php";
+// Asegura rutas relativas consistentes tanto en CLI como en servidor web
+chdir(__DIR__);
+include_once __DIR__ . "/../../assest/config/validarUsuarioFruta.php";
 
 
 //LLAMADA ARCHIVOS NECESARIOS PARA LAS OPERACIONES
-include_once '../../assest/controlador/FOLIO_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/FOLIO_ADO.php';
 
 
-include_once '../../assest/controlador/PRODUCTOR_ADO.php';
-include_once '../../assest/controlador/ESPECIES_ADO.php';
-include_once '../../assest/controlador/VESPECIES_ADO.php';
-include_once '../../assest/controlador/RMERCADO_ADO.php';
-include_once '../../assest/controlador/MERCADO_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/PRODUCTOR_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/ESPECIES_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/VESPECIES_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/RMERCADO_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/MERCADO_ADO.php';
 
 
-include_once '../../assest/controlador/TREEMBALAJE_ADO.php';
-include_once '../../assest/controlador/REEMBALAJE_ADO.php';
-include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
-include_once '../../assest/controlador/DESPACHOEX_ADO.php';
-include_once '../../assest/controlador/DESPACHOPT_ADO.php';
-include_once '../../assest/controlador/DESPACHOIND_ADO.php';
-include_once '../../assest/controlador/INPSAG_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/TREEMBALAJE_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/REEMBALAJE_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/REPALETIZAJEEX_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/DESPACHOEX_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/DESPACHOPT_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/DESPACHOIND_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/INPSAG_ADO.php';
 
 
-include_once '../../assest/controlador/ERECEPCION_ADO.php';
-include_once '../../assest/controlador/EEXPORTACION_ADO.php';
-include_once '../../assest/controlador/EINDUSTRIAL_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/ERECEPCION_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/EEXPORTACION_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/EINDUSTRIAL_ADO.php';
 
-include_once '../../assest/controlador/DREXPORTACION_ADO.php';
-include_once '../../assest/controlador/DRINDUSTRIAL_ADO.php';
-include_once '../../assest/controlador/REEMBALAJE_ADO.php';
-include_once '../../assest/controlador/TMANEJO_ADO.php';
-include_once '../../assest/controlador/TCALIBRE_ADO.php';
-include_once '../../assest/controlador/TEMBALAJE_ADO.php';
-include_once '../../assest/controlador/TCATEGORIA_ADO.php';
-
-
+include_once __DIR__ . '/../../assest/controlador/DREXPORTACION_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/DRINDUSTRIAL_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/REEMBALAJE_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/TMANEJO_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/TCALIBRE_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/TEMBALAJE_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/TCATEGORIA_ADO.php';
 
 
-include_once '../../assest/controlador/EXIINDUSTRIAL_ADO.php';
-include_once '../../assest/controlador/EXIEXPORTACION_ADO.php';
 
-include_once '../../assest/modelo/EXIEXPORTACION.php';
-include_once '../../assest/modelo/EXIINDUSTRIAL.php';
 
-include_once '../../assest/modelo/DREXPORTACION.php';
-include_once '../../assest/modelo/DRINDUSTRIAL.php';
-include_once '../../assest/modelo/REEMBALAJE.php';
+include_once __DIR__ . '/../../assest/controlador/EXIINDUSTRIAL_ADO.php';
+include_once __DIR__ . '/../../assest/controlador/EXIEXPORTACION_ADO.php';
+
+include_once __DIR__ . '/../../assest/modelo/EXIEXPORTACION.php';
+include_once __DIR__ . '/../../assest/modelo/EXIINDUSTRIAL.php';
+
+include_once __DIR__ . '/../../assest/modelo/DREXPORTACION.php';
+include_once __DIR__ . '/../../assest/modelo/DRINDUSTRIAL.php';
+include_once __DIR__ . '/../../assest/modelo/REEMBALAJE.php';
 
 //INCIALIZAR LAS VARIBLES
 //INICIALIZAR CONTROLADOR
@@ -232,8 +234,8 @@ $ARRAYVESPECIES = $VESPECIES_ADO->listarVespeciesPorEmpresaCBX($EMPRESAS);
 $ARRAYTREEMBALAJE = $TREEMBALAJE_ADO->listarTreembalaje();
 $ARRAYFECHAACTUAL = $REEMBALAJE_ADO->obtenerFecha();
 $FECHAREEMBALAJE = $ARRAYFECHAACTUAL[0]['FECHA'];
-include_once "../../assest/config/validarDatosUrl.php";
-include_once "../../assest/config/datosUrlD.php";
+include_once __DIR__ . "/../../assest/config/validarDatosUrl.php";
+include_once __DIR__ . "/../../assest/config/datosUrlD.php";
 
 $ARRAYFOLIO = $FOLIO_ADO->verFolioPorEmpresaPlantaTemporadaTexportacion($EMPRESAS, $PLANTAS, $TEMPORADAS);
 $ARRAYFOLIO2 = $FOLIO_ADO->verFolioPorEmpresaPlantaTemporadaTindustrial($EMPRESAS, $PLANTAS, $TEMPORADAS);
@@ -504,27 +506,7 @@ if (isset($_POST)) {
     <meta name="description" content="">
     <meta name="author" content="">
     <!- LLAMADA DE LOS ARCHIVOS NECESARIOS PARA DISEÑO Y FUNCIONES BASE DE LA VISTA -!>
-        <?php include_once "../../assest/config/urlHead.php"; ?>
-        <style>
-            .estado-folio-col .badge-estado-folio {
-                display: block;
-                width: 100%;
-                padding: 0.4rem 0.5rem;
-                margin-bottom: 0.25rem;
-                color: #fff;
-                transition: background-color 0.2s ease, filter 0.2s ease;
-            }
-
-            .estado-folio-col .badge-estado-folio:last-child {
-                margin-bottom: 0;
-            }
-
-            .estado-folio-col .badge-estado-folio:hover {
-                filter: brightness(0.9);
-                text-decoration: none;
-                color: #fff;
-            }
-        </style>
+        <?php include_once __DIR__ . "/../../assest/config/urlHead.php"; ?>
         <!- FUNCIONES BASES -!>
             <script type="text/javascript">
                 //VALIDACION DE FORMULARIO
@@ -778,7 +760,7 @@ if (isset($_POST)) {
 <body class="hold-transition light-skin fixed sidebar-mini theme-primary" >
     <div class="wrapper">
         <!- LLAMADA AL MENU PRINCIPAL DE LA PAGINA-!>
-            <?php include_once "../../assest/config/menuFruta.php";  ?>
+            <?php include_once __DIR__ . "/../../assest/config/menuFruta.php";  ?>
             <div class="content-wrapper">
                 <div class="container-full">
                     <!-- Content Header (Page header) -->
@@ -798,7 +780,7 @@ if (isset($_POST)) {
                                     </nav>
                                 </div>
                             </div>
-                            <?php include_once "../../assest/config/verIndicadorEconomico.php"; ?>
+                            <?php include_once __DIR__ . "/../../assest/config/verIndicadorEconomico.php"; ?>
                         </div>
                     </div>
 
@@ -1803,11 +1785,11 @@ if (isset($_POST)) {
                 </div>
             </div>
             <!- LLAMADA ARCHIVO DEL DISEÑO DEL FOOTER Y MENU USUARIO -!>
-                <?php include_once "../../assest/config/footer.php"; ?>
-                <?php include_once "../../assest/config/menuExtraFruta.php"; ?>
+                <?php include_once __DIR__ . "/../../assest/config/footer.php"; ?>
+                <?php include_once __DIR__ . "/../../assest/config/menuExtraFruta.php"; ?>
     </div>
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
-        <?php include_once "../../assest/config/urlBase.php"; ?>
+        <?php include_once __DIR__ . "/../../assest/config/urlBase.php"; ?>
         <?php
           
             //OPERACION DE REGISTRO DE FILA
