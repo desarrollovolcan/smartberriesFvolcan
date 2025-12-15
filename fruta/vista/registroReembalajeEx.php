@@ -1441,80 +1441,101 @@ if (isset($_POST)) {
                                                            $NOMBRETCATEGORIA= $ARRAYTCATEGORIA[0]["NOMBRE_TCATEGORIA"];
                                                         }else{
                                                             $NOMBRETCATEGORIA = "Sin Datos";
-                                                        } 
+                                                        }
+
+                                                        $estadoFolioClase = "";
+                                                        $estadoFolioTexto = "";
+                                                        switch($r['ESTADO_FOLIO']){
+                                                            case 1: $estadoFolioClase = 'badge-success'; $estadoFolioTexto = 'P. Completado'; break;
+                                                            case 2: $estadoFolioClase = 'badge-warning'; $estadoFolioTexto = 'P. Incompleto'; break;
+                                                            case 3: $estadoFolioClase = 'badge-primary'; $estadoFolioTexto = 'P. Muestra'; break;
+                                                            default: $estadoFolioClase = 'badge-info'; $estadoFolioTexto = 'No identificado'; break;
+                                                        }
+
+                                                        $detalleExistencia = $EXIEXPORTACION_ADO->buscarPorFolio2($r['FOLIO_DREXPORTACION']);
+                                                        $etiquetasFolio = [];
+                                                        if ($detalleExistencia) {
+                                                            $estadoExistencia = $detalleExistencia[0]['ESTADO'];
+                                                            $idRepaletizaje = $detalleExistencia[0]['ID_REPALETIZAJE'];
+                                                            $idReembalaje = $detalleExistencia[0]['ID_REEMBALAJE'];
+                                                            $idDespacho = $detalleExistencia[0]['ID_DESPACHO'];
+                                                            $idInpsag = $detalleExistencia[0]['ID_INPSAG'];
+
+                                                            $idRepaletizaje = $idRepaletizaje ?: $detalleExistencia[0]['ID_REPALETIZAJE2'] ?? null;
+                                                            $idReembalaje = $idReembalaje ?: $detalleExistencia[0]['ID_REEMBALAJE2'] ?? null;
+                                                            $idDespacho = $idDespacho ?: ($detalleExistencia[0]['ID_DESPACHOEX'] ?? $detalleExistencia[0]['ID_DESPACHOPT'] ?? $detalleExistencia[0]['ID_DESPACHO3'] ?? null);
+
+                                                            $numeroRepaletizaje = null;
+                                                            if ($idRepaletizaje) {
+                                                                $repaletizaje = $REPALETIZAJEEX_ADO->verRepaletizaje3($idRepaletizaje);
+                                                                $numeroRepaletizaje = $repaletizaje ? $repaletizaje[0]['NUMERO_REPALETIZAJE'] : null;
+                                                            }
+
+                                                            $numeroReembalaje = null;
+                                                            if ($idReembalaje) {
+                                                                $reembalaje = $REEMBALAJE_ADO->verReembalaje2($idReembalaje);
+                                                                $numeroReembalaje = $reembalaje ? $reembalaje[0]['NUMERO_REEMBALAJE'] : null;
+                                                            }
+
+                                                            $numeroDespacho = null;
+                                                            if ($idDespacho) {
+                                                                if ($detalleExistencia[0]['ID_DESPACHOEX']) {
+                                                                    $despacho = $DESPACHOEX_ADO->verDespachoex($idDespacho);
+                                                                    $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHOEX'] : null;
+                                                                } else {
+                                                                    $despacho = $DESPACHOPT_ADO->verDespachopt($idDespacho);
+                                                                    $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO'] : null;
+                                                                }
+                                                            }
+
+                                                            $numeroInpsag = null;
+                                                            if ($idInpsag) {
+                                                                $inpsag = $INPSAG_ADO->verInpsag3($idInpsag);
+                                                                $numeroInpsag = $inpsag ? $inpsag[0]['NUMERO_INPSAG'] . ($inpsag[0]['CORRELATIVO_INPSAG'] ? '-' . $inpsag[0]['CORRELATIVO_INPSAG'] : '') : null;
+                                                            }
+
+                                                            $esRepaletizado = in_array($estadoExistencia, [3, 4], true) || $idRepaletizaje;
+                                                            $esReembalado = in_array($estadoExistencia, [5, 6], true) || $idReembalaje;
+                                                            $esDespachado = in_array($estadoExistencia, [7, 8], true) || $idDespacho;
+                                                            $esInspeccionado = in_array($estadoExistencia, [10], true) || $idInpsag;
+
+                                                            if ($esRepaletizado) {
+                                                                $etiquetasFolio[] = [
+                                                                    'texto' => $idRepaletizaje && $numeroRepaletizaje ? "Repaletizaje #{$numeroRepaletizaje}" : 'Repaletizado',
+                                                                    'clase' => 'badge-info',
+                                                                    'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
+                                                                ];
+                                                            }
+                                                            if ($esReembalado) {
+                                                                $etiquetasFolio[] = [
+                                                                    'texto' => $idReembalaje && $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
+                                                                    'clase' => 'badge-secondary',
+                                                                    'url' => $idReembalaje ? "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver" : ''
+                                                                ];
+                                                            }
+                                                            if ($esDespachado) {
+                                                                $etiquetasFolio[] = [
+                                                                    'texto' => $idDespacho && $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
+                                                                    'clase' => 'badge-danger',
+                                                                    'url' => $idDespacho ? "registroDespachoEX.php?op&id={$idDespacho}&a=ver" : ''
+                                                                ];
+                                                            }
+                                                            if ($esInspeccionado) {
+                                                                $etiquetasFolio[] = [
+                                                                    'texto' => $idInpsag && $numeroInpsag ? "Inspección #{$numeroInpsag}" : 'Inspeccionado',
+                                                                    'clase' => 'badge-primary',
+                                                                    'url' => $idInpsag ? "registroInpsag.php?op&id={$idInpsag}&a=ver" : ''
+                                                                ];
+                                                            }
+                                                        }
+                                                        $operacionesRegistradas = $etiquetasFolio ? implode('', array_map(function ($operacion) {
+                                                            $textoOperacion = htmlspecialchars($operacion['texto'], ENT_QUOTES, 'UTF-8');
+                                                            $urlOperacion = htmlspecialchars($operacion['url'], ENT_QUOTES, 'UTF-8');
+                                                            return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
+                                                        }, $etiquetasFolio)) : '';
+                                                        $tieneOperaciones = !empty($etiquetasFolio);
                                                         ?>
                                                         <tr class="text-center">
-                                                            <?php
-                                                            $detalleExistencia = $EXIEXPORTACION_ADO->buscarPorFolio($r['FOLIO_DREXPORTACION']);
-                                                            $etiquetasFolio = [];
-                                                            $estadoFolioClase = 'badge-secondary';
-                                                            $estadoFolioTexto = 'Sin estado';
-
-                                                            switch ($r['ESTADO_FOLIO']) {
-                                                                case 1:
-                                                                    $estadoFolioClase = 'badge-success';
-                                                                    $estadoFolioTexto = 'Completo';
-                                                                    break;
-                                                                case 2:
-                                                                    $estadoFolioClase = 'badge-warning';
-                                                                    $estadoFolioTexto = 'Incompleto';
-                                                                    break;
-                                                                default:
-                                                                    $estadoFolioClase = 'badge-secondary';
-                                                                    $estadoFolioTexto = 'Sin estado';
-                                                                    break;
-                                                            }
-
-                                                            if ($detalleExistencia) {
-                                                                $estadoExistencia = (int) $detalleExistencia[0]['ESTADO'];
-                                                                $idRepaletizaje = $detalleExistencia[0]['ID_REPALETIZAJE'];
-                                                                $idDespacho = $detalleExistencia[0]['ID_DESPACHOEX'] ? $detalleExistencia[0]['ID_DESPACHOEX'] : $detalleExistencia[0]['ID_DESPACHO'];
-                                                                $idInpsag = $detalleExistencia[0]['ID_INPSAG'];
-
-                                                                if ($estadoExistencia === 1) {
-                                                                    $estadoFolioClase = 'badge-success';
-                                                                    $estadoFolioTexto = 'Disponible';
-                                                                }
-
-                                                                if ($idRepaletizaje) {
-                                                                    $repaletizaje = $REPALETIZAJEEX_ADO->verRepaletizaje2($idRepaletizaje);
-                                                                    $numeroRepaletizaje = $repaletizaje ? $repaletizaje[0]['NUMERO_REPALETIZAJE'] : null;
-                                                                    $etiquetasFolio[] = [
-                                                                        'texto' => $numeroRepaletizaje ? "Repaletizaje #{$numeroRepaletizaje}" : 'Repaletizado',
-                                                                        'clase' => 'badge-info',
-                                                                        'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
-                                                                    ];
-                                                                }
-
-                                                                if ($idDespacho) {
-                                                                    if ($detalleExistencia[0]['ID_DESPACHOEX']) {
-                                                                        $despacho = $DESPACHOEX_ADO->verDespachoex($idDespacho);
-                                                                        $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO_EX'] : null;
-                                                                        $urlDespacho = "registroDespachoEX.php?op&id={$idDespacho}&a=ver";
-                                                                    } else {
-                                                                        $despacho = $DESPACHOPT_ADO->verDespachopt($idDespacho);
-                                                                        $numeroDespacho = $despacho ? $despacho[0]['NUMERO_DESPACHO'] : null;
-                                                                        $urlDespacho = "registroDespachopt.php?op&id={$idDespacho}&a=ver";
-                                                                    }
-
-                                                                    $etiquetasFolio[] = [
-                                                                        'texto' => $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
-                                                                        'clase' => 'badge-danger',
-                                                                        'url' => $urlDespacho
-                                                                    ];
-                                                                }
-
-                                                                if ($idInpsag) {
-                                                                    $inpsag = $INPSAG_ADO->verInpsag3($idInpsag);
-                                                                    $numeroInpsag = $inpsag ? $inpsag[0]['NUMERO_INPSAG'] . ($inpsag[0]['CORRELATIVO_INPSAG'] ? '-' . $inpsag[0]['CORRELATIVO_INPSAG'] : '') : null;
-                                                                    $etiquetasFolio[] = [
-                                                                        'texto' => $numeroInpsag ? "Inspección #{$numeroInpsag}" : 'Inspeccionado',
-                                                                        'clase' => 'badge-primary',
-                                                                        'url' => "registroInpsag.php?op&id={$idInpsag}&a=ver"
-                                                                    ];
-                                                                }
-                                                            }
-                                                            ?>
                                                             <td>
                                                                 <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
                                                             </td>
@@ -1550,18 +1571,27 @@ if (isset($_POST)) {
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn btn-warning" id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i>
-                                                                                <span class="d-none d-md-inline">Editar</span>
+                                                                            <?php if ($tieneOperaciones) { ?>
+                                                                                <button type="button" class="btn  btn-sm   btn-warning" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn  btn-sm   btn-warning  " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } ?>
+                                                                            <button type="submit" class="btn btn-sm  btn-secondary  " id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                <i class="fa fa-fw fa-copy"></i><br> Duplicar
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-secondary" id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="fa fa-fw fa-copy"></i>
-                                                                                <span class="d-none d-md-inline">Duplicar</span>
-                                                                            </button>
-                                                                            <button type="submit" class="btn btn-danger" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i>
-                                                                                <span class="d-none d-md-inline">Eliminar</span>
-                                                                            </button>
+                                                                            <?php if ($tieneOperaciones) { ?>
+                                                                                <button type="button" class="btn btn-sm   btn-danger" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-sm   btn-danger  " id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } ?>
                                                                         <?php } ?>
                                                                     </div>
                                                                 </form>
