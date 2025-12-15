@@ -1141,12 +1141,6 @@ if (isset($_POST)) {
                                                                 $numeroRepaletizaje = $repaletizaje ? $repaletizaje[0]['NUMERO_REPALETIZAJE'] : null;
                                                             }
 
-                                                            $numeroReembalaje = null;
-                                                            if ($idReembalaje) {
-                                                                $reembalaje = $REEMBALAJE_ADO->verReembalaje2($idReembalaje);
-                                                                $numeroReembalaje = $reembalaje ? $reembalaje[0]['NUMERO_REEMBALAJE'] : null;
-                                                            }
-
                                                             $numeroDespacho = null;
                                                             if ($idDespacho) {
                                                                 if ($detalleExistencia[0]['ID_DESPACHOEX']) {
@@ -1165,7 +1159,6 @@ if (isset($_POST)) {
                                                             }
 
                                                             $esRepaletizado = in_array($estadoExistencia, [3, 4], true) || $idRepaletizaje;
-                                                            $esReembalado = in_array($estadoExistencia, [5, 6], true) || $idReembalaje;
                                                             $esDespachado = in_array($estadoExistencia, [7, 8], true) || $idDespacho;
                                                             $esInspeccionado = in_array($estadoExistencia, [10], true) || $idInpsag;
 
@@ -1174,13 +1167,6 @@ if (isset($_POST)) {
                                                                     'texto' => $idRepaletizaje && $numeroRepaletizaje ? "Repaletizaje #{$numeroRepaletizaje}" : 'Repaletizado',
                                                                     'clase' => 'badge-info',
                                                                     'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
-                                                                ];
-                                                            }
-                                                            if ($esReembalado) {
-                                                                $etiquetasFolio[] = [
-                                                                    'texto' => $idReembalaje && $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                    'clase' => 'badge-secondary',
-                                                                    'url' => $idReembalaje ? "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver" : ''
                                                                 ];
                                                             }
                                                             if ($esDespachado) {
@@ -1468,7 +1454,6 @@ if (isset($_POST)) {
                                                             }
 
                                                             $esRepaletizado = in_array($estadoExistencia, [3, 4], true) || $idRepaletizaje;
-                                                            $esReembalado = in_array($estadoExistencia, [5, 6], true) || $idReembalaje;
                                                             $esDespachado = in_array($estadoExistencia, [7, 8], true) || $idDespacho;
                                                             $esInspeccionado = in_array($estadoExistencia, [10], true) || $idInpsag;
 
@@ -1477,13 +1462,6 @@ if (isset($_POST)) {
                                                                     'texto' => $idRepaletizaje && $numeroRepaletizaje ? "Repaletizaje #{$numeroRepaletizaje}" : 'Repaletizado',
                                                                     'clase' => 'badge-info',
                                                                     'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
-                                                                ];
-                                                            }
-                                                            if ($esReembalado) {
-                                                                $etiquetasFolio[] = [
-                                                                    'texto' => $idReembalaje && $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                    'clase' => 'badge-secondary',
-                                                                    'url' => $idReembalaje ? "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver" : ''
                                                                 ];
                                                             }
                                                             if ($esDespachado) {
@@ -1597,17 +1575,6 @@ if (isset($_POST)) {
                                                                 if ($estadoExistencia === 1) {
                                                                     $estadoFolioClase = 'badge-success';
                                                                     $estadoFolioTexto = 'Disponible';
-                                                                }
-
-                                                                $numeroReembalaje = null;
-                                                                if ($idReembalaje) {
-                                                                    $reembalaje = $REEMBALAJE_ADO->verReembalaje2($idReembalaje);
-                                                                    $numeroReembalaje = $reembalaje ? $reembalaje[0]['NUMERO_REEMBALAJE'] : null;
-                                                                    $etiquetasFolio[] = [
-                                                                        'texto' => $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                        'clase' => 'badge-secondary',
-                                                                        'url' => "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver"
-                                                                    ];
                                                                 }
 
                                                                 $numeroDespacho = null;
