@@ -1182,7 +1182,7 @@ if (isset($_POST)) {
                                                             $esDespachado = in_array($estadoExistencia, [7, 8], true) || $idDespacho;
                                                             $esInspeccionado = in_array($estadoExistencia, [10], true) || $idInpsag;
 
-                                                            if ($esMismoReembalaje) {
+                                                            if ($idReembalaje) {
                                                                 $estadoFolioClase = '';
                                                                 $estadoFolioTexto = '';
                                                                 $mostrarEstadoFolio = false;
@@ -1636,7 +1636,7 @@ if (isset($_POST)) {
                                                                     ];
                                                                 }
 
-                                                                if ($esMismoReembalajeIndustrial) {
+                                                                if ($idReembalaje) {
                                                                     $estadoFolioClase = '';
                                                                     $estadoFolioTexto = '';
                                                                     $mostrarEstadoFolio = false;
