@@ -1618,6 +1618,12 @@ if (isset($_POST)) {
                                                                     $mostrarEstadoFolio = false;
                                                                 }
 
+                                                                if ($idReembalaje) {
+                                                                    $estadoFolioClase = '';
+                                                                    $estadoFolioTexto = '';
+                                                                    $mostrarEstadoFolio = false;
+                                                                }
+
                                                                 $numeroDespacho = null;
                                                                 if ($idDespacho) {
                                                                     $despacho = $DESPACHOIND_ADO->verDespachomp($idDespacho);
