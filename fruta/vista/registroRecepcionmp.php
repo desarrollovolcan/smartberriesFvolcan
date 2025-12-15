@@ -759,6 +759,17 @@ if (isset($_POST)) {
                 window.open(url, 'window', opciones);
             }
 
+            function alertaOperacionFolio(operaciones) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Acción restringida",
+                    html: "El folio de salida tiene operaciones asociadas y no puede ser editado ni eliminado." +
+                        "<br><br><strong>Operaciones registradas (clic para ver):</strong><br>" + operaciones +
+                        "<br><br>Debe solicitar autorización para abrir estas operaciones antes de continuar.",
+                    confirmButtonText: "Entendido"
+                });
+            }
+
             //REDIRECCIONAR A LA PAGINA SELECIONADA
             function irPagina(url) {
                 location.href = "" + url;
@@ -1376,6 +1387,11 @@ if (isset($_POST)) {
                                                                 }
                                                             }
                                                         }
+                                                        $operacionesRegistradas = $ARRAYESTADOFOLIO ? implode('', array_map(function ($estadoFolio) {
+                                                            $textoOperacion = htmlspecialchars($estadoFolio['texto'], ENT_QUOTES, 'UTF-8');
+                                                            $urlOperacion = htmlspecialchars($estadoFolio['url'], ENT_QUOTES, 'UTF-8');
+                                                            return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
+                                                        }, $ARRAYESTADOFOLIO)) : '';
                                                         ?>
                                                         <tr class="text-lef">
                                                             <td><?php echo $CONTADOR ?></td>
@@ -1403,17 +1419,29 @@ if (isset($_POST)) {
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn btn-warning btn-sm " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i><br> Editar
-                                                                            </button>
+                                                                            <?php if (!empty($ARRAYESTADOFOLIO)) { ?>
+                                                                                <button type="button" class="btn btn-warning btn-sm " onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-warning btn-sm " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } ?>
                                                                             <button type="submit" class="btn btn-secondary btn-sm " id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
                                                                                 <i class="fa fa-fw fa-copy"></i><br> Duplicar
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-danger btn-sm" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i><br> Eliminar
-                                                                            </button>
+                                                                            <?php if (!empty($ARRAYESTADOFOLIO)) { ?>
+                                                                                <button type="button" class="btn btn-danger btn-sm" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-danger btn-sm" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } ?>
                                                                         <?php } ?>
-                                                                            <button type="button" class="btn btn-primary btn-sm" id="TARJA" name="TARJA" data-toggle="tooltip" title="Tarja Detalle Recepción"   
+                                                                            <button type="button" class="btn btn-primary btn-sm" id="TARJA" name="TARJA" data-toggle="tooltip" title="Tarja Detalle Recepción"
                                                                             Onclick="abrirPestana('../../assest/documento/informeTarjasDrecepcionmp.php?parametro=<?php echo $s['ID_DRECEPCION']; ?>'); ">
                                                                                 <i class="fa fa-file-pdf-o"></i><br> Tarja
                                                                             </button>

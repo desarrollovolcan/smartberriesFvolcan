@@ -21,6 +21,19 @@ include_once '../../assest/controlador/TMANEJO_ADO.php';
 include_once '../../assest/controlador/RECEPCIONIND_ADO.php';
 include_once '../../assest/controlador/DRECEPCIONIND_ADO.php';
 include_once '../../assest/controlador/EXIINDUSTRIAL_ADO.php';
+include_once '../../assest/controlador/PROCESO_ADO.php';
+include_once '../../assest/controlador/REEMBALAJE_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
+
+include_once '../../assest/controlador/PROCESO_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
+include_once '../../assest/controlador/RECHAZOMP_ADO.php';
+include_once '../../assest/controlador/LEVANTAMIENTOMP_ADO.php';
+
+include_once '../../assest/controlador/PROCESO_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
+include_once '../../assest/controlador/RECHAZOMP_ADO.php';
+include_once '../../assest/controlador/LEVANTAMIENTOMP_ADO.php';
 
 include_once '../../assest/controlador/RECEPCIONE_ADO.php';
 include_once '../../assest/controlador/INVENTARIOE_ADO.php';
@@ -53,8 +66,15 @@ $RECEPCIONE_ADO =  new RECEPCIONE_ADO();
 $INVENTARIOE_ADO =  new INVENTARIOE_ADO();
 
 $EXIINDUSTRIAL_ADO = new EXIINDUSTRIAL_ADO();
+$PROCESO_ADO =  new PROCESO_ADO();
+$DESPACHOIND_ADO =  new DESPACHOIND_ADO();
+$RECHAZOMP_ADO =  new RECHAZOMP_ADO();
+$LEVANTAMIENTOMP_ADO =  new LEVANTAMIENTOMP_ADO();
 $RECEPCIONIND_ADO =  new RECEPCIONIND_ADO();
 $DRECEPCIONIND_ADO =  new DRECEPCIONIND_ADO();
+$PROCESO_ADO = new PROCESO_ADO();
+$REEMBALAJE_ADO = new REEMBALAJE_ADO();
+$DESPACHOIND_ADO = new DESPACHOIND_ADO();
 
 //INIICIALIZAR MODELO
 $DRECEPCIONIND =  new DRECEPCIONIND();
@@ -719,6 +739,17 @@ if (isset($_POST)) {
                 window.open(url, 'window', opciones);
             }
 
+            function alertaOperacionFolio(operaciones) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Acción restringida",
+                    html: "El folio de salida tiene operaciones asociadas y no puede ser editado ni eliminado." +
+                        "<br><br><strong>Operaciones registradas (clic para ver):</strong><br>" + operaciones +
+                        "<br><br>Debe solicitar autorización para abrir estas operaciones antes de continuar.",
+                    confirmButtonText: "Entendido"
+                });
+            }
+
             //REDIRECCIONAR A LA PAGINA SELECIONADA
             function irPagina(url) {
                 location.href = "" + url;
@@ -1184,6 +1215,7 @@ if (isset($_POST)) {
                                                 <tr class="text-center">
                                                     <th>Numero Linea</th>
                                                     <th>Folio</th>
+                                                    <th>Estado del folio</th>
                                                     <th class="text-center">Operaciones</th>
                                                     <th>Fecha Embalado </th>
                                                     <th>Código Estandar</th>
@@ -1221,19 +1253,100 @@ if (isset($_POST)) {
                                                         } else {
                                                             $CODIGOESTANDAR = "Sin Datos";
                                                             $NOMBREESTANDAR = "Sin Datos";
-                                                        }                                                        
+                                                        }
                                                         if ($s['GASIFICADO_DRECEPCION'] == "1") {
                                                             $GASIFICADO = "SI";
                                                         } else if ($s['GASIFICADO_DRECEPCION'] == "0") {
                                                             $GASIFICADO = "NO";
                                                         } else {
-                                                            $GASIFICADO = "Sin Datos";   
+                                                            $GASIFICADO = "Sin Datos";
                                                         }
-                                                          
+
+                                                        $ARRAYESTADOFOLIO = [];
+                                                        $ARRAYESTADOEXISTENCIA = $EXIINDUSTRIAL_ADO->buscarPorRecepcionNumeroFolio($IDOP, $s['FOLIO_DRECEPCION']);
+                                                        if ($ARRAYESTADOEXISTENCIA) {
+                                                            foreach ($ARRAYESTADOEXISTENCIA as $existencia) {
+                                                                if ($existencia['ID_PROCESO']) {
+                                                                    $arrayProceso = $PROCESO_ADO->verProceso2($existencia['ID_PROCESO']);
+                                                                    if ($arrayProceso) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Procesado #' . $arrayProceso[0]['NUMERO_PROCESO'],
+                                                                            'url' => 'registroProceso.php?op&id=' . $existencia['ID_PROCESO'] . '&a=ver',
+                                                                            'color' => 'badge-success'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                if ($existencia['ID_DESPACHO']) {
+                                                                    $arrayDespacho = $DESPACHOIND_ADO->verDespachomp2($existencia['ID_DESPACHO']);
+                                                                    if ($arrayDespacho) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Despachado #' . $arrayDespacho[0]['NUMERO_DESPACHO'],
+                                                                            'url' => 'registroDespachoind.php?op&id=' . $existencia['ID_DESPACHO'] . '&a=ver',
+                                                                            'color' => 'badge-primary'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                if ($existencia['ID_DESPACHO2']) {
+                                                                    $arrayDespacho = $DESPACHOIND_ADO->verDespachomp2($existencia['ID_DESPACHO2']);
+                                                                    if ($arrayDespacho) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Despachado #' . $arrayDespacho[0]['NUMERO_DESPACHO'],
+                                                                            'url' => 'registroDespachoind.php?op&id=' . $existencia['ID_DESPACHO2'] . '&a=ver',
+                                                                            'color' => 'badge-primary'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                if ($existencia['ID_DESPACHO3']) {
+                                                                    $arrayDespacho = $DESPACHOIND_ADO->verDespachomp2($existencia['ID_DESPACHO3']);
+                                                                    if ($arrayDespacho) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Despachado #' . $arrayDespacho[0]['NUMERO_DESPACHO'],
+                                                                            'url' => 'registroDespachoind.php?op&id=' . $existencia['ID_DESPACHO3'] . '&a=ver',
+                                                                            'color' => 'badge-primary'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                if ($existencia['ID_RECHAZADOMP']) {
+                                                                    $arrayRechazo = $RECHAZOMP_ADO->verRechazo2($existencia['ID_RECHAZADOMP']);
+                                                                    if ($arrayRechazo) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Rechazado #' . $arrayRechazo[0]['NUMERO_RECHAZO'],
+                                                                            'url' => 'registroRechazomp.php?op&id=' . $existencia['ID_RECHAZADOMP'] . '&a=ver',
+                                                                            'color' => 'badge-danger'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                                if ($existencia['ID_LEVANTAMIENTOMP']) {
+                                                                    $arrayLevantamiento = $LEVANTAMIENTOMP_ADO->verLevantamiento2($existencia['ID_LEVANTAMIENTOMP']);
+                                                                    if ($arrayLevantamiento) {
+                                                                        $ARRAYESTADOFOLIO[] = [
+                                                                            'texto' => 'Levantamiento #' . $arrayLevantamiento[0]['NUMERO_LEVANTAMIENTO'],
+                                                                            'url' => 'registroLevantamientomp.php?op&id=' . $existencia['ID_LEVANTAMIENTOMP'] . '&a=ver',
+                                                                            'color' => 'badge-warning'
+                                                                        ];
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        $operacionesRegistradas = $ARRAYESTADOFOLIO ? implode('', array_map(function ($estadoFolio) {
+                                                            $textoOperacion = htmlspecialchars($estadoFolio['texto'], ENT_QUOTES, 'UTF-8');
+                                                            $urlOperacion = htmlspecialchars($estadoFolio['url'], ENT_QUOTES, 'UTF-8');
+                                                            return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
+                                                        }, $ARRAYESTADOFOLIO)) : '';
+
                                                         ?>
                                                         <tr class="text-lef">
                                                             <td><?php echo $CONTADOR ?></td>
                                                             <td><?php echo $s['FOLIO_DRECEPCION']; ?></td>
+                                                            <td>
+                                                                <?php if (!empty($ARRAYESTADOFOLIO)) : ?>
+                                                                    <?php foreach ($ARRAYESTADOFOLIO as $estadoFolio) : ?>
+                                                                        <a target="_blank" href="<?php echo $estadoFolio['url']; ?>" class="badge <?php echo $estadoFolio['color']; ?> d-block w-100 mb-1" style="white-space: normal;">
+                                                                            <?php echo $estadoFolio['texto']; ?>
+                                                                        </a>
+                                                                    <?php endforeach; ?>
+                                                                <?php endif; ?>
+                                                            </td>
                                                             <td>
                                                                 <form method="post" id="form1">
                                                                     <input type="hidden" class="form-control" placeholder="ID DRECEPCIONE" id="IDD" name="IDD" value="<?php echo $s['ID_DRECEPCION']; ?>" />
@@ -1248,15 +1361,27 @@ if (isset($_POST)) {
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn btn-warning btn-sm " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i><br> Editar
-                                                                            </button>
+                                                                            <?php if (!empty($ARRAYESTADOFOLIO)) { ?>
+                                                                                <button type="button" class="btn btn-warning btn-sm " onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-warning btn-sm " id="EDITARDURL" name="EDITARDURL" data-toggle="tooltip" title="Editar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i><br> Editar
+                                                                                </button>
+                                                                            <?php } ?>
                                                                             <button type="submit" class="btn btn-secondary btn-sm " id="DUPLICARDURL" name="DUPLICARDURL" data-toggle="tooltip" title="Duplicar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
                                                                                 <i class="fa fa-fw fa-copy"></i><br> Duplicar
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-danger btn-sm" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>   <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i><br> Eliminar
-                                                                            </button>
+                                                                            <?php if (!empty($ARRAYESTADOFOLIO)) { ?>
+                                                                                <button type="button" class="btn btn-danger btn-sm" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>  <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-danger btn-sm" id="ELIMINARDURL" name="ELIMINARDURL" data-toggle="tooltip" title="Eliminar Detalle Recepción" <?php echo $DISABLEENVASE; ?>   <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i><br> Eliminar
+                                                                                </button>
+                                                                            <?php } ?>
                                                                         <?php } ?>
                                                                             <button type="button" class="btn btn-primary btn-sm" id="TARJA" name="TARJA" data-toggle="tooltip" title="Tarja Detalle Recepción"   
                                                                             Onclick="abrirPestana('../../assest/documento/informeTarjasDrecepcionInd.php?parametro=<?php echo $s['ID_DRECEPCION']; ?>'); ">

@@ -14,6 +14,7 @@ include_once '../../assest/controlador/REPALETIZAJEEX_ADO.php';
 include_once '../../assest/controlador/REEMBALAJE_ADO.php';
 include_once '../../assest/controlador/DESPACHOEX_ADO.php';
 include_once '../../assest/controlador/DESPACHOPT_ADO.php';
+include_once '../../assest/controlador/DESPACHOIND_ADO.php';
 include_once '../../assest/controlador/INPSAG_ADO.php';
 
 include_once '../../assest/controlador/ERECEPCION_ADO.php';
@@ -59,6 +60,7 @@ $REPALETIZAJEEX_ADO =  new REPALETIZAJEEX_ADO();
 $REEMBALAJE_ADO =  new REEMBALAJE_ADO();
 $DESPACHOEX_ADO =  new DESPACHOEX_ADO();
 $DESPACHOPT_ADO =  new DESPACHOPT_ADO();
+$DESPACHOIND_ADO =  new DESPACHOIND_ADO();
 $INPSAG_ADO =  new INPSAG_ADO();
 
 
@@ -609,6 +611,17 @@ if (isset($_POST)) {
                     var opciones =
                         "'directories=no, location=no, menubar=no, scrollbars=yes, statusbar=no, tittlebar=no, width=1600, height=1000'";
                     window.open(url, 'window', opciones);
+                }
+
+                function alertaOperacionFolio(operaciones) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Acción restringida",
+                        html: "El folio de salida tiene operaciones asociadas y no puede ser editado ni eliminado." +
+                            "<br><br><strong>Operaciones registradas (clic para ver):</strong><br>" + operaciones +
+                            "<br><br>Debe solicitar autorización para abrir estas operaciones antes de continuar.",
+                        confirmButtonText: "Entendido"
+                    });
                 }
             </script>
 
@@ -1241,11 +1254,17 @@ if (isset($_POST)) {
                                                                 ];
                                                             }
                                                         }
-                                                        ?>
-                                                        <tr class="text-center">
-                                                            <td>
-                                                                <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
-                                                            </td>
+                                                        $operacionesRegistradas = $etiquetasFolio ? implode('', array_map(function ($operacion) {
+                                                            $textoOperacion = htmlspecialchars($operacion['texto'], ENT_QUOTES, 'UTF-8');
+                                                            $urlOperacion = htmlspecialchars($operacion['url'], ENT_QUOTES, 'UTF-8');
+                                                            return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
+                                                        }, $etiquetasFolio)) : '';
+                                                    $tieneOperaciones = !empty($etiquetasFolio);
+                                                    ?>
+                                                    <tr class="text-center">
+                                                        <td>
+                                                            <span class="badge <?php echo $estadoFolioClase; ?> w-100"><?php echo $estadoFolioTexto; ?></span>
+                                                        </td>
                                                             <td>P. Terminado</td>
                                                             <td class="font-weight-bold"><?php echo $r['FOLIO_DPEXPORTACION']; ?></td>
                                                             <td>
@@ -1279,18 +1298,32 @@ if (isset($_POST)) {
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn btn-warning" id="EDITARDURLTIPO" name="EDITARDURLTIPO" data-toggle="tooltip" title="Editar Detalle" <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i>
-                                                                                <span class="d-none d-md-inline">Editar</span>
-                                                                            </button>
+                                                                            <?php if ($tieneOperaciones) { ?>
+                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Editar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i>
+                                                                                    <span class="d-none d-md-inline">Editar</span>
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-warning" id="EDITARDURLTIPO" name="EDITARDURLTIPO" data-toggle="tooltip" title="Editar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i>
+                                                                                    <span class="d-none d-md-inline">Editar</span>
+                                                                                </button>
+                                                                            <?php } ?>
                                                                             <button type="submit" class="btn btn-secondary" id="DUPLICARDURLTIPO" name="DUPLICARDURLTIPO" data-toggle="tooltip" title="Duplicar Detalle" <?php echo $DISABLED2; ?>>
                                                                                 <i class="fa fa-fw fa-copy"></i>
                                                                                 <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-danger" id="ELIMINARDURLTIPO" name="ELIMINARDURLTIPO" data-toggle="tooltip" title="Eliminar Detalle" <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i>
-                                                                                <span class="d-none d-md-inline">Eliminar</span>
-                                                                            </button>
+                                                                            <?php if ($tieneOperaciones) { ?>
+                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradas, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="tooltip" title="Eliminar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i>
+                                                                                    <span class="d-none d-md-inline">Eliminar</span>
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-danger" id="ELIMINARDURLTIPO" name="ELIMINARDURLTIPO" data-toggle="tooltip" title="Eliminar Detalle" <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i>
+                                                                                    <span class="d-none d-md-inline">Eliminar</span>
+                                                                                </button>
+                                                                            <?php } ?>
                                                                         <?php } ?>
                                                                     </div>
                                                                 </form>
@@ -1330,12 +1363,47 @@ if (isset($_POST)) {
                                                         } else {
                                                             $NOMBRETCALIBREIND = "Sin Datos";
                                                         }
+
+                                                        $detalleExistenciaIndustrial = $EXIINDUSTRIAL_ADO->buscarPorFolio2($r['FOLIO_DPINDUSTRIAL']);
+                                                        $etiquetasFolioIndustrial = [];
+                                                        if ($detalleExistenciaIndustrial) {
+                                                            $idDespachoInd = $detalleExistenciaIndustrial[0]['ID_DESPACHO'] ?? null;
+                                                            $idDespachoInd2 = $detalleExistenciaIndustrial[0]['ID_DESPACHO2'] ?? null;
+                                                            $idDespachoInd3 = $detalleExistenciaIndustrial[0]['ID_DESPACHO3'] ?? null;
+
+                                                            foreach (array_filter([$idDespachoInd, $idDespachoInd2, $idDespachoInd3]) as $idDespachoIndustrial) {
+                                                                $despachoIndustrial = $DESPACHOIND_ADO->verDespachomp3($idDespachoIndustrial);
+                                                                $numeroDespachoIndustrial = $despachoIndustrial ? $despachoIndustrial[0]['NUMERO_DESPACHO'] : null;
+                                                                $etiquetasFolioIndustrial[] = [
+                                                                    'texto' => $numeroDespachoIndustrial ? "Despacho #{$numeroDespachoIndustrial}" : 'Despachado',
+                                                                    'clase' => 'badge-danger',
+                                                                    'url' => "registroDespachoind.php?op&id={$idDespachoIndustrial}&a=ver"
+                                                                ];
+                                                            }
+                                                        }
+
+                                                        $operacionesRegistradasIndustrial = $etiquetasFolioIndustrial ? implode('', array_map(function ($operacion) {
+                                                            $textoOperacion = htmlspecialchars($operacion['texto'], ENT_QUOTES, 'UTF-8');
+                                                            $urlOperacion = htmlspecialchars($operacion['url'], ENT_QUOTES, 'UTF-8');
+                                                            return '<div><a target="_blank" href="' . $urlOperacion . '">- ' . $textoOperacion . '</a></div>';
+                                                        }, $etiquetasFolioIndustrial)) : '';
+                                                        $tieneOperacionesIndustrial = !empty($etiquetasFolioIndustrial);
                                                         ?>
                                                         <tr class="text-center">
-                                                            <td><span class="badge badge-light">Sin estado</span></td>
+                                                            <td><span class="text-muted">No aplica</span></td>
                                                             <td>P. Industrial</td>
                                                             <td><?php echo $r['FOLIO_DPINDUSTRIAL']; ?></td>
-                                                            <td><span class="text-muted">-</span></td>
+                                                            <td>
+                                                                <?php if ($etiquetasFolioIndustrial) { ?>
+                                                                    <div class="estado-folio-col">
+                                                                        <?php foreach ($etiquetasFolioIndustrial as $etiqueta) : ?>
+                                                                            <a href="<?php echo $etiqueta['url']; ?>" class="badge badge-estado-folio <?php echo $etiqueta['clase']; ?>" target="_blank"><?php echo $etiqueta['texto']; ?></a>
+                                                                        <?php endforeach; ?>
+                                                                    </div>
+                                                                <?php } else { ?>
+                                                                    <span class="text-muted">Sin operacion</span>
+                                                                <?php } ?>
+                                                            </td>
                                                             <td class="text-center">
                                                                 <form method="post" id="form4" id="form4">
                                                                     <input type="hidden" class="form-control" placeholder="ID DPINDUSTRIAL" id="IDD" name="IDD" value="<?php echo $r['ID_DPINDUSTRIAL']; ?>" />
@@ -1344,7 +1412,7 @@ if (isset($_POST)) {
                                                                     <input type="hidden" class="form-control" placeholder="URL PROCESO" id="URLP" name="URLP" value="registroProceso" />
                                                                     <input type="hidden" class="form-control" placeholder="URL DPINDUSTRIAL" id="URLD" name="URLD" value="registroDprocesoIndustrial" />
 
-                                                                    <div class="btn-group btn-group-sm btn-block" role="group" aria-label="Operaciones Detalle">
+                                                                <div class="btn-group btn-group-sm btn-block" role="group" aria-label="Operaciones Detalle">
                                                                         <?php if ($ESTADO == "0") { ?>
                                                                             <button type="submit" class="btn btn-info" id="VERDURL" name="VERDURL" data-toggle="tooltip" tsitle="Ver Detalle ">
                                                                                 <i class="ti-eye"></i>
@@ -1352,18 +1420,32 @@ if (isset($_POST)) {
                                                                             </button>
                                                                         <?php } ?>
                                                                         <?php if ($ESTADO == "1") { ?>
-                                                                            <button type="submit" class="btn btn-warning" id="EDITARDURL" name="EDITARDURL" data-toggle="stooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-pencil-alt"></i>
-                                                                                <span class="d-none d-md-inline">Editar</span>
-                                                                            </button>
+                                                                            <?php if ($tieneOperacionesIndustrial) { ?>
+                                                                                <button type="button" class="btn btn-warning" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradasIndustrial, ENT_QUOTES, 'UTF-8'); ?>');" data-toggle="stooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i>
+                                                                                    <span class="d-none d-md-inline">Editar</span>
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-warning" id="EDITARDURL" name="EDITARDURL" data-toggle="stooltip" title="Editar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-pencil-alt"></i>
+                                                                                    <span class="d-none d-md-inline">Editar</span>
+                                                                                </button>
+                                                                            <?php } ?>
                                                                             <button type="submit" class="btn btn-secondary" id="DUPLICARDURL" name="DUPLICARDURL" data-togsgle="tooltip" title="Duplicar Detalle " <?php echo $DISABLED2; ?>>
                                                                                 <i class="fa fa-fw fa-copy"></i>
                                                                                 <span class="d-none d-md-inline">Duplicar</span>
                                                                             </button>
-                                                                            <button type="submit" class="btn btn-danger" id="ELIMINARDURL" name="ELIMINARDURL" data-togglse="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
-                                                                                <i class="ti-close"></i>
-                                                                                <span class="d-none d-md-inline">Eliminar</span>
-                                                                            </button>
+                                                                            <?php if ($tieneOperacionesIndustrial) { ?>
+                                                                                <button type="button" class="btn btn-danger" onclick="alertaOperacionFolio('<?php echo htmlspecialchars($operacionesRegistradasIndustrial, ENT_QUOTES, 'UTF-8'); ?>');" data-togglse="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i>
+                                                                                    <span class="d-none d-md-inline">Eliminar</span>
+                                                                                </button>
+                                                                            <?php } else { ?>
+                                                                                <button type="submit" class="btn btn-danger" id="ELIMINARDURL" name="ELIMINARDURL" data-togglse="tooltip" title="Eliminar Detalle " <?php echo $DISABLED2; ?>>
+                                                                                    <i class="ti-close"></i>
+                                                                                    <span class="d-none d-md-inline">Eliminar</span>
+                                                                                </button>
+                                                                            <?php } ?>
                                                                         <?php } ?>
                                                                     </div>
                                                                 </form>
