@@ -1195,13 +1195,6 @@ if (isset($_POST)) {
                                                                     'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
                                                                 ];
                                                             }
-                                                            if ($esReembalado) {
-                                                                $etiquetasFolio[] = [
-                                                                    'texto' => $idReembalaje && $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                    'clase' => 'badge-secondary',
-                                                                    'url' => $idReembalaje ? "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver" : ''
-                                                                ];
-                                                            }
                                                             if ($esDespachado) {
                                                                 $etiquetasFolio[] = [
                                                                     'texto' => $idDespacho && $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
@@ -1485,13 +1478,6 @@ if (isset($_POST)) {
                                                                     'url' => $idRepaletizaje ? "registroRepaletizajePTFrigorifico.php?op&id={$idRepaletizaje}&a=ver" : ''
                                                                 ];
                                                             }
-                                                            if ($esReembalado) {
-                                                                $etiquetasFolio[] = [
-                                                                    'texto' => $idReembalaje && $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                    'clase' => 'badge-secondary',
-                                                                    'url' => $idReembalaje ? "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver" : ''
-                                                                ];
-                                                            }
                                                             if ($esDespachado) {
                                                                 $etiquetasFolio[] = [
                                                                     'texto' => $idDespacho && $numeroDespacho ? "Despacho #{$numeroDespacho}" : 'Despachado',
@@ -1626,14 +1612,10 @@ if (isset($_POST)) {
                                                                 }
 
                                                                 $numeroReembalaje = null;
-                                                                if ($idReembalaje && !$esMismoReembalajeIndustrial) {
-                                                                    $reembalaje = $REEMBALAJE_ADO->verReembalaje2($idReembalaje);
-                                                                    $numeroReembalaje = $reembalaje ? $reembalaje[0]['NUMERO_REEMBALAJE'] : null;
-                                                                    $etiquetasFolio[] = [
-                                                                        'texto' => $numeroReembalaje ? "Reembalaje #{$numeroReembalaje}" : 'Reembalado',
-                                                                        'clase' => 'badge-secondary',
-                                                                        'url' => "registroReembalajeEx.php?op&id={$idReembalaje}&a=ver"
-                                                                    ];
+                                                                if ($idReembalaje) {
+                                                                    $estadoFolioClase = '';
+                                                                    $estadoFolioTexto = '';
+                                                                    $mostrarEstadoFolio = false;
                                                                 }
 
                                                                 if ($idReembalaje) {
