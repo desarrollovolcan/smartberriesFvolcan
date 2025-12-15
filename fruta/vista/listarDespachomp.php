@@ -577,6 +577,16 @@ if ($_POST) {
                     <div class="box">
 
                         <div class="box-body">
+                            <?php if ($MENSAJE) { ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <?php echo $MENSAJE; ?>
+                                </div>
+                            <?php } ?>
+                            <?php if ($MENSAJEENVIO) { ?>
+                                <div class="alert alert-success" role="alert">
+                                    <?php echo $MENSAJEENVIO; ?>
+                                </div>
+                            <?php } ?>
                             <div class="row">
                                 <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                                     <div class="table-responsive">
