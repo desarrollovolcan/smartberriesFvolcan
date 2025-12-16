@@ -109,20 +109,22 @@ $PRODUCTOR = "";
 $NUMEROGUIA = "";
 
 //INICIALIZAR ARREGLOS
-$ARRAYDESPACHOPT = "";
-$ARRAYDESPACHOPTTOTALES = "";
-$ARRAYVEREMPRESA = "";
-$ARRAYVERPRODUCTOR = "";
-$ARRAYVERTRANSPORTE = "";
-$ARRAYVERCONDUCTOR = "";
-$ARRAYMGUIAPT = "";
-$ARRAYRECEPCIONMPORIGEN1 = "";
-$ARRAYRECEPCIONMPORIGEN2 = "";
+$ARRAYDESPACHOPT = [];
+$ARRAYDESPACHOPTTOTALES = [];
+$ARRAYVEREMPRESA = [];
+$ARRAYVERPRODUCTOR = [];
+$ARRAYVERTRANSPORTE = [];
+$ARRAYVERCONDUCTOR = [];
+$ARRAYMGUIAPT = [];
+$ARRAYRECEPCIONMPORIGEN1 = [];
+$ARRAYRECEPCIONMPORIGEN2 = [];
 
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
-if ($TEMPORADAS) {    
+if ($TEMPORADAS) {
     $ARRAYDESPACHOEX = $DESPACHOEX_ADO->listarDespachoexTemporadaCBX($TEMPORADAS);
+} else {
+    $ARRAYDESPACHOEX = [];
 }
 
 ?>
@@ -211,6 +213,7 @@ if ($TEMPORADAS) {
                                                     <th>Destino </th>
                                                     <th>Fecha Corte Documental </th>
                                                     <th>Fecha ETD </th>
+                                                    <th>Fecha Real ETD</th>
                                                     <th>Fecha ETA</th>
                                                     <th>Fecha Real ETA</th>
                                                     <th>Recibidor Final</th>
@@ -325,11 +328,16 @@ if ($TEMPORADAS) {
                                                     $TERMOGRAFODESPACHOEX = $r['TERMOGRAFO_DESPACHOEX'];
 
                                                     // Datos de ICARGA (si existe)
+                                                    $NOMBREDESTINO = "Sin Datos";
+                                                    $TEMBARQUE = "Sin Datos";
+                                                    $NAVE = "Sin Datos";
+                                                    $NVIAJE = "Sin Datos";
                                                     $ARRAYICARGA = $ICARGA_ADO->verIcarga($r["ID_ICARGA"]);
                                                     if ($ARRAYICARGA) {
                                                         $NUMEROREFERENCIA   = $ARRAYICARGA[0]['NREFERENCIA_ICARGA'];
                                                         $BOLAWBCRTICARGA    = $ARRAYICARGA[0]['BOLAWBCRT_ICARGA'];
                                                         $FECHAETD           = $ARRAYICARGA[0]['FECHAETD_ICARGA'];
+                                                        $FECHAETDREAL       = $ARRAYICARGA[0]['FECHAETDREAL_ICARGA'];
                                                         $FECHAETA           = $ARRAYICARGA[0]['FECHAETA_ICARGA'];
                                                         $FECHAETAREAL       = $ARRAYICARGA[0]['FECHAETAREAL_ICARGA'];
                                                         $FECHACDOCUMENTAL   = $ARRAYICARGA[0]['FECHA_CDOCUMENTAL_ICARGA'];
@@ -393,6 +401,7 @@ if ($TEMPORADAS) {
                                                         $NOMBREBROKER = "No Aplica";
                                                         $BOLAWBCRTICARGA = "No Aplica";
                                                         $FECHAETD = $r['FECHAETD_DESPACHOEX'];
+                                                        $FECHAETDREAL = "";
                                                         $FECHAETA = $r['FECHAETA_DESPACHOEX'];
                                                         $FECHAETAREAL = "";
                                                         $FECHACDOCUMENTAL = "";
@@ -621,7 +630,7 @@ if ($TEMPORADAS) {
                                                         // Reembalaje
                                                         $ARRAYREEMBALAJE = $REEMBALAJE_ADO->verReembalaje2($s['ID_REEMBALAJE']);
                                                         if ($ARRAYREEMBALAJE) {
-                                                            $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                            $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["NUMERO_REEMBALAJE"];
                                                             $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
                                                             $ARRAYTREEMBALAJE = $TREEMBALAJE_ADO->verTreembalaje($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"]);
                                                             if ($ARRAYTREEMBALAJE) {
@@ -694,6 +703,7 @@ if ($TEMPORADAS) {
                                                             <td><?php echo $DESTINO; ?></td>
                                                             <td><?php echo $FECHACDOCUMENTAL; ?></td>
                                                             <td><?php echo $FECHAETD; ?></td>
+                                                            <td><?php echo $FECHAETDREAL; ?></td>
                                                             <td><?php echo $FECHAETA; ?></td>
                                                             <td><?php echo $FECHAETAREAL; ?></td>
                                                             <td><?php echo $NOMBRERFINAL; ?></td>
