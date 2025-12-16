@@ -66,6 +66,229 @@ $ARRAYVERPRODUCTOR = "";
 $ARRAYVERTRANSPORTE = "";
 $ARRAYVERCONDUCTOR = "";
 $ARRAYMGUIAMP = "";
+$DESPACHOMP = new DESPACHOMP();
+
+function generarCodigoAutorizacion()
+{
+    if (function_exists('random_int')) {
+        return random_int(100000, 999999);
+    }
+
+    return mt_rand(100000, 999999);
+}
+
+function obtenerDestinatariosAutorizacion($correoSolicitante)
+{
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correoSolicitante = trim((string) $correoSolicitante);
+
+    if ($correoSolicitante !== '') {
+        $correosBase = array_filter(
+            $correosBase,
+            fn($correo) => strcasecmp($correo, $correoSolicitante) !== 0
+        );
+    }
+
+    return array_values(array_filter(array_unique($correosBase)));
+}
+
+function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
+{
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
+
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
+
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
+    }
+
+    if (function_exists('stream_set_timeout')) {
+        stream_set_timeout($conexion, $timeout);
+    }
+
+    $leerRespuesta = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] === ' ') {
+                break;
+            }
+        }
+        return $respuesta;
+    };
+
+    $comando = function ($instruccion, $codigoEsperado) use ($conexion, $leerRespuesta) {
+        fwrite($conexion, $instruccion . "\r\n");
+        $respuesta = $leerRespuesta();
+        if (substr($respuesta, 0, 3) !== $codigoEsperado) {
+            throw new Exception("Error SMTP en '{$instruccion}': {$respuesta}");
+        }
+        return $respuesta;
+    };
+
+    $respuestaInicial = $leerRespuesta();
+    if (substr($respuestaInicial, 0, 3) !== '220') {
+        fclose($conexion);
+        return [false, "El servidor SMTP no respondió correctamente: {$respuestaInicial}"];
+    }
+
+    $hostEhlo = $host ?: 'localhost';
+    try {
+        $comando('EHLO ' . $hostEhlo, '250');
+    } catch (Exception $e) {
+        $comando('HELO ' . $hostEhlo, '250');
+    }
+
+    try {
+        $comando('AUTH LOGIN', '334');
+        $comando(base64_encode($usuario), '334');
+        $comando(base64_encode($contrasena), '235');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error de autenticación SMTP: " . $e->getMessage()];
+    }
+
+    try {
+        $comando("MAIL FROM:<{$remitente}>", '250');
+        foreach ($destinatarios as $correo) {
+            $comando("RCPT TO:<{$correo}>", '250');
+        }
+        $comando('DATA', '354');
+
+        $cabeceras = "Date: " . date('r') . "\r\n" .
+            "Message-ID: <" . uniqid() . "@" . ($hostEhlo ?: 'localhost') . ">\r\n" .
+            "From: {$remitente}\r\n" .
+            "Return-Path: {$remitente}\r\n" .
+            "Reply-To: {$remitente}\r\n" .
+            "To: " . implode(', ', $destinatarios) . "\r\n" .
+            "Subject: {$asunto}\r\n" .
+            "MIME-Version: 1.0\r\n" .
+            "X-Mailer: PHP/" . phpversion() . "\r\n" .
+            "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+
+        $mensajeNormalizado = str_replace(["\r\n", "\n"], "\r\n", $mensaje);
+        fwrite($conexion, $cabeceras . $mensajeNormalizado . "\r\n.\r\n");
+        $respuestaData = $leerRespuesta();
+        if (substr($respuestaData, 0, 3) !== '250') {
+            throw new Exception("Error SMTP tras DATA: {$respuestaData}");
+        }
+        $comando('QUIT', '221');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error al enviar correo: " . $e->getMessage()];
+    }
+
+    fclose($conexion);
+    return [true, null];
+}
+
+function obtenerDatosCorreoDespacho($despacho, $PRODUCTOR_ADO, $PLANTA_ADO, $COMPRADOR_ADO, $EMPRESA_ADO, $TEMPORADA_ADO)
+{
+    if (!$despacho) {
+        return [
+            'numero' => '',
+            'fecha' => '',
+            'tipo' => '',
+            'destino' => '',
+            'empresa' => '',
+            'planta' => '',
+            'temporada' => '',
+        ];
+    }
+
+    $numero = $despacho['NUMERO_DESPACHO'] ?? '';
+    $fecha = $despacho['FECHA_DESPACHO'] ?? '';
+    $tipoDespacho = 'Sin Datos';
+    $destino = 'Sin Datos';
+
+    switch ($despacho['TDESPACHO'] ?? null) {
+        case '1':
+            $tipoDespacho = 'Interplanta';
+            $plantaDestino = $PLANTA_ADO->verPlanta($despacho['ID_PLANTA2'] ?? null);
+            if ($plantaDestino) {
+                $destino = $plantaDestino[0]['NOMBRE_PLANTA'];
+            }
+            break;
+        case '2':
+            $tipoDespacho = 'Devolución Productor';
+            $productor = $PRODUCTOR_ADO->verProductor($despacho['ID_PRODUCTOR'] ?? null);
+            if ($productor) {
+                $destino = $productor[0]['NOMBRE_PRODUCTOR'];
+            }
+            break;
+        case '3':
+            $tipoDespacho = 'Venta';
+            $comprador = $COMPRADOR_ADO->verComprador($despacho['ID_COMPRADOR'] ?? null);
+            if ($comprador) {
+                $destino = $comprador[0]['NOMBRE_COMPRADOR'];
+            }
+            break;
+        case '4':
+            $tipoDespacho = 'Despacho de Descarte(R)';
+            $destino = $despacho['REGALO_DESPACHO'] ?? 'Sin Datos';
+            break;
+        case '5':
+            $tipoDespacho = 'Planta Externa';
+            $plantaExt = $PLANTA_ADO->verPlanta($despacho['ID_PLANTA3'] ?? null);
+            if ($plantaExt) {
+                $destino = $plantaExt[0]['NOMBRE_PLANTA'];
+            }
+            break;
+    }
+
+    $empresa = '';
+    if (!empty($despacho['ID_EMPRESA'])) {
+        $empresaData = $EMPRESA_ADO->verEmpresa($despacho['ID_EMPRESA']);
+        if ($empresaData) {
+            $empresa = $empresaData[0]['NOMBRE_EMPRESA'];
+        }
+    }
+
+    $planta = '';
+    if (!empty($despacho['ID_PLANTA'])) {
+        $plantaData = $PLANTA_ADO->verPlanta($despacho['ID_PLANTA']);
+        if ($plantaData) {
+            $planta = $plantaData[0]['NOMBRE_PLANTA'];
+        }
+    }
+
+    $temporada = '';
+    if (!empty($despacho['ID_TEMPORADA'])) {
+        $temporadaData = $TEMPORADA_ADO->verTemporada($despacho['ID_TEMPORADA']);
+        if ($temporadaData) {
+            $temporada = $temporadaData[0]['NOMBRE_TEMPORADA'];
+        }
+    }
+
+    return [
+        'numero' => $numero,
+        'fecha' => $fecha,
+        'tipo' => $tipoDespacho,
+        'destino' => $destino,
+        'empresa' => $empresa,
+        'planta' => $planta,
+        'temporada' => $temporada,
+    ];
+}
+
+$ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
+if ($ARRAYUSUARIO) {
+    $CORREOUSUARIO = trim($ARRAYUSUARIO[0]['EMAIL_USUARIO']);
+    $NOMBRECOMPLETOUSUARIO = trim(
+        ($ARRAYUSUARIO[0]['PNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SNOMBRE_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['PAPELLIDO_USUARIO'] ?? '') . ' ' .
+        ($ARRAYUSUARIO[0]['SAPELLIDO_USUARIO'] ?? '')
+    );
+    $NOMBRECOMPLETOUSUARIO = trim($NOMBRECOMPLETOUSUARIO) ?: ($_SESSION['NOMBRE_USUARIO'] ?? '');
+}
 
 $ARRAYUSUARIO = $USUARIO_ADO->verUsuario($_SESSION["ID_USUARIO"]);
 if ($ARRAYUSUARIO) {
@@ -82,6 +305,205 @@ if ($ARRAYUSUARIO) {
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
 
 
+
+include_once "../../assest/config/validarDatosUrl.php";
+include_once "../../assest/config/datosUrLP.php";
+
+if ($_POST) {
+    $IDDESPACHO = $_REQUEST['ID'] ?? null;
+    $CODIGOVERIFICACION = $_REQUEST['CODIGO_ELIMINAR'] ?? '';
+    $CODIGOAPERTURA = $_REQUEST['CODIGO_ABRIR'] ?? '';
+
+    $detalleDespacho = $IDDESPACHO ? $DESPACHOMP_ADO->verDespachomp($IDDESPACHO) : [];
+    $datosDespacho = $detalleDespacho ? $detalleDespacho[0] : [];
+    $datosCorreo = obtenerDatosCorreoDespacho($datosDespacho, $PRODUCTOR_ADO, $PLANTA_ADO, $COMPRADOR_ADO, $EMPRESA_ADO, $TEMPORADA_ADO);
+
+    if (isset($_REQUEST['SOLICITARELIMINAR'])) {
+        if (!$IDDESPACHO) {
+            $MENSAJE = "No se ha seleccionado un despacho válido.";
+        } else {
+            $foliosDespacho = $EXIMATERIAPRIMA_ADO->buscarPorDespacho($IDDESPACHO);
+            $guiasDespacho = $MGUIAMP_ADO->listarMguiaDespachoCBX($IDDESPACHO);
+
+            if ($foliosDespacho || $guiasDespacho) {
+                unset($_SESSION['DESPACHOMP_ELIMINAR_CODIGO'], $_SESSION['DESPACHOMP_ELIMINAR_ID'], $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO']);
+                $MENSAJEENVIO = '';
+                $MENSAJE = "El despacho no puede eliminarse porque tiene registros asociados y no se envió código de autorización.";
+            } else {
+                $codigoAutorizacion = generarCodigoAutorizacion();
+                $_SESSION['DESPACHOMP_ELIMINAR_CODIGO'] = $codigoAutorizacion;
+                $_SESSION['DESPACHOMP_ELIMINAR_ID'] = $IDDESPACHO;
+                $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO'] = time();
+
+                $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+                $asunto = 'Autorización eliminación despacho #' . $datosCorreo['numero'];
+                $mensajeCorreo = "Se solicitó eliminar un despacho." . "\r\n\r\n" .
+                    "Número de despacho: " . $datosCorreo['numero'] . "\r\n" .
+                    "Fecha de despacho: " . $datosCorreo['fecha'] . "\r\n" .
+                    "Tipo de despacho: " . $datosCorreo['tipo'] . "\r\n" .
+                    "Destino: " . $datosCorreo['destino'] . "\r\n" .
+                    "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                    "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                    "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                    "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+                    "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+                    "El código tiene validez de 15 minutos.";
+
+                $remitente = 'informevolcan@gocreative.cl';
+                $usuarioSMTP = 'informevolcan@gocreative.cl';
+                $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+                $hostSMTP = 'mail.gocreative.cl';
+                $puertoSMTP = 465;
+
+                [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+                if ($envioOk) {
+                    $MENSAJEENVIO = "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla.";
+                } else {
+                    $MENSAJE = $errorEnvio ?: "No fue posible enviar el correo de autorización.";
+                }
+            }
+        }
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_ELIMINAR'])) {
+        $codigoSesion = $_SESSION['DESPACHOMP_ELIMINAR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['DESPACHOMP_ELIMINAR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['DESPACHOMP_ELIMINAR_TIEMPO'] ?? 0;
+        $foliosDespacho = $IDDESPACHO ? $EXIMATERIAPRIMA_ADO->buscarPorDespacho($IDDESPACHO) : [];
+        $guiasDespacho = $IDDESPACHO ? $MGUIAMP_ADO->listarMguiaDespachoCBX($IDDESPACHO) : [];
+
+        if ($foliosDespacho || $guiasDespacho) {
+            $MENSAJE = "El despacho tiene registros asociados y no puede ser eliminado.";
+        } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDDESPACHO) {
+            $MENSAJE = "No hay una solicitud de eliminación vigente para este despacho.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOVERIFICACION || $CODIGOVERIFICACION != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $DESPACHOMP->__SET('ID_DESPACHO', $IDDESPACHO);
+            $DESPACHOMP_ADO->deshabilitar($DESPACHOMP);
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Confirmación eliminación despacho #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la eliminación del despacho." . "\r\n\r\n" .
+                "Número de despacho: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de despacho: " . $datosCorreo['fecha'] . "\r\n" .
+                "Tipo de despacho: " . $datosCorreo['tipo'] . "\r\n" .
+                "Destino: " . $datosCorreo['destino'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado del registro fue desactivado.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
+            $MENSAJEENVIO = $envioOk ? "Despacho eliminado (estado de registro desactivado)." : ($errorEnvio ?: "El despacho se eliminó pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['DESPACHOMP_ELIMINAR_CODIGO']);
+            unset($_SESSION['DESPACHOMP_ELIMINAR_ID']);
+            unset($_SESSION['DESPACHOMP_ELIMINAR_TIEMPO']);
+        }
+    }
+
+    if (isset($_REQUEST['SOLICITAR_ABRIR'])) {
+        if (!$IDDESPACHO) {
+            $MENSAJE = "No se ha seleccionado un despacho válido.";
+        } elseif (!$datosDespacho || $datosDespacho['ESTADO'] != 0) {
+            $MENSAJE = "Solo es posible solicitar apertura para despachos cerrados.";
+        } else {
+            $codigoAutorizacion = generarCodigoAutorizacion();
+            $_SESSION['DESPACHOMP_ABRIR_CODIGO'] = $codigoAutorizacion;
+            $_SESSION['DESPACHOMP_ABRIR_ID'] = $IDDESPACHO;
+            $_SESSION['DESPACHOMP_ABRIR_TIEMPO'] = time();
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Autorización apertura despacho #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se solicitó la apertura de un despacho cerrado." . "\r\n\r\n" .
+                "Número de despacho: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de despacho: " . $datosCorreo['fecha'] . "\r\n" .
+                "Tipo de despacho: " . $datosCorreo['tipo'] . "\r\n" .
+                "Destino: " . $datosCorreo['destino'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Solicitado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n" .
+                "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
+                "El código tiene validez de 15 minutos.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if ($envioOk) {
+                $MENSAJEENVIO = "Código de autorización enviado correctamente a Maria de los Ángeles y Erwin Isla.";
+            } else {
+                $MENSAJE = $errorEnvio ?: "No fue posible enviar el correo de autorización.";
+            }
+        }
+    }
+
+    if (isset($_REQUEST['CONFIRMAR_ABRIR'])) {
+        $codigoSesion = $_SESSION['DESPACHOMP_ABRIR_CODIGO'] ?? null;
+        $idSesion = $_SESSION['DESPACHOMP_ABRIR_ID'] ?? null;
+        $tiempoSesion = $_SESSION['DESPACHOMP_ABRIR_TIEMPO'] ?? 0;
+
+        if (!$IDDESPACHO) {
+            $MENSAJE = "No se ha seleccionado un despacho válido.";
+        } elseif (!$datosDespacho || $datosDespacho['ESTADO'] != 0) {
+            $MENSAJE = "Solo es posible abrir despachos que estén cerrados.";
+        } elseif (!$codigoSesion || !$idSesion || $idSesion != $IDDESPACHO) {
+            $MENSAJE = "No hay una solicitud de apertura vigente para este despacho.";
+        } elseif ((time() - $tiempoSesion) > 900) {
+            $MENSAJE = "El código de autorización ha expirado.";
+        } elseif (!$CODIGOAPERTURA || $CODIGOAPERTURA != $codigoSesion) {
+            $MENSAJE = "El código ingresado no es válido.";
+        } else {
+            $DESPACHOMP->__SET('ID_DESPACHO', $IDDESPACHO);
+            $DESPACHOMP_ADO->habilitar($DESPACHOMP);
+            $DESPACHOMP_ADO->abierto($DESPACHOMP);
+
+            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO);
+            $asunto = 'Confirmación apertura despacho #' . $datosCorreo['numero'];
+            $mensajeCorreo = "Se confirmó la apertura del despacho." . "\r\n\r\n" .
+                "Número de despacho: " . $datosCorreo['numero'] . "\r\n" .
+                "Fecha de despacho: " . $datosCorreo['fecha'] . "\r\n" .
+                "Tipo de despacho: " . $datosCorreo['tipo'] . "\r\n" .
+                "Destino: " . $datosCorreo['destino'] . "\r\n" .
+                "Empresa: " . $datosCorreo['empresa'] . "\r\n" .
+                "Planta: " . $datosCorreo['planta'] . "\r\n" .
+                "Temporada: " . $datosCorreo['temporada'] . "\r\n" .
+                "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
+                "El estado del despacho cambió a abierto.";
+
+            $remitente = 'informevolcan@gocreative.cl';
+            $usuarioSMTP = 'informevolcan@gocreative.cl';
+            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $hostSMTP = 'mail.gocreative.cl';
+            $puertoSMTP = 465;
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if (!empty($CORREOUSUARIO)) {
+                enviarCorreoSMTP($CORREOUSUARIO, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            }
+            $MENSAJEENVIO = $envioOk ? "Despacho abierto correctamente." : ($errorEnvio ?: "El despacho se abrió pero hubo un problema al enviar la notificación.");
+            unset($_SESSION['DESPACHOMP_ABRIR_CODIGO']);
+            unset($_SESSION['DESPACHOMP_ABRIR_ID']);
+            unset($_SESSION['DESPACHOMP_ABRIR_TIEMPO']);
+        }
+    }
+}
 
 if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
     $ARRAYDESPACHOPT = $DESPACHOMP_ADO->listarDespachompEmpresaPlantaTemporadaCBX($EMPRESAS, $PLANTAS, $TEMPORADAS);
