@@ -45,6 +45,7 @@ include_once '../../assest/controlador/DFINAL_ADO.php';
 include_once '../../assest/controlador/RFINAL_ADO.php';
 include_once '../../assest/controlador/BROKER_ADO.php';
 include_once '../../assest/controlador/MERCADO_ADO.php';
+include_once '../../assest/controlador/PAIS_ADO.php';
 
 include_once '../../assest/controlador/LDESTINO_ADO.php';
 include_once '../../assest/controlador/ADESTINO_ADO.php';
@@ -94,6 +95,7 @@ $DFINAL_ADO =  new DFINAL_ADO();
 $RFINAL_ADO =  new RFINAL_ADO();
 $BROKER_ADO =  new BROKER_ADO();
 $MERCADO_ADO =  new MERCADO_ADO();
+$PAIS_ADO = new PAIS_ADO();
 $LDESTINO_ADO =  new LDESTINO_ADO();
 $ADESTINO_ADO =  new ADESTINO_ADO();
 $PDESTINO_ADO =  new PDESTINO_ADO();
@@ -294,14 +296,6 @@ if ($TEMPORADAS) {
                                                         $NOMBRECONDUCTOR = "Sin Datos";
                                                     }
 
-                                                    // Destino final
-                                                    $ARRAYDFINAL = $DFINAL_ADO->verDfinal($r['ID_DFINAL']);
-                                                    if ($ARRAYDFINAL) {
-                                                        $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
-                                                    } else {
-                                                        $DESTINO = "Sin Datos";
-                                                    }
-
                                                     // Empresa, planta, temporada
                                                     $ARRAYEMPRESA = $EMPRESA_ADO->verEmpresa($r['ID_EMPRESA']);
                                                     if ($ARRAYEMPRESA) {
@@ -332,6 +326,7 @@ if ($TEMPORADAS) {
                                                     $TEMBARQUE = "Sin Datos";
                                                     $NAVE = "Sin Datos";
                                                     $NVIAJE = "Sin Datos";
+                                                    $DESTINO = "Sin Datos";
                                                     $ARRAYICARGA = $ICARGA_ADO->verIcarga($r["ID_ICARGA"]);
                                                     if ($ARRAYICARGA) {
                                                         $NUMEROREFERENCIA   = $ARRAYICARGA[0]['NREFERENCIA_ICARGA'];
@@ -341,6 +336,10 @@ if ($TEMPORADAS) {
                                                         $FECHAETA           = $ARRAYICARGA[0]['FECHAETA_ICARGA'];
                                                         $FECHAETAREAL       = $ARRAYICARGA[0]['FECHAETAREAL_ICARGA'];
                                                         $FECHACDOCUMENTAL   = $ARRAYICARGA[0]['FECHA_CDOCUMENTAL_ICARGA'];
+                                                        $ARRAYPAIS = $PAIS_ADO->verPais($ARRAYICARGA[0]['ID_PAIS']);
+                                                        if ($ARRAYPAIS) {
+                                                            $DESTINO = $ARRAYPAIS[0]['NOMBRE_PAIS'];
+                                                        }
 
                                                         if ($ARRAYICARGA[0]['TEMBARQUE_ICARGA'] == "1") {
                                                             $TEMBARQUE = "Terrestre";
@@ -405,6 +404,10 @@ if ($TEMPORADAS) {
                                                         $FECHAETA = $r['FECHAETA_DESPACHOEX'];
                                                         $FECHAETAREAL = "";
                                                         $FECHACDOCUMENTAL = "";
+                                                        $ARRAYPAIS = $PAIS_ADO->verPais($r['ID_PAIS']);
+                                                        if ($ARRAYPAIS) {
+                                                            $DESTINO = $ARRAYPAIS[0]['NOMBRE_PAIS'];
+                                                        }
                                                         if ($r['TEMBARQUE_DESPACHOEX'] == "1") {
                                                             $TEMBARQUE = "Terrestre";
                                                             $NVIAJE = "No Aplica";
