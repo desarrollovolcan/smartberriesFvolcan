@@ -20,6 +20,79 @@ include_once '../../assest/controlador/EXIMATERIAPRIMA_ADO.php';
 include_once '../../assest/modelo/DRECEPCIONMP.php';
 include_once '../../assest/modelo/EXIMATERIAPRIMA.php';
 
+function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
+{
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
+
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
+
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
+    }
+
+    $leer = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] == ' ') {
+                break;
+            }
+        }
+        return $respuesta;
+    };
+
+    $enviar = function ($comando) use ($conexion, $leer) {
+        fwrite($conexion, $comando);
+        return $leer();
+    };
+
+    $respuestasEsperadas = [
+        '220', '250', '334', '235', '354'
+    ];
+
+    $comandos = [
+        null,
+        "EHLO localhost\r\n",
+        "AUTH LOGIN\r\n",
+        base64_encode($usuario) . "\r\n",
+        base64_encode($contrasena) . "\r\n",
+    ];
+
+    foreach ($comandos as $comando) {
+        $respuesta = $comando === null ? $leer() : $enviar($comando);
+        if (!in_array(substr($respuesta, 0, 3), $respuestasEsperadas)) {
+            fclose($conexion);
+            return [false, "Error en comunicación SMTP: {$respuesta}"];
+        }
+    }
+
+    $enviar("MAIL FROM:<{$remitente}>\r\n");
+
+    foreach ($destinatarios as $destinatario) {
+        $enviar("RCPT TO:<{$destinatario}>\r\n");
+    }
+
+    $enviar("DATA\r\n");
+
+    $cabeceras = "From: {$remitente}\r\n" .
+        "To: " . implode(',', $destinatarios) . "\r\n" .
+        "Subject: {$asunto}\r\n" .
+        "MIME-Version: 1.0\r\n" .
+        "Content-Type: text/plain; charset=utf-8\r\n\r\n";
+
+    $enviar($cabeceras . $mensaje . "\r\n.\r\n");
+    $enviar("QUIT\r\n");
+    fclose($conexion);
+    return [true, null];
+}
+
 //INCIALIZAR LAS VARIBLES
 //INICIALIZAR CONTROLADOR
 
@@ -101,6 +174,8 @@ $OP = "";
 $NODATOURL = "";
 $MENSAJE = "";
 $MENSAJEELIMINAR = "";
+$MENSAJELIBERACION = "";
+$MOSTRAR_ALERTA_RESTRICCION = true;
 
 //INICIALIZAR ARREGLOS
 $ARRAYESTANDAR = "";
@@ -113,6 +188,7 @@ $ARRAYULTIMOFOLIO = "";
 $ARRAYVERESTANDAR = "";
 $ARRAYVERFOLIO = "";
 $ARRAYVERFOLIOEXISTENCIA = "";
+$ARRAYFOLIOINACTIVO = "";
 
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
@@ -767,6 +843,10 @@ if ($_POST) {
                                                 <input type="hidden" class="form-control" placeholder="ID TEMPORADA" id="TEMPORADA" name="TEMPORADA" value="<?php echo $TEMPORADAS; ?>" />
 
                                                 <input type="hidden" id="NUMEROFOLIODRECEPCIONE" name="NUMEROFOLIODRECEPCIONE" value="<?php echo $NUMEROFOLIODRECEPCION; ?>" />
+                                                <input type="hidden" id="LIBERARFOLIO" name="LIBERARFOLIO" value="0" />
+                                                <input type="hidden" id="LIBERARFOLIOORIGINAL" name="LIBERARFOLIOORIGINAL" value="" />
+                                                <input type="hidden" id="LIBERARIDEXISTENCIA" name="LIBERARIDEXISTENCIA" value="" />
+                                                <input type="hidden" id="LIBERARIDRECEPCION" name="LIBERARIDRECEPCION" value="" />
 
                                                 <input type="number" class="form-control" placeholder="Numero Folio " id="NUMEROFOLIODRECEPCION" name="NUMEROFOLIODRECEPCION" <?php echo $DISABLED2; ?> <?php echo $DISABLEDSTYLE2; ?> <?php if ($FOLIOMANUAL != "on") {
                                                                                                                                                                                                                                             echo "required disabled style='background-color: #eeeeee;'";
@@ -1012,8 +1092,92 @@ if ($_POST) {
     </div>
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
-        
+
         <?php
+        if (isset($_REQUEST['LIBERARFOLIO']) && $_REQUEST['LIBERARFOLIO'] == "1") {
+            $folioOriginalLiberar = $_REQUEST['LIBERARFOLIOORIGINAL'] ?? '';
+            $folioLiberado = "10009" . $folioOriginalLiberar;
+            $idExistenciaLiberar = $_REQUEST['LIBERARIDEXISTENCIA'] ?? '';
+            $idRecepcionLiberar = $_REQUEST['LIBERARIDRECEPCION'] ?? '';
+
+            $ARRAYFOLIOINACTIVO = $EXIMATERIAPRIMA_ADO->buscarPorFolio($folioLiberado, $_REQUEST['EMPRESA'], $_REQUEST['TEMPORADA']);
+
+            $detallesExistencia = $EXIMATERIAPRIMA_ADO->verEximateriaprima($idExistenciaLiberar);
+            $detallesRecepcionLiberada = $RECEPCIONMP_ADO->verRecepcion($idRecepcionLiberar);
+            $numeroRecepcionLiberada = $detallesRecepcionLiberada && $detallesRecepcionLiberada[0]['NUMERO_RECEPCION'] ? $detallesRecepcionLiberada[0]['NUMERO_RECEPCION'] : $idRecepcionLiberar;
+            $numeroGuiaLiberada = $detallesRecepcionLiberada && isset($detallesRecepcionLiberada[0]['NUMERO_GUIA_RECEPCION']) ? $detallesRecepcionLiberada[0]['NUMERO_GUIA_RECEPCION'] : 'Sin guía';
+            $productoLiberado = $detallesExistencia && isset($detallesExistencia[0]['EMBOLSADO']) ? ($detallesExistencia[0]['EMBOLSADO'] == 1 ? 'Embolsado' : 'Sin embolsar') : '';
+            $kilosLiberados = $detallesExistencia && isset($detallesExistencia[0]['KILOS_NETO_EXIMATERIAPRIMA']) ? $detallesExistencia[0]['KILOS_NETO_EXIMATERIAPRIMA'] . ' kg netos' : '';
+            $envasesLiberados = $detallesExistencia && isset($detallesExistencia[0]['CANTIDAD_ENVASE_EXIMATERIAPRIMA']) ? $detallesExistencia[0]['CANTIDAD_ENVASE_EXIMATERIAPRIMA'] . ' envases' : '';
+            $operacionesFolio = [
+                'Recepción N° ' . $numeroRecepcionLiberada . ' (Guía: ' . $numeroGuiaLiberada . ')',
+                'Folio original: ' . $folioOriginalLiberar,
+                'Operaciones registradas: ' . trim($productoLiberado . ' ' . $kilosLiberados . ' ' . $envasesLiberados)
+            ];
+            $detalleOperacionCorreo = "Detalle de operaciones:\r\n - " . implode("\r\n - ", array_filter($operacionesFolio));
+
+            if ($ARRAYFOLIOINACTIVO) {
+                $recepcionFolioLiberado = $RECEPCIONMP_ADO->verRecepcion($ARRAYFOLIOINACTIVO[0]['ID_RECEPCION']);
+                $numeroRecepcionFolioLiberado = $recepcionFolioLiberado && isset($recepcionFolioLiberado[0]['NUMERO_RECEPCION']) ? $recepcionFolioLiberado[0]['NUMERO_RECEPCION'] : $ARRAYFOLIOINACTIVO[0]['ID_RECEPCION'];
+                $numeroGuiaFolioLiberado = $recepcionFolioLiberado && isset($recepcionFolioLiberado[0]['NUMERO_GUIA_RECEPCION']) ? $recepcionFolioLiberado[0]['NUMERO_GUIA_RECEPCION'] : 'Sin guía';
+                $productorLiberado = '';
+                if (isset($ARRAYFOLIOINACTIVO[0]['ID_PRODUCTOR']) && $ARRAYFOLIOINACTIVO[0]['ID_PRODUCTOR']) {
+                    $detalleProductorLiberado = $PRODUCTOR_ADO->verProductor($ARRAYFOLIOINACTIVO[0]['ID_PRODUCTOR']);
+                    $productorLiberado = $detalleProductorLiberado && isset($detalleProductorLiberado[0]['NOMBRE_PRODUCTOR']) ? $detalleProductorLiberado[0]['NOMBRE_PRODUCTOR'] : '';
+                }
+                $kilosNetosFolioLiberado = isset($ARRAYFOLIOINACTIVO[0]['KILOS_NETO_EXIMATERIAPRIMA']) ? $ARRAYFOLIOINACTIVO[0]['KILOS_NETO_EXIMATERIAPRIMA'] : '';
+                $mensajeCorreo = "El folio generado " . $folioLiberado . " ya existe. Folio liberado por segunda vez; se informará a gerencia para verificar el motivo y estado de la liberación. " .
+                    "Por favor comunicarse con Maria de Los Angeles o Erwin Isla. Detalle: liberación pendiente del folio " . $folioOriginalLiberar . " asociado a la recepción " . $idRecepcionLiberar . ".\r\n" .
+                    $detalleOperacionCorreo . "\r\n - Folio prefijado existente en recepción N° " . $numeroRecepcionFolioLiberado . " (Guía: " . $numeroGuiaFolioLiberado . ")" .
+                    ($productorLiberado ? "\r\n - Productor: " . $productorLiberado : '') .
+                    ($kilosNetosFolioLiberado ? "\r\n - Kilos netos: " . $kilosNetosFolioLiberado : '');
+                $destinatariosLiberacion = ['eisla@fvolcan.cl', 'maperez@fvolcan.cl'];
+                $asuntoLiberacion = 'Folio liberado por segunda vez';
+                $remitente = 'informevolcan@gocreative.cl';
+                $usuarioSMTP = 'informevolcan@gocreative.cl';
+                $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+                $hostSMTP = 'mail.gocreative.cl';
+                $puertoSMTP = 465;
+
+                [$envioLiberacionOk, $errorEnvioLiberacion] = enviarCorreoSMTP($destinatariosLiberacion, $asuntoLiberacion, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+
+                $mensajeAlertaLiberacion = "El folio <strong>" . $folioLiberado . "</strong> ya existe. Folio liberado por segunda vez; se informará a gerencia para verificar el motivo y estado de la liberación.<br><br>" .
+                    "Por favor comunicarse con Maria de Los Angeles o Erwin Isla. Se les informará automáticamente por correo." .
+                    "<br><br><strong>Folio existente:</strong><br>Recepción N° " . $numeroRecepcionFolioLiberado . " - Guía N° " . $numeroGuiaFolioLiberado .
+                    ($productorLiberado ? "<br>Productor: " . $productorLiberado : '') .
+                    ($kilosNetosFolioLiberado ? "<br>Kilos netos: " . $kilosNetosFolioLiberado : '') .
+                    "<br><br><strong>Recepción (clic para ver):</strong><br><a href=\"registroRecepcionmp.php?op&id=" . $ARRAYFOLIOINACTIVO[0]['ID_RECEPCION'] . "&a=ver\" target=\"_blank\">- Recepción N° " . $numeroRecepcionFolioLiberado . "</a>";
+                if (!$envioLiberacionOk && $errorEnvioLiberacion) {
+                    $mensajeAlertaLiberacion .= "<br><br>No se pudo enviar la notificación automática: " . $errorEnvioLiberacion . ".";
+                }
+                echo '<script>
+                    Swal.fire({
+                        icon:"warning",
+                        title:"Folio liberado por segunda vez",
+                        html:"' . addslashes($mensajeAlertaLiberacion) . '",
+                        confirmButtonText:"Cerrar"
+                    });
+                    document.getElementById("LIBERARFOLIO").value = "0";
+                </script>';
+            } else {
+                $EXIMATERIAPRIMA->__SET('FOLIO_EXIMATERIAPRIMA', $folioLiberado);
+                $EXIMATERIAPRIMA->__SET('FOLIO_AUXILIAR_EXIMATERIAPRIMA', $folioLiberado);
+                $EXIMATERIAPRIMA->__SET('ALIAS_DINAMICO_FOLIO_EXIMATERIAPRIMA', $folioLiberado);
+                $EXIMATERIAPRIMA->__SET('ALIAS_ESTATICO_FOLIO_EXIMATERIAPRIMA', $folioLiberado);
+                $EXIMATERIAPRIMA->__SET('ID_EXIMATERIAPRIMA', $idExistenciaLiberar);
+                $EXIMATERIAPRIMA_ADO->actualizarFolioLiberacion($EXIMATERIAPRIMA);
+
+                echo '<script>
+                    Swal.fire({
+                        icon:"success",
+                        title:"Folio liberado",
+                        text:"El folio ' . $folioOriginalLiberar . ' fue liberado con el nuevo folio ' . $folioLiberado . '.",
+                        confirmButtonText:"Aceptar"
+                    });
+                    document.getElementById("LIBERARFOLIO").value = "0";
+                </script>';
+            }
+        }
         //OPERACION DE REGISTRO DE FILA
         if (isset($_REQUEST['CREAR'])) {
 
@@ -1028,8 +1192,64 @@ if ($_POST) {
                 $FOLIOMANUALR = "1";
                 $ARRAYFOLIOPOEXPO = $EXIMATERIAPRIMA_ADO->buscarPorFolio($NUMEROFOLIODRECEPCION, $_REQUEST['EMPRESA'], $_REQUEST['TEMPORADA']);
                 if ($ARRAYFOLIOPOEXPO) {
-                    $SINO = "1";
-                    $MENSAJE = "El folio ingresado, ya existe.";
+                    $ARRAYDETALLESRECEPCION = $RECEPCIONMP_ADO->verRecepcion($ARRAYFOLIOPOEXPO[0]['ID_RECEPCION']);
+                    $NUMERORECEPCIONDETALLE = $ARRAYDETALLESRECEPCION ? $ARRAYDETALLESRECEPCION[0]['NUMERO_RECEPCION'] : $ARRAYFOLIOPOEXPO[0]['ID_RECEPCION'];
+                    $NUMEROGUIADETALLE = $ARRAYDETALLESRECEPCION ? ($ARRAYDETALLESRECEPCION[0]['NUMERO_GUIA_RECEPCION'] ?? 'Sin guía') : 'Sin guía';
+                    $TEXTORECEPCION = "Recepción N° " . $NUMERORECEPCIONDETALLE . " - Guía N° " . $NUMEROGUIADETALLE;
+
+                    if ($ARRAYFOLIOPOEXPO[0]['ESTADO_REGISTRO'] == 0) {
+                        $SINO = "1";
+                        $MENSAJE = "El folio ingresado está deshabilitado.";
+                        $MENSAJELIBERACION = "El folio ingresado corresponde a " . $TEXTORECEPCION . " y se encuentra eliminado.";
+                        $MOSTRAR_ALERTA_RESTRICCION = false;
+                        echo '<script>
+                            document.addEventListener("DOMContentLoaded", function(){
+                                Swal.fire({
+                                    icon:"warning",
+                                    title:"Acción restringida",
+                                    html:"' . $MENSAJELIBERACION . '<br><br><strong>Recepción (clic para ver):</strong><br>"+
+                                        "<a href=\"registroRecepcionmp.php?op&id=' . $ARRAYFOLIOPOEXPO[0]['ID_RECEPCION'] . '&a=ver\" target=\"_blank\">- ' . $TEXTORECEPCION . '</a>"+
+                                        "<br><br>Debe liberar el folio o cerrar para continuar.",
+                                    showCancelButton:true,
+                                    confirmButtonText:"Liberar folio",
+                                    cancelButtonText:"Cerrar",
+                                    allowOutsideClick:false
+                                }).then(function(result){
+                                    if(result.isConfirmed){
+                                        document.getElementById("LIBERARFOLIO").value = "1";
+                                        document.getElementById("LIBERARFOLIOORIGINAL").value = "' . $NUMEROFOLIODRECEPCION . '";
+                                        document.getElementById("LIBERARIDEXISTENCIA").value = "' . $ARRAYFOLIOPOEXPO[0]['ID_EXIMATERIAPRIMA'] . '";
+                                        document.getElementById("LIBERARIDRECEPCION").value = "' . $ARRAYFOLIOPOEXPO[0]['ID_RECEPCION'] . '";
+                                        document.form_reg_dato.submit();
+                                    }
+                                });
+
+                            });
+                        </script>';
+                    } elseif ($ARRAYFOLIOPOEXPO[0]['ESTADO_REGISTRO'] == 1) {
+                        $SINO = "1";
+                        $MENSAJE = "El folio ingresado, ya existe.";
+                        $MOSTRAR_ALERTA_RESTRICCION = false;
+                        echo '<script>
+                            document.addEventListener("DOMContentLoaded", function(){
+                                Swal.fire({
+                                    icon:"warning",
+                                    title:"Acción restringida",
+                                    html:"El folio ingresado pertenece a ' . $TEXTORECEPCION . ' y se encuentra habilitado."+
+                                        "<br><br><strong>Recepción (clic para ver):</strong><br>"+
+                                        "<a href=\"registroRecepcionmp.php?op&id=' . $ARRAYFOLIOPOEXPO[0]['ID_RECEPCION'] . '&a=ver\" target=\"_blank\">- ' . $TEXTORECEPCION . '</a>"+
+                                        "<br><br>Debe cerrar esta alerta para continuar.",
+                                    confirmButtonText:"Cerrar",
+                                    showCancelButton:false,
+                                    allowOutsideClick:false
+                                });
+
+                            });
+                        </script>';
+                    } else {
+                        $SINO = "1";
+                        $MENSAJE = "El folio ingresado, ya existe.";
+                    }
                 } else {
                     $SINO = "0";
                     $MENSAJE = "";
@@ -1060,7 +1280,7 @@ if ($_POST) {
                 };
             }
 
-            if ($SINO == "1") {
+            if ($SINO == "1" && $MOSTRAR_ALERTA_RESTRICCION) {
                 echo '<script>
                     Swal.fire({
                         icon:"warning",

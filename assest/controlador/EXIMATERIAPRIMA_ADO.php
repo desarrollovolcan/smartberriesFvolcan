@@ -3302,13 +3302,40 @@ WHERE
     {
         try {
             $query = "
-                UPDATE fruta_eximateriaprima SET	
-                        MODIFICACION = SYSDATE(),		
+                UPDATE fruta_eximateriaprima SET
+                        MODIFICACION = SYSDATE(),
                         ESTADO_REGISTRO = 1
                 WHERE ID_EXIMATERIAPRIMA= ?;";
             $this->conexion->prepare($query)
                 ->execute(
                     array(
+                        $EXIMATERIAPRIMA->__GET('ID_EXIMATERIAPRIMA')
+                    )
+
+                );
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function actualizarFolioLiberacion(EXIMATERIAPRIMA $EXIMATERIAPRIMA)
+    {
+        try {
+            $query = "
+                UPDATE fruta_eximateriaprima SET
+                        MODIFICACION = SYSDATE(),
+                        FOLIO_EXIMATERIAPRIMA = ?,
+                        FOLIO_AUXILIAR_EXIMATERIAPRIMA = ?,
+                        ALIAS_DINAMICO_FOLIO_EXIMATERIAPRIMA = ?,
+                        ALIAS_ESTATICO_FOLIO_EXIMATERIAPRIMA = ?
+                WHERE ID_EXIMATERIAPRIMA= ?;";
+            $this->conexion->prepare($query)
+                ->execute(
+                    array(
+                        $EXIMATERIAPRIMA->__GET('FOLIO_EXIMATERIAPRIMA'),
+                        $EXIMATERIAPRIMA->__GET('FOLIO_AUXILIAR_EXIMATERIAPRIMA'),
+                        $EXIMATERIAPRIMA->__GET('ALIAS_DINAMICO_FOLIO_EXIMATERIAPRIMA'),
+                        $EXIMATERIAPRIMA->__GET('ALIAS_ESTATICO_FOLIO_EXIMATERIAPRIMA'),
                         $EXIMATERIAPRIMA->__GET('ID_EXIMATERIAPRIMA')
                     )
 
