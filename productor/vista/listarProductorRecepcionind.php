@@ -177,7 +177,7 @@ include_once "../../assest/config/datosUrLP.php";
                                             </thead>
                                             <tbody>
 
-                                            <?php $FECHALIMITE_TS = strtotime('yesterday 23:59:59'); ?>
+                                            <?php $FECHAANTERIOR = date('Y-m-d', strtotime('-1 day')); ?>
                                             <?php foreach ($ARRAYEMPRESAPRODUCTOR as $a) : ?>
                                                 <?php 
                                                     if ( $TEMPORADAS) {
@@ -186,8 +186,10 @@ include_once "../../assest/config/datosUrLP.php";
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
                                                     <?php
-                                                        $FECHARECEPCION_TS = strtotime($r['FECHA']);
-                                                        if ($r['ESTADO'] != "0" || $FECHARECEPCION_TS === false || $FECHARECEPCION_TS > $FECHALIMITE_TS) {
+                                                        if ($r['ESTADO'] != "0") {
+                                                            continue;
+                                                        }
+                                                        if (date('Y-m-d', strtotime($r['FECHA'])) > $FECHAANTERIOR) {
                                                             continue;
                                                         }
                                                     ?>
