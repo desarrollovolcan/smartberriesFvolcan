@@ -177,7 +177,7 @@ include_once "../../assest/config/datosUrLP.php";
                                             </thead>
                                             <tbody>
 
-                                            <?php $FECHALIMITE = new DateTime('yesterday 23:59:59'); ?>
+                                            <?php $FECHALIMITE_TS = strtotime('yesterday 23:59:59'); ?>
                                             <?php foreach ($ARRAYEMPRESAPRODUCTOR as $a) : ?>
                                                 <?php 
                                                     if ( $TEMPORADAS) {
@@ -186,8 +186,8 @@ include_once "../../assest/config/datosUrLP.php";
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
                                                     <?php
-                                                        $FECHARECEPCION = new DateTime($r['FECHA']);
-                                                        if ($r['ESTADO'] !== "0" || $FECHARECEPCION > $FECHALIMITE) {
+                                                        $FECHARECEPCION_TS = strtotime($r['FECHA']);
+                                                        if ($r['ESTADO'] != "0" || $FECHARECEPCION_TS === false || $FECHARECEPCION_TS > $FECHALIMITE_TS) {
                                                             continue;
                                                         }
                                                     ?>
