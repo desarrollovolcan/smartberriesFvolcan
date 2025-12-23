@@ -49,6 +49,7 @@ $productorController = new ProductorController();
             }
             .documentos-table {
                 width: 100%;
+                table-layout: auto;
                 border-collapse: collapse;
             }
             .documentos-table thead th {
@@ -63,6 +64,14 @@ $productorController = new ProductorController();
                 padding: 12px;
                 border-bottom: 1px solid rgba(0, 0, 0, 0.05);
                 vertical-align: middle;
+            }
+            .documentos-col--icon,
+            .documentos-col--vigencia {
+                width: 1%;
+                white-space: nowrap;
+            }
+            .documentos-col--nombre {
+                width: auto;
             }
             .documentos-table tbody tr:hover {
                 background: rgba(15, 129, 199, 0.05);
@@ -100,6 +109,34 @@ $productorController = new ProductorController();
                         "'directories=no, location=no, menubar=no, scrollbars=yes, statusbar=no, tittlebar=no, width=1000, height=800'";
                     window.open(url, 'window', opciones);
                 }
+                function ordenarDocumentos() {
+                    var selector = document.getElementById('ordenDocumentos');
+                    if (!selector) {
+                        return;
+                    }
+                    var opcion = selector.value;
+                    var tbody = document.getElementById('bodyRegistroCalidad');
+                    if (!tbody) {
+                        return;
+                    }
+                    var filas = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+                    var orden = opcion.includes('desc') ? -1 : 1;
+
+                    filas.sort(function (a, b) {
+                        if (opcion.includes('vigencia')) {
+                            var aTs = parseInt(a.dataset.vigenciaTs || '0', 10);
+                            var bTs = parseInt(b.dataset.vigenciaTs || '0', 10);
+                            return (aTs - bTs) * orden;
+                        }
+                        var aNombre = (a.dataset.nombre || '').toLowerCase();
+                        var bNombre = (b.dataset.nombre || '').toLowerCase();
+                        return aNombre.localeCompare(bNombre) * orden;
+                    });
+
+                    filas.forEach(function (fila) {
+                        tbody.appendChild(fila);
+                    });
+                }
                 function filtrarDocumentos() {
                     var filtro = document.getElementById('filtroDocumento').value.toLowerCase();
                     var soloVigentes = document.getElementById('soloVigentes').checked;
@@ -123,6 +160,10 @@ $productorController = new ProductorController();
                     if (contador) {
                         contador.textContent = visibles + ' documentos';
                     }
+                }
+                function actualizarDocumentos() {
+                    ordenarDocumentos();
+                    filtrarDocumentos();
                 }
             </script>
 
@@ -166,6 +207,12 @@ $productorController = new ProductorController();
                                         <div class="documentos-toolbar">
                                             <div class="d-flex align-items-center flex-wrap gap-2">
                                                 <input id="filtroDocumento" type="text" class="form-control" placeholder="Buscar por nombre o vigencia" onkeyup="filtrarDocumentos()">
+                                                <select id="ordenDocumentos" class="form-control" onchange="actualizarDocumentos()">
+                                                    <option value="nombre-asc">Ordenar: Nombre (A-Z)</option>
+                                                    <option value="nombre-desc">Ordenar: Nombre (Z-A)</option>
+                                                    <option value="vigencia-asc">Ordenar: Vigencia (Antigua)</option>
+                                                    <option value="vigencia-desc">Ordenar: Vigencia (Reciente)</option>
+                                                </select>
                                                 <label class="d-flex align-items-center mb-0">
                                                     <input id="soloVigentes" type="checkbox" class="mr-2" onchange="filtrarDocumentos()">
                                                     <span class="documentos-meta">Solo vigentes</span>
@@ -177,9 +224,9 @@ $productorController = new ProductorController();
                                             <table id="existenciaptagrupado" class="documentos-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Archivo</th>
-                                                        <th>Nombre</th>
-                                                        <th>Vigencia</th>
+                                                        <th class="documentos-col--icon">Archivo</th>
+                                                        <th class="documentos-col--nombre">Nombre</th>
+                                                        <th class="documentos-col--vigencia">Vigencia</th>
                                                       
                                                     </tr>
                                                 </thead>
@@ -196,15 +243,16 @@ $productorController = new ProductorController();
                                                             $vigenciaRaw = $documento->vigencia_documento ?? '';
                                                             $vigenciaDate = $vigenciaRaw ? date_create($vigenciaRaw) : false;
                                                             $vencido = $vigenciaDate ? ($vigenciaDate < new DateTime('today')) : false;
+                                                            $vigenciaTimestamp = $vigenciaDate ? $vigenciaDate->getTimestamp() : 0;
                                                         ?>
-                                                        <tr data-nombre="<?php echo htmlspecialchars($documento->nombre_documento); ?>" data-vigencia="<?php echo htmlspecialchars($vigenciaRaw); ?>" data-vencido="<?php echo $vencido ? '1' : '0'; ?>">
-                                                            <td>
+                                                        <tr data-nombre="<?php echo htmlspecialchars($documento->nombre_documento); ?>" data-vigencia="<?php echo htmlspecialchars($vigenciaRaw); ?>" data-vencido="<?php echo $vencido ? '1' : '0'; ?>" data-vigencia-ts="<?php echo $vigenciaTimestamp; ?>">
+                                                            <td class="documentos-col--icon">
                                                                 <a href="../../data/data_productor/<?php echo $documento->archivo_documento; ?>" target="_blank" class="btn btn-info">
                                                                 <i class="ti-file"></i>
                                                                 </a>
                                                             </td>
-                                                            <td><?php echo htmlspecialchars($documento->nombre_documento); ?></td>
-                                                            <td>
+                                                            <td class="documentos-col--nombre"><?php echo htmlspecialchars($documento->nombre_documento); ?></td>
+                                                            <td class="documentos-col--vigencia">
                                                                 <div class="d-flex flex-column">
                                                                     <span><?php echo htmlspecialchars($documento->vigencia_documento); ?></span>
                                                                     <?php if ($vigenciaDate): ?>
@@ -248,7 +296,7 @@ $productorController = new ProductorController();
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
-            filtrarDocumentos();
+            actualizarDocumentos();
         });
 
         </script>
