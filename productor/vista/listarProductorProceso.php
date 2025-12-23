@@ -52,7 +52,7 @@ $ARRAYTOTALPROCESO = "";
 $ARRAYTOTALPROCESOENTRADA = "";
 $ARRAYEXISMATERIPRIMAPROCESO = "";
 
-//FECHA FILTRO PARA REGISTROS CERRADOS DEL DIA ANTERIOR
+//FECHA LIMITE PARA REGISTROS CERRADOS (DEL DIA ANTERIOR HACIA ATRAS)
 $FECHAANTERIOR = date('Y-m-d', strtotime('-1 day'));
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
@@ -182,7 +182,7 @@ $ARRAYEMPRESAPRODUCTOR=$EMPRESAPRODUCTOR_ADO->buscarEmpresaProductorPorUsuarioCB
                                                         if ($r['ESTADO'] !== "0") {
                                                             continue;
                                                         }
-                                                        if (date('Y-m-d', strtotime($r['FECHA'])) !== $FECHAANTERIOR) {
+                                                        if (date('Y-m-d', strtotime($r['FECHA'])) > $FECHAANTERIOR) {
                                                             continue;
                                                         }
                                                         $ARRAYTOTALENVASESEMBOLSADO=$PROCESO_ADO->obtenerTotalEnvasesEmbolsado($r['ID_PROCESO']);
