@@ -31,6 +31,59 @@ $productorController = new ProductorController();
     <meta name="author" content="">
     <!- LLAMADA DE LOS ARCHIVOS NECESARIOS PARA DISEÑO Y FUNCIONES BASE DE LA VISTA -!>
         <?php include_once "../../assest/config/urlHead.php"; ?>
+        <style>
+            .documentos-toolbar {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+            .documentos-toolbar .form-control {
+                min-width: 220px;
+            }
+            .documentos-meta {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+            .documentos-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .documentos-table thead th {
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #5f6b7a;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                padding: 12px;
+            }
+            .documentos-table tbody td {
+                padding: 12px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                vertical-align: middle;
+            }
+            .documentos-table tbody tr:hover {
+                background: rgba(15, 129, 199, 0.05);
+            }
+            .documentos-badge {
+                display: inline-flex;
+                align-items: center;
+                font-size: 0.75rem;
+                padding: 4px 8px;
+                border-radius: 999px;
+                font-weight: 600;
+            }
+            .documentos-badge--vigente {
+                background: rgba(40, 167, 69, 0.12);
+                color: #1e7e34;
+            }
+            .documentos-badge--vencido {
+                background: rgba(220, 53, 69, 0.12);
+                color: #c82333;
+            }
+        </style>
         <!- FUNCIONES BASES -!>
             <script type="text/javascript">
                 //REDIRECCIONAR A LA PAGINA SELECIONADA
@@ -47,7 +100,30 @@ $productorController = new ProductorController();
                         "'directories=no, location=no, menubar=no, scrollbars=yes, statusbar=no, tittlebar=no, width=1000, height=800'";
                     window.open(url, 'window', opciones);
                 }
-              
+                function filtrarDocumentos() {
+                    var filtro = document.getElementById('filtroDocumento').value.toLowerCase();
+                    var soloVigentes = document.getElementById('soloVigentes').checked;
+                    var filas = document.querySelectorAll('#bodyRegistroCalidad tr');
+                    var visibles = 0;
+
+                    filas.forEach(function (fila) {
+                        var nombre = (fila.dataset.nombre || '').toLowerCase();
+                        var vigencia = (fila.dataset.vigencia || '').toLowerCase();
+                        var vencido = fila.dataset.vencido === '1';
+                        var coincide = nombre.includes(filtro) || vigencia.includes(filtro);
+                        var mostrar = coincide && (!soloVigentes || !vencido);
+
+                        fila.style.display = mostrar ? '' : 'none';
+                        if (mostrar) {
+                            visibles++;
+                        }
+                    });
+
+                    var contador = document.getElementById('contadorDocumentos');
+                    if (contador) {
+                        contador.textContent = visibles + ' documentos';
+                    }
+                }
             </script>
 
 </head>
@@ -87,8 +163,18 @@ $productorController = new ProductorController();
                             <div class="box-body">
                                 <div class="row">
                                     <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
+                                        <div class="documentos-toolbar">
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <input id="filtroDocumento" type="text" class="form-control" placeholder="Buscar por nombre o vigencia" onkeyup="filtrarDocumentos()">
+                                                <label class="d-flex align-items-center mb-0">
+                                                    <input id="soloVigentes" type="checkbox" class="mr-2" onchange="filtrarDocumentos()">
+                                                    <span class="documentos-meta">Solo vigentes</span>
+                                                </label>
+                                            </div>
+                                            <span id="contadorDocumentos" class="documentos-meta">0 documentos</span>
+                                        </div>
                                         <div class="table-responsive">
-                                            <table id="existenciaptagrupado" class="table-hover" style="width: 100%;">
+                                            <table id="existenciaptagrupado" class="documentos-table">
                                                 <thead>
                                                     <tr>
                                                         <th>Archivo</th>
@@ -106,14 +192,28 @@ $productorController = new ProductorController();
                                                 ?>
                                                 <?php if (!empty($documentos)): ?>
                                                     <?php foreach ($documentos as $documento): ?>
-                                                        <tr>
+                                                        <?php
+                                                            $vigenciaRaw = $documento->vigencia_documento ?? '';
+                                                            $vigenciaDate = $vigenciaRaw ? date_create($vigenciaRaw) : false;
+                                                            $vencido = $vigenciaDate ? ($vigenciaDate < new DateTime('today')) : false;
+                                                        ?>
+                                                        <tr data-nombre="<?php echo htmlspecialchars($documento->nombre_documento); ?>" data-vigencia="<?php echo htmlspecialchars($vigenciaRaw); ?>" data-vencido="<?php echo $vencido ? '1' : '0'; ?>">
                                                             <td>
                                                                 <a href="../../data/data_productor/<?php echo $documento->archivo_documento; ?>" target="_blank" class="btn btn-info">
                                                                 <i class="ti-file"></i>
                                                                 </a>
                                                             </td>
                                                             <td><?php echo htmlspecialchars($documento->nombre_documento); ?></td>
-                                                            <td><?php echo $documento->vigencia_documento; ?></td>
+                                                            <td>
+                                                                <div class="d-flex flex-column">
+                                                                    <span><?php echo htmlspecialchars($documento->vigencia_documento); ?></span>
+                                                                    <?php if ($vigenciaDate): ?>
+                                                                        <span class="documentos-badge <?php echo $vencido ? 'documentos-badge--vencido' : 'documentos-badge--vigente'; ?>">
+                                                                            <?php echo $vencido ? 'Vencido' : 'Vigente'; ?>
+                                                                        </span>
+                                                                    <?php endif; ?>
+                                                                </div>
+                                                            </td>
                                       
                                                         </tr>
                                                     <?php endforeach; ?>
@@ -147,7 +247,9 @@ $productorController = new ProductorController();
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script>
-        
+        document.addEventListener('DOMContentLoaded', function () {
+            filtrarDocumentos();
+        });
 
         </script>
 
