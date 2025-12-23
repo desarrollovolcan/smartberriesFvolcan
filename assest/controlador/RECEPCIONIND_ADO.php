@@ -712,7 +712,7 @@ class RECEPCIONIND_ADO
     {
         try {
 
-            $datos = $this->conexion->prepare("SELECT *  ,
+            $datos = $this->conexion->prepare("SELECT DISTINCT FRECIND.*  ,
                                                     FRECIND.FECHA_GUIA_RECEPCION AS 'FECHA_GUIA',
                                                     FRECIND.FECHA_RECEPCION AS 'FECHA',   
                                                     WEEK(FRECIND.FECHA_RECEPCION,3) AS 'SEMANA', 
