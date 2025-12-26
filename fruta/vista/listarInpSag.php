@@ -273,7 +273,7 @@ if ($_POST) {
 
             $remitente = 'informevolcan@gocreative.cl';
             $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
             $hostSMTP = 'mail.gocreative.cl';
             $puertoSMTP = 465;
 
@@ -315,7 +315,7 @@ if ($_POST) {
 
             $remitente = 'informevolcan@gocreative.cl';
             $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
             $hostSMTP = 'mail.gocreative.cl';
             $puertoSMTP = 465;
 
@@ -355,7 +355,7 @@ if ($_POST) {
 
             $remitente = 'informevolcan@gocreative.cl';
             $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
             $hostSMTP = 'mail.gocreative.cl';
             $puertoSMTP = 465;
 
@@ -396,7 +396,7 @@ if ($_POST) {
 
             $remitente = 'informevolcan@gocreative.cl';
             $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
+            $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
             $hostSMTP = 'mail.gocreative.cl';
             $puertoSMTP = 465;
 
