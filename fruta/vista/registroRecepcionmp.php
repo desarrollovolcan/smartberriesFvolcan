@@ -326,7 +326,11 @@ if (isset($id_dato) && isset($accion_dato)) {
             $TEMPORADA = "" . $r['ID_TEMPORADA'];
             $ESTADO = "" . $r['ESTADO'];
             $DIFERENCIAKILOS = $KILOSBRUTORECEPCION - $TOTALGUIA;
-            $PORCENTAJEDIFERENCIA =  Round((($KILOSBRUTORECEPCION * 100) / $TOTALGUIA) - 100, 2);
+            if ((float) $TOTALGUIA === 0.0) {
+                $PORCENTAJEDIFERENCIA = 0;
+            } else {
+                $PORCENTAJEDIFERENCIA = Round((($KILOSBRUTORECEPCION * 100) / $TOTALGUIA) - 100, 2);
+            }
         endforeach;
     }
 
