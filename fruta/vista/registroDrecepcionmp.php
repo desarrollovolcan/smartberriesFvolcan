@@ -1133,10 +1133,10 @@ if ($_POST) {
                     ($kilosNetosFolioLiberado ? "\r\n - Kilos netos: " . $kilosNetosFolioLiberado : '');
                 $destinatariosLiberacion = ['eisla@fvolcan.cl', 'maperez@fvolcan.cl'];
                 $asuntoLiberacion = 'Folio liberado por segunda vez';
-                $remitente = 'informevolcan@gocreative.cl';
-                $usuarioSMTP = 'informevolcan@gocreative.cl';
-                $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-                $hostSMTP = 'mail.gocreative.cl';
+                $remitente = 'informes@volcanfoods.cl';
+                $usuarioSMTP = 'informes@volcanfoods.cl';
+                $contrasenaSMTP = '1z=EWfu0026k';
+                $hostSMTP = 'mail.volcanfoods.cl';
                 $puertoSMTP = 465;
 
                 [$envioLiberacionOk, $errorEnvioLiberacion] = enviarCorreoSMTP($destinatariosLiberacion, $asuntoLiberacion, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
