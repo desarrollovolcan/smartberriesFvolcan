@@ -177,7 +177,6 @@ include_once "../../assest/config/datosUrLP.php";
                                             </thead>
                                             <tbody>
 
-                                            <?php $FECHAANTERIOR = date('Y-m-d', strtotime('-1 day')); ?>
                                             <?php foreach ($ARRAYEMPRESAPRODUCTOR as $a) : ?>
                                                 <?php 
                                                     if ( $TEMPORADAS) {
@@ -185,14 +184,6 @@ include_once "../../assest/config/datosUrLP.php";
                                                     }    
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
-                                                    <?php
-                                                        if ($r['ESTADO'] != "0") {
-                                                            continue;
-                                                        }
-                                                        if (date('Y-m-d', strtotime($r['FECHA'])) > $FECHAANTERIOR) {
-                                                            continue;
-                                                        }
-                                                    ?>
                                                     <?php   
                                                             if ($r['TRECEPCION'] == "1") {
                                                                 $TRECEPCION = "Desde Productor ";

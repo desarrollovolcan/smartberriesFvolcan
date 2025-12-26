@@ -301,7 +301,7 @@ if (isset($_REQUEST['DESHABILITAR'])) {
 
         $remitente = 'informevolcan@gocreative.cl';
         $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
+        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
         $hostSMTP = 'mail.gocreative.cl';
         $puertoSMTP = 465;
 
@@ -350,7 +350,7 @@ if (isset($_REQUEST['SOLICITAR'])) {
 
         $remitente = 'informevolcan@gocreative.cl';
         $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
+        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
         $hostSMTP = 'mail.gocreative.cl';
         $puertoSMTP = 465;
 
@@ -427,7 +427,7 @@ if (isset($_REQUEST['CAMBIAR'])) {
 
         $remitente = 'informevolcan@gocreative.cl';
         $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = '.WvoC7R5JYU^QCqP';
+        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
         $hostSMTP = 'mail.gocreative.cl';
         $puertoSMTP = 465;
 
