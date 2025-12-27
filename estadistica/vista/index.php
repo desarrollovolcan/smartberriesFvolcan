@@ -3,10 +3,14 @@ include_once "../../assest/config/validarUsuarioOpera.php";
 
 //LLAMADA ARCHIVOS NECESARIOS PARA LAS OPERACIONES
 include_once "../../assest/controlador/CONSULTA_ADO.php";
+include_once "../../assest/controlador/EMPRESA_ADO.php";
+include_once "../../assest/controlador/PLANTA_ADO.php";
 
 
 //INICIALIZAR CONTROLADOR
 $CONSULTA_ADO =  NEW CONSULTA_ADO;
+$EMPRESA_ADO = new EMPRESA_ADO();
+$PLANTA_ADO = new PLANTA_ADO();
 //INCIALIZAR VARIBALES A OCUPAR PARA LA FUNCIONALIDAD
 
 
