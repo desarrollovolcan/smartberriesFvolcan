@@ -762,14 +762,19 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             } else if ($ARRYADESPACHOEX) {
                                                                 $TDESPACHO = "Exportación";
                                                                 $CSGCSPDESTINO="No Aplica";
-                                                                $NUMERODESPACHO = $ARRYADESPACHOEX[0]["NUMERO_DESPACHOEX"];
-                                                                $NUMEROGUIADESPACHO = $ARRYADESPACHOEX[0]["NUMERO_GUIA_DESPACHOEX"];
-                                                                $FECHADESPACHO = $ARRYADESPACHOEX[0]["FECHA"];
-                                                                $ARRAYDFINAL = obtenerDesdeCache($ARRYADESPACHOEX[0]['ID_DFINAL'], $DFINAL_CACHE, function ($id) use ($DFINAL_ADO) {
-                                                                    return $DFINAL_ADO->verDfinal($id);
-                                                                });
-                                                                if ($ARRAYDFINAL) {
-                                                                    $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
+                                                                $NUMERODESPACHO = $ARRYADESPACHOEX[0]["NUMERO_DESPACHOEX"] ?? "Sin Datos";
+                                                                $NUMEROGUIADESPACHO = $ARRYADESPACHOEX[0]["NUMERO_GUIA_DESPACHOEX"] ?? "Sin Datos";
+                                                                $FECHADESPACHO = $ARRYADESPACHOEX[0]["FECHA"] ?? "";
+                                                                $IDDFINAL = $ARRYADESPACHOEX[0]['ID_DFINAL'] ?? null;
+                                                                if ($IDDFINAL) {
+                                                                    $ARRAYDFINAL = obtenerDesdeCache($IDDFINAL, $DFINAL_CACHE, function ($id) use ($DFINAL_ADO) {
+                                                                        return $DFINAL_ADO->verDfinal($id);
+                                                                    });
+                                                                    if ($ARRAYDFINAL) {
+                                                                        $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
+                                                                    } else {
+                                                                        $DESTINO = "Sin Datos";
+                                                                    }
                                                                 } else {
                                                                     $DESTINO = "Sin Datos";
                                                                 }
