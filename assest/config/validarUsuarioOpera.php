@@ -82,10 +82,10 @@
             $PESTAPRODUCTOR="";   
         }
         
-        if (isset($_SESSION["ID_TEMPORADA"], $_SESSION["ID_ESPECIE"])) {
+        if (isset($_SESSION["ID_TEMPORADA"])) {
             $TEMPORADAS  = $_SESSION["ID_TEMPORADA"];  
             $ESPECIE  = $_SESSION["ID_ESPECIE"];   
-            if($TEMPORADAS=="" || $ESPECIE==""){
+            if($TEMPORADAS==""){
                 echo "<script type='text/javascript'> location.href ='iniciarSessionSeleccion.php';</script>";
             }
         }  else {
@@ -101,3 +101,4 @@
         session_destroy();
         header('Location: iniciarSession.php');
     } 
+
