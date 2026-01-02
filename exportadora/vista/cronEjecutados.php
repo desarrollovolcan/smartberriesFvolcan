@@ -269,14 +269,6 @@ if (isset($_GET['estado_cron_pt'])) {
         });
     </script>
     <script>
-        const estadoInicial = {
-            timestamp: <?php echo json_encode($timestampProxima); ?>,
-            hora: <?php echo json_encode($CONFIG_ENVIO['hora'] ?? ''); ?>,
-            dias: <?php echo json_encode($diasSeleccionados); ?>,
-            habilitado: <?php echo json_encode($CONFIG_ENVIO['habilitado']); ?>
-        };
-        let ultimoEstado = estadoInicial;
-
         function aplicarEstadoCron(data) {
             const proxima = document.getElementById('proxima-ejecucion');
             const hora = document.getElementById('cron-hora');
@@ -310,28 +302,12 @@ if (isset($_GET['estado_cron_pt'])) {
             }
         }
 
-        function estadoCambio(data) {
-            const dias = data.dias || [];
-            return data.timestamp !== ultimoEstado.timestamp ||
-                (data.hora || '') !== ultimoEstado.hora ||
-                JSON.stringify(dias) !== JSON.stringify(ultimoEstado.dias) ||
-                !!data.habilitado !== !!ultimoEstado.habilitado;
-        }
-
         function verificarActualizacionCron() {
             fetch('cronEjecutados.php?estado_cron_pt=1', { cache: 'no-store' })
                 .then((response) => response.json())
                 .then((data) => {
-                    if (estadoCambio(data)) {
-                        ultimoEstado = {
-                            timestamp: data.timestamp || null,
-                            hora: data.hora || '',
-                            dias: data.dias || [],
-                            habilitado: !!data.habilitado
-                        };
-                        aplicarEstadoCron(data);
-                        actualizarCuentaRegresiva();
-                    }
+                    aplicarEstadoCron(data);
+                    actualizarCuentaRegresiva();
                 })
                 .catch(() => {
                     // No interrumpir la vista si no hay respuesta.
