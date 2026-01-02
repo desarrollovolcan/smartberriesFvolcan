@@ -216,6 +216,7 @@ $force = array_key_exists('force', $options);
 
 $config = [
     'habilitado' => true,
+    'fecha_inicio' => '',
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -232,12 +233,23 @@ if (file_exists($CONFIG_PATH)) {
 
 $config['habilitado'] = isset($config['habilitado']) ? (bool) $config['habilitado'] : true;
 $horaConfig = trim((string)($config['hora'] ?? ''));
+$fechaInicioConfig = trim((string)($config['fecha_inicio'] ?? ''));
 $diaSemana = (int)date('N'); //1 lunes
 $desdeInclude = defined('CRON_FOLIOS_INCLUDE_ONLY');
 if (!$desdeInclude) {
     if (empty($config['habilitado'])) {
         echo "Cron PT deshabilitado. Abortando.\n";
         exit(0);
+    }
+    if ($fechaInicioConfig) {
+        $fechaInicio = DateTime::createFromFormat('Y-m-d', $fechaInicioConfig);
+        if ($fechaInicio && !$force) {
+            $fechaActual = new DateTime('today');
+            if ($fechaActual < $fechaInicio) {
+                echo "Cron PT aún no inicia. Fecha inicio: {$fechaInicioConfig}.\n";
+                exit(0);
+            }
+        }
     }
     if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
         echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
@@ -281,7 +293,8 @@ if (!$temporadaId) {
 
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
-if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
+$lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
+if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
@@ -335,7 +348,7 @@ foreach ($empresas as $empresa) {
 }
 
 if ($enviosRealizados > 0 && !$desdeInclude) {
-    @file_put_contents($lockFile, $hoy . ' ' . $horaConfig);
+    @file_put_contents($lockFile, $lockToken);
 }
 
 echo "Proceso finalizado. Envios: {$enviosRealizados}\n";
