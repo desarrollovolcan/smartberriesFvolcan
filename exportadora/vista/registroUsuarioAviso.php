@@ -521,6 +521,9 @@ if ($_POST) {
                                         <li class="nav-item">
                                             <a class="nav-link" data-toggle="tab" href="#tab-correos" role="tab">Correos destino</a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-toggle="tab" href="#tab-cron" role="tab">Configuración Cron PT</a>
+                                        </li>
                                     </ul>
                                     <div class="tab-content">
                                         <div class="tab-pane active" id="tab-horario" role="tabpanel">
@@ -597,6 +600,20 @@ if ($_POST) {
                                                 </select>
                                                 <small class="form-text text-muted">Selecciona usuarios para agregar sus correos automáticamente.</small>
                                             </div>
+                                        </div>
+                                        <div class="tab-pane" id="tab-cron" role="tabpanel">
+                                            <p class="text-justify">
+                                                Usa este sub menú para definir la configuración de envío automático de existencias PT.
+                                                La hora, los días y los destinatarios (correos, usuarios, empresas y plantas) se guardan en este navegador
+                                                y serán utilizados por el proceso cron para generar los avisos diarios.
+                                            </p>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Hora de envío:</strong> se usa como referencia para el disparo diario.</li>
+                                                <li><strong>Días de envío:</strong> solo se enviará en los días seleccionados.</li>
+                                                <li><strong>Correos y usuarios:</strong> se combinan como lista de destinatarios.</li>
+                                                <li><strong>Empresas y plantas:</strong> determinan los orígenes incluidos en los avisos.</li>
+                                            </ul>
+                                            <p class="mb-0 text-muted">Guarda los cambios en esta sección con el botón de guardar configuración.</p>
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-15">
