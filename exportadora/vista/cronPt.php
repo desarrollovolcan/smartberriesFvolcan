@@ -13,6 +13,7 @@ $PLANTA_ADO = new PLANTA_ADO();
 $USUARIO_ADO = new USUARIO_ADO();
 
 $CONFIG_ENVIO = [
+    'habilitado' => true,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -31,11 +32,13 @@ if (file_exists($RUTA_CONFIG_CRON_PT)) {
         $CONFIG_ENVIO = array_merge($CONFIG_ENVIO, $dataConfig);
     }
 }
+$CONFIG_ENVIO['habilitado'] = isset($CONFIG_ENVIO['habilitado']) ? (bool) $CONFIG_ENVIO['habilitado'] : true;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     $configRecibida = json_decode($_POST['CONFIG_CRON_PT'], true);
     if (is_array($configRecibida)) {
         $configLimpia = [
+            'habilitado' => isset($configRecibida['habilitado']) ? (bool) $configRecibida['habilitado'] : true,
             'hora' => $configRecibida['hora'] ?? '',
             'dias' => isset($configRecibida['dias']) && is_array($configRecibida['dias']) ? array_values(array_unique($configRecibida['dias'])) : [],
             'correos' => $configRecibida['correos'] ?? '',
@@ -84,6 +87,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     <meta name="description" content="">
     <meta name="author" content="">
     <?php include_once "../../assest/config/urlHead.php"; ?>
+    <style>
+        .cron-pt-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e7ebf3;
+        }
+        .cron-pt-header h4 {
+            font-weight: 700;
+            color: #1f2d3d;
+        }
+        .cron-pt-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #3f4b5b;
+        }
+        .cron-pt-helper {
+            font-size: 0.78rem;
+            color: #7a8899;
+        }
+    </style>
 </head>
 
 <body class="hold-transition light-skin fixed sidebar-mini theme-primary">
@@ -111,25 +134,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                 <section class="content">
                     <div class="row">
                         <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
-                            <div class="box">
-                                <div class="box-header with-border bg-success d-flex justify-content-between align-items-center">
-                                    <h4 class="box-title mb-0">Configuración Cron PT</h4>
-                                    <small class="text-muted">Horario, días, destinos y alcance</small>
-                                </div>
+                            <div class="box cron-pt-card">
                                 <div class="box-body">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-20 cron-pt-header">
+                                        <div>
+                                            <h4 class="mb-5">Configuración Cron PT</h4>
+                                            <small class="text-muted">Horario, días, destinos y alcance</small>
+                                        </div>
+                                        <div class="d-flex align-items-center mt-10 mt-md-0">
+                                            <span id="estado-cron-pt" class="badge badge-pill badge-success mr-10">Habilitado</span>
+                                            <button type="button" class="btn btn-sm" id="TOGGLE_CRON_PT"></button>
+                                        </div>
+                                    </div>
                                     <?php if (!empty($MENSAJE_CONFIG)) { ?>
                                         <div class="alert alert-success py-5 px-10">
                                             <?php echo $MENSAJE_CONFIG; ?>
                                         </div>
                                     <?php } ?>
                                     <div class="row">
-                                        <div class="col-md-3 col-sm-12">
+                                        <div class="col-md-4 col-sm-12">
                                             <div class="form-group mb-10">
-                                                <label class="font-weight-600">Hora de envío</label>
+                                                <label class="cron-pt-section-title">Hora de envío</label>
                                                 <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
                                             </div>
                                             <div class="form-group mb-0">
-                                                <label class="font-weight-600">Días de envío</label>
+                                                <label class="cron-pt-section-title">Días de envío</label>
                                                 <div class="d-flex flex-wrap">
                                                     <?php
                                                     $diasSemana = [
@@ -149,15 +178,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                                     }
                                                     ?>
                                                 </div>
+                                                <div class="cron-pt-helper mt-5">Selecciona los días exactos de ejecución.</div>
                                             </div>
                                         </div>
-                                        <div class="col-md-3 col-sm-12">
+                                        <div class="col-md-4 col-sm-12">
                                             <div class="form-group">
-                                                <label class="font-weight-600">Correos (separados por coma)</label>
+                                                <label class="cron-pt-section-title">Correos (separados por coma)</label>
                                                 <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="4" placeholder="correo1@dominio.cl, correo2@dominio.cl"></textarea>
                                             </div>
                                             <div class="form-group mb-0">
-                                                <label class="font-weight-600">Usuarios</label>
+                                                <label class="cron-pt-section-title">Usuarios</label>
                                                 <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
                                                         <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
@@ -167,9 +197,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-3 col-sm-12">
+                                        <div class="col-md-4 col-sm-12">
                                             <div class="form-group">
-                                                <label class="font-weight-600">Empresas</label>
+                                                <label class="cron-pt-section-title">Empresas</label>
                                                 <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
                                                         <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
@@ -178,11 +208,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                                     <?php } ?>
                                                 </select>
                                             </div>
-                                            <small class="text-muted">Selecciona las empresas incluidas.</small>
-                                        </div>
-                                        <div class="col-md-3 col-sm-12">
                                             <div class="form-group">
-                                                <label class="font-weight-600">Plantas</label>
+                                                <label class="cron-pt-section-title">Plantas</label>
                                                 <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYPLANTAS as $planta) { ?>
                                                         <option value="<?php echo $planta['ID_PLANTA']; ?>">
@@ -191,10 +218,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                                     <?php } ?>
                                                 </select>
                                             </div>
-                                            <small class="text-muted">Selecciona las plantas incluidas.</small>
+                                            <div class="cron-pt-helper">Delimita el alcance por empresa y planta.</div>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-10">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-20">
                                         <div id="alerta-config" class="text-success" style="display:none;"></div>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-success btn-sm" id="GUARDAR_CONFIG_ENVIO">
@@ -238,11 +265,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
             const formCron = document.getElementById('form-config-cron-pt');
             const inputCron = document.getElementById('CONFIG_CRON_PT');
             const inputTest = document.getElementById('TEST_ENVIO_CRON');
+            const estadoBadge = document.getElementById('estado-cron-pt');
+            const toggleBtn = document.getElementById('TOGGLE_CRON_PT');
             const diasCheckboxes = Array.from(document.querySelectorAll('[id^="DIA_"]'));
+            let cronHabilitado = true;
+
+            const actualizarEstado = (habilitado) => {
+                cronHabilitado = !!habilitado;
+                if (estadoBadge) {
+                    estadoBadge.textContent = cronHabilitado ? 'Habilitado' : 'Deshabilitado';
+                    estadoBadge.classList.toggle('badge-success', cronHabilitado);
+                    estadoBadge.classList.toggle('badge-danger', !cronHabilitado);
+                }
+                if (toggleBtn) {
+                    toggleBtn.textContent = cronHabilitado ? 'Deshabilitar cron' : 'Habilitar cron';
+                    toggleBtn.classList.toggle('btn-outline-danger', cronHabilitado);
+                    toggleBtn.classList.toggle('btn-danger', !cronHabilitado);
+                }
+            };
 
             const cargarConfig = () => {
                 try {
                     const datos = JSON.parse(localStorage.getItem(keyConfig) || '{}');
+                    if (typeof datos.habilitado !== 'undefined') {
+                        actualizarEstado(!!datos.habilitado);
+                    }
                     if (datos.hora) {
                         horaInput.value = datos.hora;
                     }
@@ -275,40 +322,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                 alerta.style.display = 'none';
                 alerta.classList.remove('text-danger', 'text-success');
 
-                if (!hora) {
-                    alerta.style.display = 'block';
-                    alerta.classList.add('text-danger');
-                    alerta.textContent = 'Debe definir una hora de envío.';
-                    return;
-                }
-                if (dias.length === 0) {
-                    alerta.style.display = 'block';
-                    alerta.classList.add('text-danger');
-                    alerta.textContent = 'Debe seleccionar al menos un día.';
-                    return;
-                }
-                const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                const invalidos = correos.filter(c => !formatoCorreo.test(c));
-                if (invalidos.length > 0) {
-                    alerta.style.display = 'block';
-                    alerta.classList.add('text-danger');
-                    alerta.textContent = 'Correo inválido: ' + invalidos.join(', ');
-                    return;
-                }
+                if (cronHabilitado || probar) {
+                    if (!hora) {
+                        alerta.style.display = 'block';
+                        alerta.classList.add('text-danger');
+                        alerta.textContent = 'Debe definir una hora de envío.';
+                        return;
+                    }
+                    if (dias.length === 0) {
+                        alerta.style.display = 'block';
+                        alerta.classList.add('text-danger');
+                        alerta.textContent = 'Debe seleccionar al menos un día.';
+                        return;
+                    }
+                    const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const invalidos = correos.filter(c => !formatoCorreo.test(c));
+                    if (invalidos.length > 0) {
+                        alerta.style.display = 'block';
+                        alerta.classList.add('text-danger');
+                        alerta.textContent = 'Correo inválido: ' + invalidos.join(', ');
+                        return;
+                    }
 
-                if (empresas.length === 0) {
-                    alerta.style.display = 'block';
-                    alerta.classList.add('text-danger');
-                    alerta.textContent = 'Debe seleccionar al menos una empresa.';
-                    return;
+                    if (empresas.length === 0) {
+                        alerta.style.display = 'block';
+                        alerta.classList.add('text-danger');
+                        alerta.textContent = 'Debe seleccionar al menos una empresa.';
+                        return;
+                    }
+                    if (plantas.length === 0) {
+                        alerta.style.display = 'block';
+                        alerta.classList.add('text-danger');
+                        alerta.textContent = 'Debe seleccionar al menos una planta.';
+                        return;
+                    }
                 }
-                if (plantas.length === 0) {
-                    alerta.style.display = 'block';
-                    alerta.classList.add('text-danger');
-                    alerta.textContent = 'Debe seleccionar al menos una planta.';
-                    return;
-                }
-                const datos = { hora, dias, correos: correos.join(', '), empresas, plantas, usuarios };
+                const datos = { habilitado: cronHabilitado, hora, dias, correos: correos.join(', '), empresas, plantas, usuarios };
                 localStorage.setItem(keyConfig, JSON.stringify(datos));
                 if (formCron && inputCron) {
                     inputCron.value = JSON.stringify(datos);
@@ -319,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                 }
                 alerta.style.display = 'block';
                 alerta.classList.add('text-success');
-                alerta.textContent = 'Configuración guardada para uso automático.';
+                alerta.textContent = cronHabilitado ? 'Configuración guardada para uso automático.' : 'Cron PT deshabilitado. La configuración quedó guardada.';
             };
 
             if (guardarBtn) {
@@ -328,7 +377,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
             if (probarBtn) {
                 probarBtn.addEventListener('click', () => guardarConfig(true));
             }
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    actualizarEstado(!cronHabilitado);
+                });
+            }
             cargarConfig();
+            actualizarEstado(cronHabilitado);
         })();
     </script>
 </body>
