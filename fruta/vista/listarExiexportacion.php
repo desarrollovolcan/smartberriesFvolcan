@@ -104,6 +104,52 @@ $CACHEEMPRESA = [];
 $CACHEPLANTA = [];
 $CACHETEMPORADA = [];
 $CACHEICARGA = [];
+date_default_timezone_set('America/Santiago');
+$RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
+$CRON_PT_CONFIG = [
+    'habilitado' => true,
+    'actualizado_en' => null,
+    'hora' => '',
+    'dias' => [],
+    'correos' => '',
+    'empresas' => [],
+    'plantas' => [],
+    'usuarios' => []
+];
+if (file_exists($RUTA_CONFIG_CRON_PT)) {
+    $dataCron = json_decode(file_get_contents($RUTA_CONFIG_CRON_PT), true);
+    if (is_array($dataCron)) {
+        $CRON_PT_CONFIG = array_merge($CRON_PT_CONFIG, $dataCron);
+    }
+}
+$CRON_PT_CONFIG['habilitado'] = isset($CRON_PT_CONFIG['habilitado']) ? (bool) $CRON_PT_CONFIG['habilitado'] : true;
+$CRON_PT_ACTUALIZADO_EN = isset($CRON_PT_CONFIG['actualizado_en']) ? (int) $CRON_PT_CONFIG['actualizado_en'] : 0;
+$CRON_PT_HORA = trim((string) ($CRON_PT_CONFIG['hora'] ?? ''));
+$CRON_PT_DIAS = isset($CRON_PT_CONFIG['dias']) && is_array($CRON_PT_CONFIG['dias']) ? array_values(array_unique($CRON_PT_CONFIG['dias'])) : [];
+$CRON_PT_CONFIG_VALIDO = $CRON_PT_HORA !== '' && !empty($CRON_PT_DIAS);
+$CRON_PT_HABILITADO = $CRON_PT_CONFIG['habilitado'];
+$CRON_PT_EN_EJECUCION = $CRON_PT_HABILITADO && $CRON_PT_CONFIG_VALIDO && !empty($_SESSION['CRON_PT_INICIADO']);
+$DIAS_SEMANA_CRON = [
+    '1' => 'Lunes',
+    '2' => 'Martes',
+    '3' => 'Miércoles',
+    '4' => 'Jueves',
+    '5' => 'Viernes',
+    '6' => 'Sábado',
+    '7' => 'Domingo'
+];
+$CRON_PT_DIAS_TEXTO = array_map(function ($dia) use ($DIAS_SEMANA_CRON) {
+    return $DIAS_SEMANA_CRON[(string) $dia] ?? $dia;
+}, $CRON_PT_DIAS);
+
+if ($CRON_PT_ACTUALIZADO_EN > 0) {
+    $ultimoConfigTs = isset($_SESSION['ALERTA_FOLIOS_CONFIG_TS']) ? (int) $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] : 0;
+    if ($CRON_PT_ACTUALIZADO_EN > $ultimoConfigTs) {
+        unset($_SESSION['ALERTA_FOLIOS_FECHA']);
+        $ALERTA_FOLIOS_ENVIADA_HOY = false;
+        $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $CRON_PT_ACTUALIZADO_EN;
+    }
+}
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
@@ -118,6 +164,14 @@ function obtenerDestinatariosAutorizacion($correoSolicitante)
     }
 
     return array_values(array_filter(array_unique($correosBase)));
+}
+
+function obtenerDestinatariosCronPt($config)
+{
+    $destinatariosManual = array_filter(array_map('trim', explode(',', $config['correos'] ?? '')));
+    $destinatariosUsuarios = array_filter(array_map('trim', $config['usuarios'] ?? []));
+    $destinatarios = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
+    return $destinatarios;
 }
 
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
@@ -223,31 +277,43 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS']) && !$ALERTA_FOLIOS_ENVIADA_HOY) {
-    $alertaRecibida = json_decode($_POST['DATA_ALERTA'] ?? '[]', true) ?: [];
-    if (empty($alertaRecibida)) {
-        $ALERTAERROR = "No hay folios para enviar en la alerta automática.";
+    if (!$CRON_PT_HABILITADO || !$CRON_PT_CONFIG_VALIDO) {
+        $ALERTAERROR = "Cron PT deshabilitado o con configuración incompleta.";
+    } elseif (!in_array((string) date('N'), array_map('strval', $CRON_PT_DIAS), true)) {
+        $ALERTAERROR = "Hoy no está configurado como día de envío para Cron PT.";
     } else {
-        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO ?? '');
-        $remitente = 'informes@volcanfoods.cl';
-        $usuarioSMTP = 'informes@volcanfoods.cl';
-        $contrasenaSMTP = '1z=EWfu0026k';
-        $hostSMTP = 'mail.volcanfoods.cl';
-        $puertoSMTP = 465;
-
-        $lineas = array_map(function ($item) {
-            return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']}";
-        }, $alertaRecibida);
-
-        $mensaje = "Listado de folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas) . "\r\n\r\nEnviado automáticamente a las 12:55.";
-        $asunto = "Alerta diaria folios sin inspección SAG";
-
-        [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
-        if ($envioOk) {
-            $_SESSION['ALERTA_FOLIOS_FECHA'] = date('Y-m-d');
-            $ALERTA_FOLIOS_ENVIADA_HOY = true;
-            $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
+        $alertaRecibida = json_decode($_POST['DATA_ALERTA'] ?? '[]', true) ?: [];
+        if (empty($alertaRecibida)) {
+            $ALERTAERROR = "No hay folios para enviar en la alerta automática.";
         } else {
-            $ALERTAERROR = $errorEnvio ?: "No fue posible enviar la alerta automática.";
+            $destinatarios = obtenerDestinatariosCronPt($CRON_PT_CONFIG);
+            if (empty($destinatarios)) {
+                $ALERTAERROR = "No hay destinatarios configurados en Cron PT.";
+            } else {
+            $remitente = 'informes@volcanfoods.cl';
+            $usuarioSMTP = 'informes@volcanfoods.cl';
+            $contrasenaSMTP = '1z=EWfu0026k';
+            $hostSMTP = 'mail.volcanfoods.cl';
+            $puertoSMTP = 465;
+
+            $lineas = array_map(function ($item) {
+                return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']}";
+            }, $alertaRecibida);
+
+            $horaTexto = $CRON_PT_HORA !== '' ? $CRON_PT_HORA : 'hora configurada';
+            $mensaje = "Listado de folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas) . "\r\n\r\nEnviado automáticamente a las {$horaTexto}.";
+            $asunto = "Alerta diaria folios sin inspección SAG";
+
+            [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+            if ($envioOk) {
+                $_SESSION['ALERTA_FOLIOS_FECHA'] = date('Y-m-d');
+                $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $CRON_PT_ACTUALIZADO_EN;
+                $ALERTA_FOLIOS_ENVIADA_HOY = true;
+                $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
+            } else {
+                $ALERTAERROR = $errorEnvio ?: "No fue posible enviar la alerta automática.";
+            }
+            }
         }
     }
 }
@@ -325,21 +391,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                             <?php echo $ALERTAERROR; ?>
                         </div>
                     <?php } ?>
-                    <div class="alert alert-info" role="alert">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Envío automático 12:55:</strong>
-                                <?php if ($ALERTA_FOLIOS_ENVIADA_HOY) { ?>
-                                    <span>La alerta ya fue enviada hoy.</span>
-                                <?php } else { ?>
-                                    <span>Se enviará el listado de folios sin inspección.</span>
-                                <?php } ?>
-                            </div>
-                            <div>
-                                <span id="contador-alerta" class="badge badge-primary"></span>
-                            </div>
-                        </div>
-                    </div>
+                    <?php
+                    $MOSTRAR_CRON_PT_FOOTER = $CRON_PT_EN_EJECUCION;
+                    $CRON_PT_FOOTER_HORA = $CRON_PT_HORA;
+                    $CRON_PT_FOOTER_DIAS = $CRON_PT_DIAS_TEXTO;
+                    ?>
                     <!-- Main content -->
                     <section class="content">
                         <div class="box">
@@ -908,32 +964,60 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
         <script>
             (function(){
                 const form = document.getElementById('form-alerta-folios');
-                const contador = document.getElementById('contador-alerta');
-                const alertaEnviada = <?php echo $ALERTA_FOLIOS_ENVIADA_HOY ? 'true' : 'false'; ?>;
+                const contador = document.getElementById('cron-pt-footer-countdown');
+                const estado = document.getElementById('cron-pt-footer-status');
                 const hayFolios = <?php echo !empty($ALERTAFOLIOS) ? 'true' : 'false'; ?>;
-                if (!form || !contador || alertaEnviada || !hayFolios) {
+                const cronConfig = <?php echo json_encode([
+                    'habilitado' => $CRON_PT_HABILITADO,
+                    'hora' => $CRON_PT_HORA,
+                    'dias' => array_values($CRON_PT_DIAS)
+                ], JSON_UNESCAPED_UNICODE); ?>;
+
+                if (!form || !contador) {
                     if (contador) {
-                        contador.textContent = alertaEnviada ? 'Envío realizado' : 'Sin folios pendientes';
+                        contador.textContent = 'Sin datos';
                     }
                     return;
+                }
+                if (!cronConfig.habilitado || !cronConfig.hora || !Array.isArray(cronConfig.dias) || cronConfig.dias.length === 0) {
+                    if (contador) {
+                        contador.textContent = 'Cron PT sin horario';
+                    }
+                    return;
+                }
+                if (!hayFolios && estado) {
+                    estado.textContent = 'Sin folios pendientes';
+                } else if (estado) {
+                    estado.textContent = 'Próximo envío';
                 }
                 let envioEjecutado = false;
                 const calcularObjetivo = () => {
                     const ahora = new Date();
+                    const [hora, minuto] = cronConfig.hora.split(':').map(Number);
                     const objetivo = new Date();
-                    objetivo.setHours(12,55,0,0);
-                    if (objetivo <= ahora) {
+                    objetivo.setHours(hora, minuto, 0, 0);
+                    const diasPermitidos = cronConfig.dias.map(Number);
+                    for (let i = 0; i < 8; i++) {
+                        const diaSemana = objetivo.getDay() === 0 ? 7 : objetivo.getDay();
+                        if (diasPermitidos.includes(diaSemana) && objetivo > ahora) {
+                            return objetivo;
+                        }
                         objetivo.setDate(objetivo.getDate() + 1);
+                        objetivo.setHours(hora, minuto, 0, 0);
                     }
-                    return objetivo;
+                    return null;
                 };
                 let objetivo = calcularObjetivo();
+                if (!objetivo) {
+                    contador.textContent = 'Sin próxima ejecución';
+                    return;
+                }
                 const actualizar = () => {
                     const ahora = new Date();
                     const restante = objetivo - ahora;
-                    if (restante <= 0 && !envioEjecutado) {
+                    if (restante <= 0 && !envioEjecutado && hayFolios) {
                         envioEjecutado = true;
-                        contador.textContent = 'Enviando alerta...';
+                        contador.textContent = 'Enviando...';
                         form.submit();
                         return;
                     }
