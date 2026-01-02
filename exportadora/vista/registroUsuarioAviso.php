@@ -544,6 +544,11 @@ if ($_POST) {
                                     <small class="text-muted">Horario, días, destinos y alcance</small>
                                 </div>
                                 <div class="box-body">
+                                    <?php if(!empty($MENSAJE_CONFIG)){ ?>
+                                        <div class="alert alert-success py-5 px-10">
+                                            <?php echo $MENSAJE_CONFIG; ?>
+                                        </div>
+                                    <?php } ?>
                                     <div class="row">
                                         <div class="col-md-3 col-sm-12">
                                             <div class="form-group mb-10">
@@ -634,11 +639,18 @@ if ($_POST) {
         </div>
         <?php include_once "../../assest/config/footer.php"; ?>
         <?php include_once "../../assest/config/menuExtraExpo.php"; ?>
+        <form id="form-config-cron-pt" method="POST" style="display:none;">
+            <input type="hidden" name="CONFIG_CRON_PT" id="CONFIG_CRON_PT">
+        </form>
     </div>
     <?php include_once "../../assest/config/urlBase.php"; ?>
     <script>
         (function(){
             const keyConfig = 'config_envio_aviso';
+            const servidorConfig = <?php echo json_encode($CONFIG_ENVIO, JSON_UNESCAPED_UNICODE); ?>;
+            if(!localStorage.getItem(keyConfig)){
+                localStorage.setItem(keyConfig, JSON.stringify(servidorConfig));
+            }
             const horaInput = document.getElementById('HORA_ENVIO');
             const correosInput = document.getElementById('CORREOS_DESTINO');
             const empresasSelect = document.getElementById('EMPRESAS_DESTINO');
@@ -646,6 +658,8 @@ if ($_POST) {
             const usuariosSelect = document.getElementById('USUARIOS_DESTINO');
             const guardarBtn = document.getElementById('GUARDAR_CONFIG_ENVIO');
             const alerta = document.getElementById('alerta-config');
+            const formCron = document.getElementById('form-config-cron-pt');
+            const inputCron = document.getElementById('CONFIG_CRON_PT');
             const diasCheckboxes = Array.from(document.querySelectorAll('[id^="DIA_"]'));
 
             const cargarConfig = () => {
@@ -715,9 +729,13 @@ if ($_POST) {
                 const listaUsuarios = usuarios;
                 const datos = {hora, dias, correos: correos.join(', '), empresas, plantas, usuarios: listaUsuarios};
                 localStorage.setItem(keyConfig, JSON.stringify(datos));
+                if(formCron && inputCron){
+                    inputCron.value = JSON.stringify(datos);
+                    formCron.submit();
+                }
                 alerta.style.display = 'block';
                 alerta.classList.add('text-success');
-                alerta.textContent = 'Configuración guardada en este navegador.';
+                alerta.textContent = 'Configuración guardada para uso automático.';
             };
 
             if(guardarBtn){

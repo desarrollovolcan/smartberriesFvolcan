@@ -763,16 +763,15 @@ $ARRAYPLANTACAMBIAR = $PLANTA_ADO->listarPlantaPropiaCBX();
           <li class="treeview">
             <a href="#">
               <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/miscellaneous.svg" class="svg-icon" alt="">
-              <span>Avisos</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-right pull-right"></i>
-              </span>
+              <span>Registro Aviso</span>
             </a>
-            <ul class="treeview-menu">
-              <li><a href="registroUsuarioAviso.php">Avisos</a></li>
-              <li><a href="registroUsuarioAviso.php#tab-cron">Configuración Cron PT</a></li>
-            </ul>
-          </li> 
+          </li>
+          <li>
+            <a href="registroUsuarioAviso.php#tab-cron">
+              <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/miscellaneous.svg" class="svg-icon" alt="">
+              <span>Configuración Cron PT</span>
+            </a>
+          </li>
         <?php  } ?>
       <?php  } ?>
     </ul>

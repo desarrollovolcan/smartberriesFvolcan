@@ -19,6 +19,7 @@ require_once __DIR__ . '/../assest/controlador/PLANTA_ADO.php';
 require_once __DIR__ . '/../assest/controlador/TEMPORADA_ADO.php';
 
 date_default_timezone_set('America/Santiago');
+$CONFIG_PATH = __DIR__ . '/../../data/config_cron_pt.json';
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
@@ -206,10 +207,47 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
 }
 
 $options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::']);
-$empresaFiltro = isset($options['empresa']) ? (int) $options['empresa'] : null;
-$plantaFiltro = isset($options['planta']) ? (int) $options['planta'] : null;
 $temporadaManual = isset($options['temporada']) ? (int) $options['temporada'] : null;
 $force = array_key_exists('force', $options);
+
+$config = [
+    'hora' => '',
+    'dias' => [],
+    'correos' => '',
+    'empresas' => [],
+    'plantas' => [],
+    'usuarios' => []
+];
+if (file_exists($CONFIG_PATH)) {
+    $cfg = json_decode(file_get_contents($CONFIG_PATH), true);
+    if (is_array($cfg)) {
+        $config = array_merge($config, $cfg);
+    }
+}
+
+$horaConfig = trim((string)($config['hora'] ?? ''));
+$diaSemana = (int)date('N'); //1 lunes
+if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
+    echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
+    exit(0);
+}
+
+$horaActual = date('H:i');
+if (!$force && $horaActual !== $horaConfig) {
+    echo "Hora actual {$horaActual} distinta a configurada {$horaConfig}. Abortando.\n";
+    exit(0);
+}
+
+$empresaFiltroLista = array_map('intval', $config['empresas'] ?? []);
+$plantaFiltroLista = array_map('intval', $config['plantas'] ?? []);
+
+$destinatariosManual = array_filter(array_map('trim', explode(',', $config['correos'] ?? '')));
+$destinatariosUsuarios = array_filter(array_map('trim', $config['usuarios'] ?? []));
+$destinatarios = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
+if (empty($destinatarios)) {
+    echo "Sin destinatarios configurados.\n";
+    exit(0);
+}
 
 $EXIEXPORTACION_ADO = new EXIEXPORTACION_ADO();
 $EEXPORTACION_ADO = new EEXPORTACION_ADO();
@@ -228,22 +266,21 @@ if (!$temporadaId) {
 
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
-if (!$force && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy) {
-    echo "Alerta ya enviada hoy ({$hoy}). Use --force para reenviar.\n";
+if (!$force && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
+    echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
 
 $empresas = $EMPRESA_ADO->listarEmpresaCBX() ?: [];
 $plantas = $PLANTA_ADO->listarPlantaCBX() ?: [];
-$destinatariosBase = obtenerDestinatariosAutorizacion('');
 $enviosRealizados = 0;
 
 foreach ($empresas as $empresa) {
-    if ($empresaFiltro && (int)$empresa['ID_EMPRESA'] !== $empresaFiltro) {
+    if (!empty($empresaFiltroLista) && !in_array((int)$empresa['ID_EMPRESA'], $empresaFiltroLista, true)) {
         continue;
     }
     foreach ($plantas as $planta) {
-        if ($plantaFiltro && (int)$planta['ID_PLANTA'] !== $plantaFiltro) {
+        if (!empty($plantaFiltroLista) && !in_array((int)$planta['ID_PLANTA'], $plantaFiltroLista, true)) {
             continue;
         }
 
@@ -272,7 +309,7 @@ foreach ($empresas as $empresa) {
         $mensaje .= "Folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas);
 
         $asunto = "Alerta folios sin inspección - {$empresa['NOMBRE_EMPRESA']} / {$planta['NOMBRE_PLANTA']}";
-        [$ok, $error] = enviarCorreoSMTP($destinatariosBase, $asunto, $mensaje, 'informes@volcanfoods.cl', 'informes@volcanfoods.cl', '1z=EWfu0026k', 'mail.volcanfoods.cl', 465);
+        [$ok, $error] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, 'informes@volcanfoods.cl', 'informes@volcanfoods.cl', '1z=EWfu0026k', 'mail.volcanfoods.cl', 465);
         if ($ok) {
             $enviosRealizados++;
             echo "Enviado: {$empresa['NOMBRE_EMPRESA']} / {$planta['NOMBRE_PLANTA']} (" . count($folios) . " folios)\n";
@@ -283,7 +320,7 @@ foreach ($empresas as $empresa) {
 }
 
 if ($enviosRealizados > 0) {
-    @file_put_contents($lockFile, $hoy);
+    @file_put_contents($lockFile, $hoy . ' ' . $horaConfig);
 }
 
 echo "Proceso finalizado. Envios: {$enviosRealizados}\n";
