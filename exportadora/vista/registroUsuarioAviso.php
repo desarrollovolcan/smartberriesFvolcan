@@ -88,10 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
             $destinatariosPrueba = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
 
             if (!empty($destinatariosPrueba)) {
-                require_once "../../assest/config/validarUsuarioExpo.php";
-                require_once '../../assest/controlador/EMPRESA_ADO.php';
-                require_once '../../assest/controlador/PLANTA_ADO.php';
-                require_once '../../fruta/cron/alertaFoliosExiexportacion.php';
+                define('CRON_FOLIOS_INCLUDE_ONLY', true);
+                require_once "../../fruta/cron/alertaFoliosExiexportacion.php";
                 $mensajePrueba = "Prueba de configuración Cron PT. Hora: {$configLimpia['hora']}, Días: ".implode(',', $configLimpia['dias']).".";
                 [$ok, $error] = enviarCorreoSMTP($destinatariosPrueba, "Prueba envío Cron PT", $mensajePrueba, 'informes@volcanfoods.cl', 'informes@volcanfoods.cl', '1z=EWfu0026k', 'mail.volcanfoods.cl', 465);
                 if ($ok) {

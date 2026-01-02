@@ -5,18 +5,19 @@
  *   php alertaFoliosExiexportacion.php --empresa=1 --planta=2 --temporada=5 --force
  */
 
-require_once __DIR__ . '/../assest/config/BDCONFIG.php';
-require_once __DIR__ . '/../assest/controlador/EXIEXPORTACION_ADO.php';
-require_once __DIR__ . '/../assest/controlador/EEXPORTACION_ADO.php';
-require_once __DIR__ . '/../assest/controlador/PRODUCTOR_ADO.php';
-require_once __DIR__ . '/../assest/controlador/VESPECIES_ADO.php';
-require_once __DIR__ . '/../assest/controlador/ESPECIES_ADO.php';
-require_once __DIR__ . '/../assest/controlador/TINPSAG_ADO.php';
-require_once __DIR__ . '/../assest/controlador/INPSAG_ADO.php';
-require_once __DIR__ . '/../assest/controlador/TMANEJO_ADO.php';
-require_once __DIR__ . '/../assest/controlador/EMPRESA_ADO.php';
-require_once __DIR__ . '/../assest/controlador/PLANTA_ADO.php';
-require_once __DIR__ . '/../assest/controlador/TEMPORADA_ADO.php';
+$BASE_PATH = dirname(__DIR__, 2);
+require_once $BASE_PATH . '/assest/config/BDCONFIG.php';
+require_once $BASE_PATH . '/assest/controlador/EXIEXPORTACION_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/EEXPORTACION_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/PRODUCTOR_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/VESPECIES_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/ESPECIES_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/TINPSAG_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/INPSAG_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/TMANEJO_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/EMPRESA_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/PLANTA_ADO.php';
+require_once $BASE_PATH . '/assest/controlador/TEMPORADA_ADO.php';
 
 date_default_timezone_set('America/Santiago');
 $CONFIG_PATH = __DIR__ . '/../../data/config_cron_pt.json';
@@ -227,15 +228,18 @@ if (file_exists($CONFIG_PATH)) {
 
 $horaConfig = trim((string)($config['hora'] ?? ''));
 $diaSemana = (int)date('N'); //1 lunes
-if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
-    echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
-    exit(0);
-}
+$desdeInclude = defined('CRON_FOLIOS_INCLUDE_ONLY');
+if (!$desdeInclude) {
+    if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
+        echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
+        exit(0);
+    }
 
-$horaActual = date('H:i');
-if (!$force && $horaActual !== $horaConfig) {
-    echo "Hora actual {$horaActual} distinta a configurada {$horaConfig}. Abortando.\n";
-    exit(0);
+    $horaActual = date('H:i');
+    if (!$force && $horaActual !== $horaConfig) {
+        echo "Hora actual {$horaActual} distinta a configurada {$horaConfig}. Abortando.\n";
+        exit(0);
+    }
 }
 
 $empresaFiltroLista = array_map('intval', $config['empresas'] ?? []);
@@ -266,7 +270,7 @@ if (!$temporadaId) {
 
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
-if (!$force && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
+if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
@@ -319,7 +323,7 @@ foreach ($empresas as $empresa) {
     }
 }
 
-if ($enviosRealizados > 0) {
+if ($enviosRealizados > 0 && !$desdeInclude) {
     @file_put_contents($lockFile, $hoy . ' ' . $horaConfig);
 }
 
