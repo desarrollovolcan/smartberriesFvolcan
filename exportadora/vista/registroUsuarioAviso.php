@@ -5,6 +5,9 @@ include_once "../../assest/config/validarUsuarioExpo.php";
 //LLAMADA ARCHIVOS NECESARIOS PARA LAS OPERACIONES
 
 include_once '../../assest/modelo/AVISO.php';
+include_once '../../assest/controlador/EMPRESA_ADO.php';
+include_once '../../assest/controlador/PLANTA_ADO.php';
+include_once '../../assest/controlador/USUARIO_ADO.php';
 
 
 //INCIALIZAR LAS VARIBLES
@@ -12,6 +15,9 @@ include_once '../../assest/modelo/AVISO.php';
 
 //INIICIALIZAR MODELO
 $AVISO =  new AVISO();
+$EMPRESA_ADO = new EMPRESA_ADO();
+$PLANTA_ADO = new PLANTA_ADO();
+$USUARIO_ADO = new USUARIO_ADO();
 
 //INCIALIZAR VARIBALES A OCUPAR PARA LA FUNCIONALIDAD
 
@@ -39,8 +45,14 @@ $ARRAYUSUARIOBUSCARNOMBREUSUARIO = "";
 $CONFIG_ENVIO = [
     'hora' => '',
     'dias' => [],
-    'correos' => ''
+    'correos' => '',
+    'empresas' => [],
+    'plantas' => [],
+    'usuarios' => []
 ];
+$ARRAYEMPRESAS = $EMPRESA_ADO->listarEmpresaCBX();
+$ARRAYPLANTAS = $PLANTA_ADO->listarPlantaCBX();
+$ARRAYUSUARIOS = $USUARIO_ADO->listarUsuarioCBX();
 
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
@@ -552,6 +564,39 @@ if ($_POST) {
                                                 <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="3" placeholder="Separar por coma. Ej: correo1@dominio.cl, correo2@dominio.cl"></textarea>
                                                 <small class="form-text text-muted">Puedes agregar varios correos separados por coma.</small>
                                             </div>
+                                            <div class="form-group">
+                                                <label>Empresas</label>
+                                                <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
+                                                        <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
+                                                            <?php echo $empresa['NOMBRE_EMPRESA']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona las empresas para las que se enviará información.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Plantas</label>
+                                                <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYPLANTAS as $planta) { ?>
+                                                        <option value="<?php echo $planta['ID_PLANTA']; ?>">
+                                                            <?php echo $planta['NOMBRE_PLANTA']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona las plantas para incluir en el envío.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Destinatarios (usuarios)</label>
+                                                <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
+                                                        <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
+                                                            <?php echo $usuario['NOMBRE_USUARIO'].' - '.$usuario['EMAIL_USUARIO']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona usuarios para agregar sus correos automáticamente.</small>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-15">
@@ -579,6 +624,9 @@ if ($_POST) {
             const keyConfig = 'config_envio_aviso';
             const horaInput = document.getElementById('HORA_ENVIO');
             const correosInput = document.getElementById('CORREOS_DESTINO');
+            const empresasSelect = document.getElementById('EMPRESAS_DESTINO');
+            const plantasSelect = document.getElementById('PLANTAS_DESTINO');
+            const usuariosSelect = document.getElementById('USUARIOS_DESTINO');
             const guardarBtn = document.getElementById('GUARDAR_CONFIG_ENVIO');
             const alerta = document.getElementById('alerta-config');
             const diasCheckboxes = Array.from(document.querySelectorAll('[id^="DIA_"]'));
@@ -591,6 +639,15 @@ if ($_POST) {
                         diasCheckboxes.forEach(cb => { cb.checked = datos.dias.includes(cb.value); });
                     }
                     if(datos.correos){ correosInput.value = datos.correos; }
+                    if(Array.isArray(datos.empresas) && empresasSelect){
+                        $(empresasSelect).val(datos.empresas).trigger('change');
+                    }
+                    if(Array.isArray(datos.plantas) && plantasSelect){
+                        $(plantasSelect).val(datos.plantas).trigger('change');
+                    }
+                    if(Array.isArray(datos.usuarios) && usuariosSelect){
+                        $(usuariosSelect).val(datos.usuarios).trigger('change');
+                    }
                 }catch(e){}
             };
 
@@ -598,6 +655,9 @@ if ($_POST) {
                 const hora = (horaInput.value || '').trim();
                 const dias = diasCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
                 const correos = (correosInput.value || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+                const empresas = empresasSelect ? Array.from(empresasSelect.selectedOptions).map(o => o.value) : [];
+                const plantas = plantasSelect ? Array.from(plantasSelect.selectedOptions).map(o => o.value) : [];
+                const usuarios = usuariosSelect ? Array.from(usuariosSelect.selectedOptions).map(o => o.value) : [];
 
                 alerta.style.display = 'none';
                 alerta.classList.remove('text-danger','text-success');
@@ -623,7 +683,20 @@ if ($_POST) {
                     return;
                 }
 
-                const datos = {hora, dias, correos: correos.join(', ')};
+                if(empresas.length === 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe seleccionar al menos una empresa.';
+                    return;
+                }
+                if(plantas.length === 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe seleccionar al menos una planta.';
+                    return;
+                }
+                const listaUsuarios = usuarios;
+                const datos = {hora, dias, correos: correos.join(', '), empresas, plantas, usuarios: listaUsuarios};
                 localStorage.setItem(keyConfig, JSON.stringify(datos));
                 alerta.style.display = 'block';
                 alerta.classList.add('text-success');
