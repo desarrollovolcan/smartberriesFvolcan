@@ -31,6 +31,22 @@ include_once '../../assest/controlador/DESPACHOEX_ADO.php';
 include_once '../../assest/controlador/TINPSAG_ADO.php';
 include_once '../../assest/controlador/INPSAG_ADO.php';
 
+//CONFIGURACION CRON PT
+$RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
+$CONFIG_CRON_PT = [
+    'hora' => '13:00',
+    'dias' => ['1', '2', '3', '4', '5', '6', '7'],
+    'correos' => '',
+    'empresas' => [],
+    'plantas' => [],
+    'usuarios' => []
+];
+if (file_exists($RUTA_CONFIG_CRON_PT)) {
+    $configData = json_decode(file_get_contents($RUTA_CONFIG_CRON_PT), true);
+    if (is_array($configData)) {
+        $CONFIG_CRON_PT = array_merge($CONFIG_CRON_PT, $configData);
+    }
+}
 
 //INCIALIZAR LAS VARIBLES
 //INICIALIZAR CONTROLADOR
@@ -90,7 +106,7 @@ $ARRAYINPSAG = "";
 $ALERTAFOLIOS = [];
 $MENSAJEENVIOALERTA = "";
 $ALERTAERROR = "";
-$ALERTA_FOLIOS_ENVIADA_HOY = isset($_SESSION['ALERTA_FOLIOS_FECHA']) && $_SESSION['ALERTA_FOLIOS_FECHA'] === date('Y-m-d');
+$ALERTA_FOLIOS_ENVIADA_HOY = false;
 $CACHEPRODUCTOR = [];
 $CACHEVESPECIES = [];
 $CACHEESPECIES = [];
@@ -104,6 +120,20 @@ $CACHEEMPRESA = [];
 $CACHEPLANTA = [];
 $CACHETEMPORADA = [];
 $CACHEICARGA = [];
+$LOCK_ALERTA = dirname(__DIR__) . '/cron/alerta_folios_exiexportacion.lock';
+$HORA_ALERTA = trim((string)($CONFIG_CRON_PT['hora'] ?? '13:00')) ?: '13:00';
+$DIAS_CRON = array_filter(array_map('strval', $CONFIG_CRON_PT['dias'] ?? []));
+$ES_DIA_CONFIGURADO = empty($DIAS_CRON) || in_array((string)date('N'), $DIAS_CRON, true);
+$DESTINATARIOS_ALERTA = obtenerDestinatariosCronPt($CONFIG_CRON_PT, $CORREOUSUARIO ?? '');
+$HAY_DESTINATARIOS = !empty($DESTINATARIOS_ALERTA);
+$MENSAJE_ESTADO_ENVIO = "";
+if (file_exists($LOCK_ALERTA)) {
+    $contenidoLock = trim((string)@file_get_contents($LOCK_ALERTA));
+    $ALERTA_FOLIOS_ENVIADA_HOY = $contenidoLock === date('Y-m-d') . ' ' . $HORA_ALERTA;
+}
+if (!$ALERTA_FOLIOS_ENVIADA_HOY && isset($_SESSION['ALERTA_FOLIOS_FECHA']) && $_SESSION['ALERTA_FOLIOS_FECHA'] === date('Y-m-d')) {
+    $ALERTA_FOLIOS_ENVIADA_HOY = true;
+}
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
@@ -118,6 +148,17 @@ function obtenerDestinatariosAutorizacion($correoSolicitante)
     }
 
     return array_values(array_filter(array_unique($correosBase)));
+}
+
+function obtenerDestinatariosCronPt(array $config, $correoSolicitante)
+{
+    $manuales = array_map('trim', explode(',', $config['correos'] ?? ''));
+    $usuarios = array_map('trim', $config['usuarios'] ?? []);
+    $destinos = array_values(array_unique(array_filter(array_merge($manuales, $usuarios))));
+    if (!empty($destinos)) {
+        return $destinos;
+    }
+    return obtenerDestinatariosAutorizacion($correoSolicitante);
 }
 
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
@@ -226,8 +267,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
     $alertaRecibida = json_decode($_POST['DATA_ALERTA'] ?? '[]', true) ?: [];
     if (empty($alertaRecibida)) {
         $ALERTAERROR = "No hay folios para enviar en la alerta automática.";
+    } elseif (!$ES_DIA_CONFIGURADO) {
+        $ALERTAERROR = "Hoy no está configurado el envío automático a las {$HORA_ALERTA}.";
+    } elseif (!$HAY_DESTINATARIOS) {
+        $ALERTAERROR = "No hay destinatarios configurados para la alerta automática.";
     } else {
-        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO ?? '');
+        $destinatarios = $DESTINATARIOS_ALERTA;
         $remitente = 'informes@volcanfoods.cl';
         $usuarioSMTP = 'informes@volcanfoods.cl';
         $contrasenaSMTP = '1z=EWfu0026k';
@@ -238,18 +283,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
             return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']}";
         }, $alertaRecibida);
 
-        $mensaje = "Listado de folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas) . "\r\n\r\nEnviado automáticamente a las 12:55.";
+        $mensaje = "Listado de folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas) . "\r\n\r\nEnviado automáticamente a las {$HORA_ALERTA}.";
         $asunto = "Alerta diaria folios sin inspección SAG";
 
         [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
         if ($envioOk) {
             $_SESSION['ALERTA_FOLIOS_FECHA'] = date('Y-m-d');
             $ALERTA_FOLIOS_ENVIADA_HOY = true;
+            @file_put_contents($LOCK_ALERTA, date('Y-m-d') . ' ' . $HORA_ALERTA);
             $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
         } else {
             $ALERTAERROR = $errorEnvio ?: "No fue posible enviar la alerta automática.";
         }
     }
+}
+$HORA_ALERTA_TEXTO = $HORA_ALERTA;
+$MENSAJE_ESTADO_ENVIO = $ALERTA_FOLIOS_ENVIADA_HOY
+    ? "La alerta ya fue enviada hoy."
+    : ($ES_DIA_CONFIGURADO ? "Se enviará el listado de folios sin inspección." : "Hoy no está programado el envío automático.");
+if (!$HAY_DESTINATARIOS) {
+    $MENSAJE_ESTADO_ENVIO = "No hay destinatarios configurados para la alerta automática.";
 }
 ?>
 
@@ -328,12 +381,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                     <div class="alert alert-info" role="alert">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>Envío automático 12:55:</strong>
-                                <?php if ($ALERTA_FOLIOS_ENVIADA_HOY) { ?>
-                                    <span>La alerta ya fue enviada hoy.</span>
-                                <?php } else { ?>
-                                    <span>Se enviará el listado de folios sin inspección.</span>
-                                <?php } ?>
+                                <strong>Envío automático <?php echo htmlspecialchars($HORA_ALERTA_TEXTO); ?>:</strong>
+                                <span><?php echo $MENSAJE_ESTADO_ENVIO; ?></span>
                             </div>
                             <div>
                                 <span id="contador-alerta" class="badge badge-primary"></span>
@@ -895,9 +944,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
 
                 </div>
             </div>
-            <!- LLAMADA ARCHIVO DEL DISEÑO DEL FOOTER Y MENU USUARIO -!>
-                <?php include_once "../../assest/config/footer.php"; ?>
-                <?php include_once "../../assest/config/menuExtraFruta.php"; ?>
+    <!- LLAMADA ARCHIVO DEL DISEÑO DEL FOOTER Y MENU USUARIO -!>
+        <?php include_once "../../assest/config/footer.php"; ?>
+        <?php include_once "../../assest/config/menuExtraFruta.php"; ?>
+    <?php $HAY_FOLIOS_ALERTA = !empty($ALERTAFOLIOS); ?>
     <form id="form-alerta-folios" method="POST" style="display:none;">
         <input type="hidden" name="ENVIAR_ALERTA_FOLIOS" value="1">
         <input type="hidden" name="DATA_ALERTA" value='<?php echo htmlspecialchars(json_encode($ALERTAFOLIOS), ENT_QUOTES, 'UTF-8'); ?>'>
@@ -910,22 +960,41 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                 const form = document.getElementById('form-alerta-folios');
                 const contador = document.getElementById('contador-alerta');
                 const alertaEnviada = <?php echo $ALERTA_FOLIOS_ENVIADA_HOY ? 'true' : 'false'; ?>;
-                const hayFolios = <?php echo !empty($ALERTAFOLIOS) ? 'true' : 'false'; ?>;
-                if (!form || !contador || alertaEnviada || !hayFolios) {
-                    if (contador) {
-                        contador.textContent = alertaEnviada ? 'Envío realizado' : 'Sin folios pendientes';
-                    }
+                const hayFolios = <?php echo $HAY_FOLIOS_ALERTA ? 'true' : 'false'; ?>;
+                const diaHabil = <?php echo $ES_DIA_CONFIGURADO ? 'true' : 'false'; ?>;
+                const hayDestinatarios = <?php echo $HAY_DESTINATARIOS ? 'true' : 'false'; ?>;
+                const horaObjetivo = "<?php echo $HORA_ALERTA_TEXTO; ?>";
+                if (!form || !contador) {
+                    return;
+                }
+                if (alertaEnviada) {
+                    contador.textContent = 'Envío realizado';
+                    return;
+                }
+                if (!diaHabil) {
+                    contador.textContent = 'Sin envío hoy';
+                    return;
+                }
+                if (!hayDestinatarios) {
+                    contador.textContent = 'Sin destinatarios';
+                    return;
+                }
+                if (!hayFolios) {
+                    contador.textContent = 'Sin folios pendientes';
                     return;
                 }
                 let envioEjecutado = false;
-                const calcularObjetivo = () => {
-                    const ahora = new Date();
+                const obtenerObjetivo = () => {
+                    const [h, m] = horaObjetivo.split(':').map(v => parseInt(v, 10));
                     const objetivo = new Date();
-                    objetivo.setHours(12,55,0,0);
-                    if (objetivo <= ahora) {
+                    objetivo.setHours(isNaN(h) ? 13 : h, isNaN(m) ? 0 : m, 0, 0);
+                    if (objetivo <= new Date()) {
                         objetivo.setDate(objetivo.getDate() + 1);
                     }
                     return objetivo;
+                };
+                const calcularObjetivo = () => {
+                    return obtenerObjetivo();
                 };
                 let objetivo = calcularObjetivo();
                 const actualizar = () => {
