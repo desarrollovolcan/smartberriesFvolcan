@@ -2,15 +2,8 @@
 
 include_once "../../assest/config/validarUsuarioExpo.php";
 
-include_once '../../assest/controlador/EMPRESA_ADO.php';
-include_once '../../assest/controlador/PLANTA_ADO.php';
-include_once '../../assest/controlador/USUARIO_ADO.php';
-
 $RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
-
-$EMPRESA_ADO = new EMPRESA_ADO();
-$PLANTA_ADO = new PLANTA_ADO();
-$USUARIO_ADO = new USUARIO_ADO();
+$RUTA_EJECUCION_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alertaFoliosExiexportacion.php';
 
 $CONFIG_ENVIO = [
     'habilitado' => true,
@@ -31,23 +24,21 @@ if (file_exists($RUTA_CONFIG_CRON_PT)) {
 }
 $CONFIG_ENVIO['habilitado'] = isset($CONFIG_ENVIO['habilitado']) ? (bool) $CONFIG_ENVIO['habilitado'] : true;
 
-$ARRAYEMPRESAS = $EMPRESA_ADO->listarEmpresaCBX();
-$ARRAYPLANTAS = $PLANTA_ADO->listarPlantaCBX();
-$ARRAYUSUARIOS = $USUARIO_ADO->listarUsuarioCBX();
+$MENSAJE_EJECUCION = null;
+$MENSAJE_EJECUCION_TIPO = 'success';
 
-$EMPRESAS_NOMBRES = [];
-foreach ($ARRAYEMPRESAS as $empresa) {
-    $EMPRESAS_NOMBRES[$empresa['ID_EMPRESA']] = $empresa['NOMBRE_EMPRESA'];
-}
-
-$PLANTAS_NOMBRES = [];
-foreach ($ARRAYPLANTAS as $planta) {
-    $PLANTAS_NOMBRES[$planta['ID_PLANTA']] = $planta['NOMBRE_PLANTA'];
-}
-
-$USUARIOS_NOMBRES = [];
-foreach ($ARRAYUSUARIOS as $usuario) {
-    $USUARIOS_NOMBRES[$usuario['EMAIL_USUARIO']] = $usuario['NOMBRE_USUARIO'] . ' (' . $usuario['EMAIL_USUARIO'] . ')';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) {
+    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --force';
+    $salida = [];
+    $codigo = 0;
+    exec($comando . ' 2>&1', $salida, $codigo);
+    $MENSAJE_EJECUCION = trim(implode("\n", $salida));
+    if ($MENSAJE_EJECUCION === '') {
+        $MENSAJE_EJECUCION = $codigo === 0 ? 'Cron ejecutado correctamente.' : 'No fue posible ejecutar el cron.';
+    }
+    if ($codigo !== 0) {
+        $MENSAJE_EJECUCION_TIPO = 'danger';
+    }
 }
 
 $DIAS_SEMANA = [
@@ -103,24 +94,22 @@ function obtenerProximaEjecucion(array $config): ?DateTime
 $proximaEjecucion = obtenerProximaEjecucion($CONFIG_ENVIO);
 $timestampProxima = $proximaEjecucion ? $proximaEjecucion->getTimestamp() : null;
 
-$correosManual = array_filter(array_map('trim', explode(',', $CONFIG_ENVIO['correos'] ?? '')));
-$usuariosConfigurados = $CONFIG_ENVIO['usuarios'] ?? [];
-
-$empresasConfiguradas = array_map(function ($id) use ($EMPRESAS_NOMBRES) {
-    return $EMPRESAS_NOMBRES[$id] ?? ('Empresa #' . $id);
-}, $CONFIG_ENVIO['empresas'] ?? []);
-
-$plantasConfiguradas = array_map(function ($id) use ($PLANTAS_NOMBRES) {
-    return $PLANTAS_NOMBRES[$id] ?? ('Planta #' . $id);
-}, $CONFIG_ENVIO['plantas'] ?? []);
-
-$usuariosConfiguradosTexto = array_map(function ($correo) use ($USUARIOS_NOMBRES) {
-    return $USUARIOS_NOMBRES[$correo] ?? $correo;
-}, $usuariosConfigurados);
-
 $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
     return $DIAS_SEMANA[$dia] ?? $dia;
 }, $CONFIG_ENVIO['dias'] ?? []);
+
+if (isset($_GET['estado_cron_pt'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'habilitado' => $CONFIG_ENVIO['habilitado'],
+        'hora' => $CONFIG_ENVIO['hora'] ?? '',
+        'dias' => $diasSeleccionados,
+        'proxima_ejecucion' => $proximaEjecucion ? $proximaEjecucion->format('d/m/Y H:i') : null,
+        'timestamp' => $timestampProxima,
+        'actualizado_en' => $CONFIG_ENVIO['actualizado_en'] ?? null,
+    ]);
+    exit;
+}
 
 ?>
 
@@ -147,14 +136,6 @@ $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
         .cron-ejecucion-subtitle {
             font-size: 0.85rem;
             color: #6c7a89;
-        }
-        .cron-detalle-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #3f4b5b;
-        }
-        .cron-detalle-list li {
-            margin-bottom: 4px;
         }
     </style>
 </head>
@@ -191,10 +172,22 @@ $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
                                             <h4 class="cron-ejecucion-title mb-5">Cron en ejecución</h4>
                                             <span class="cron-ejecucion-subtitle">Listado de tareas activas y próximas ejecuciones.</span>
                                         </div>
-                                        <span class="badge badge-pill <?php echo $CONFIG_ENVIO['habilitado'] ? 'badge-success' : 'badge-secondary'; ?>">
-                                            <?php echo $CONFIG_ENVIO['habilitado'] ? 'Habilitado' : 'Deshabilitado'; ?>
-                                        </span>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge badge-pill <?php echo $CONFIG_ENVIO['habilitado'] ? 'badge-success' : 'badge-secondary'; ?> mr-10">
+                                                <?php echo $CONFIG_ENVIO['habilitado'] ? 'Habilitado' : 'Deshabilitado'; ?>
+                                            </span>
+                                            <form method="post" class="m-0">
+                                                <button type="submit" name="EJECUTAR_CRON_PT" class="btn btn-sm btn-primary">
+                                                    Ejecutar cron ahora
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
+                                    <?php if (!empty($MENSAJE_EJECUCION)) { ?>
+                                        <div class="alert alert-<?php echo $MENSAJE_EJECUCION_TIPO; ?> py-5 px-10">
+                                            <?php echo nl2br(htmlspecialchars($MENSAJE_EJECUCION)); ?>
+                                        </div>
+                                    <?php } ?>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-hover">
                                             <thead class="thead-light">
@@ -210,9 +203,11 @@ $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
                                                     <td><strong>Cron PT</strong></td>
                                                     <td>
                                                         <?php if ($proximaEjecucion) { ?>
-                                                            <?php echo $proximaEjecucion->format('d/m/Y H:i'); ?>
+                                                            <span id="proxima-ejecucion">
+                                                                <?php echo $proximaEjecucion->format('d/m/Y H:i'); ?>
+                                                            </span>
                                                         <?php } else { ?>
-                                                            <span class="text-muted">Sin programación</span>
+                                                            <span id="proxima-ejecucion" class="text-muted">Sin programación</span>
                                                         <?php } ?>
                                                     </td>
                                                     <td>
@@ -221,79 +216,12 @@ $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <div><strong>Hora:</strong> <?php echo $CONFIG_ENVIO['hora'] ?: 'No definida'; ?></div>
-                                                        <div><strong>Días:</strong> <?php echo !empty($diasSeleccionados) ? implode(', ', $diasSeleccionados) : 'No definidos'; ?></div>
+                                                        <div><strong>Hora:</strong> <span id="cron-hora"><?php echo $CONFIG_ENVIO['hora'] ?: 'No definida'; ?></span></div>
+                                                        <div><strong>Días:</strong> <span id="cron-dias"><?php echo !empty($diasSeleccionados) ? implode(', ', $diasSeleccionados) : 'No definidos'; ?></span></div>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="box cron-ejecucion-card">
-                                <div class="box-body">
-                                    <h4 class="cron-ejecucion-title mb-10">Detalles de configuración</h4>
-                                    <div class="row">
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="cron-detalle-label">Correos manuales</div>
-                                            <ul class="cron-detalle-list list-unstyled mb-15">
-                                                <?php if (!empty($correosManual)) { ?>
-                                                    <?php foreach ($correosManual as $correo) { ?>
-                                                        <li><?php echo $correo; ?></li>
-                                                    <?php } ?>
-                                                <?php } else { ?>
-                                                    <li class="text-muted">Sin correos manuales.</li>
-                                                <?php } ?>
-                                            </ul>
-                                            <div class="cron-detalle-label">Usuarios</div>
-                                            <ul class="cron-detalle-list list-unstyled">
-                                                <?php if (!empty($usuariosConfiguradosTexto)) { ?>
-                                                    <?php foreach ($usuariosConfiguradosTexto as $usuarioTexto) { ?>
-                                                        <li><?php echo $usuarioTexto; ?></li>
-                                                    <?php } ?>
-                                                <?php } else { ?>
-                                                    <li class="text-muted">Sin usuarios seleccionados.</li>
-                                                <?php } ?>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="cron-detalle-label">Empresas</div>
-                                            <ul class="cron-detalle-list list-unstyled mb-15">
-                                                <?php if (!empty($empresasConfiguradas)) { ?>
-                                                    <?php foreach ($empresasConfiguradas as $empresaTexto) { ?>
-                                                        <li><?php echo $empresaTexto; ?></li>
-                                                    <?php } ?>
-                                                <?php } else { ?>
-                                                    <li class="text-muted">Sin empresas configuradas.</li>
-                                                <?php } ?>
-                                            </ul>
-                                            <div class="cron-detalle-label">Plantas</div>
-                                            <ul class="cron-detalle-list list-unstyled">
-                                                <?php if (!empty($plantasConfiguradas)) { ?>
-                                                    <?php foreach ($plantasConfiguradas as $plantaTexto) { ?>
-                                                        <li><?php echo $plantaTexto; ?></li>
-                                                    <?php } ?>
-                                                <?php } else { ?>
-                                                    <li class="text-muted">Sin plantas configuradas.</li>
-                                                <?php } ?>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="cron-detalle-label">Última actualización</div>
-                                            <p class="mb-15">
-                                                <?php if (!empty($CONFIG_ENVIO['actualizado_en'])) { ?>
-                                                    <?php echo date('d/m/Y H:i', $CONFIG_ENVIO['actualizado_en']); ?>
-                                                <?php } else { ?>
-                                                    <span class="text-muted">No registrada.</span>
-                                                <?php } ?>
-                                            </p>
-                                            <div class="cron-detalle-label">Estado del cron</div>
-                                            <p class="mb-0">
-                                                <?php echo $CONFIG_ENVIO['habilitado'] ? 'Activo y programado.' : 'Deshabilitado por configuración.'; ?>
-                                            </p>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -338,6 +266,55 @@ $diasSeleccionados = array_map(function ($dia) use ($DIAS_SEMANA) {
         document.addEventListener('DOMContentLoaded', () => {
             actualizarCuentaRegresiva();
             setInterval(actualizarCuentaRegresiva, 1000);
+        });
+    </script>
+    <script>
+        const estadoInicial = <?php echo json_encode($CONFIG_ENVIO['actualizado_en'] ?? null); ?>;
+        let ultimoActualizado = estadoInicial;
+
+        function aplicarEstadoCron(data) {
+            const proxima = document.getElementById('proxima-ejecucion');
+            const hora = document.getElementById('cron-hora');
+            const dias = document.getElementById('cron-dias');
+            const contador = document.querySelector('.cron-countdown');
+
+            if (proxima) {
+                if (data.proxima_ejecucion) {
+                    proxima.textContent = data.proxima_ejecucion;
+                    proxima.classList.remove('text-muted');
+                } else {
+                    proxima.textContent = 'Sin programación';
+                    proxima.classList.add('text-muted');
+                }
+            }
+            if (contador) {
+                contador.setAttribute('data-countdown', data.timestamp || '');
+            }
+            if (hora) {
+                hora.textContent = data.hora || 'No definida';
+            }
+            if (dias) {
+                dias.textContent = (data.dias && data.dias.length) ? data.dias.join(', ') : 'No definidos';
+            }
+        }
+
+        function verificarActualizacionCron() {
+            fetch('cronEjecutados.php?estado_cron_pt=1', { cache: 'no-store' })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.actualizado_en !== ultimoActualizado) {
+                        ultimoActualizado = data.actualizado_en;
+                        aplicarEstadoCron(data);
+                        actualizarCuentaRegresiva();
+                    }
+                })
+                .catch(() => {
+                    // No interrumpir la vista si no hay respuesta.
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setInterval(verificarActualizacionCron, 15000);
         });
     </script>
 </body>
