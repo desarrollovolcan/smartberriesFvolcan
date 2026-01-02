@@ -3,6 +3,7 @@
  * Envío automático de folios de exportación con más de 3 días sin inspección SAG.
  * Ejecutar vía CLI o cron, opcionalmente filtrando por empresa/planta/temporada:
  *   php alertaFoliosExiexportacion.php --empresa=1 --planta=2 --temporada=5 --force --reset
+ *   php alertaFoliosExiexportacion.php --reset-only
  */
 
 $BASE_PATH = dirname(__DIR__, 2);
@@ -207,7 +208,7 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
     return $resultado;
 }
 
-$options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::', 'reset::']);
+$options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::', 'reset::', 'reset-only::']);
 if ($options === false) {
     $options = [];
 }
@@ -296,6 +297,11 @@ $hoy = date('Y-m-d');
 $lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
 if (!empty($options['reset'])) {
     @unlink($lockFile);
+}
+if (!empty($options['reset-only'])) {
+    @unlink($lockFile);
+    echo "Lock del cron reiniciado.\n";
+    exit(0);
 }
 if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
