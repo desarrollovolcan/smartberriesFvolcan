@@ -104,6 +104,7 @@ $CACHEEMPRESA = [];
 $CACHEPLANTA = [];
 $CACHETEMPORADA = [];
 $CACHEICARGA = [];
+date_default_timezone_set('America/Santiago');
 $RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
 $CRON_PT_CONFIG = [
     'habilitado' => true,
@@ -163,6 +164,14 @@ function obtenerDestinatariosAutorizacion($correoSolicitante)
     }
 
     return array_values(array_filter(array_unique($correosBase)));
+}
+
+function obtenerDestinatariosCronPt($config)
+{
+    $destinatariosManual = array_filter(array_map('trim', explode(',', $config['correos'] ?? '')));
+    $destinatariosUsuarios = array_filter(array_map('trim', $config['usuarios'] ?? []));
+    $destinatarios = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
+    return $destinatarios;
 }
 
 function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
@@ -270,14 +279,17 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS']) && !$ALERTA_FOLIOS_ENVIADA_HOY) {
     if (!$CRON_PT_HABILITADO || !$CRON_PT_CONFIG_VALIDO) {
         $ALERTAERROR = "Cron PT deshabilitado o con configuración incompleta.";
-    } elseif (!in_array(date('N'), array_map('intval', $CRON_PT_DIAS), true)) {
+    } elseif (!in_array((string) date('N'), array_map('strval', $CRON_PT_DIAS), true)) {
         $ALERTAERROR = "Hoy no está configurado como día de envío para Cron PT.";
     } else {
         $alertaRecibida = json_decode($_POST['DATA_ALERTA'] ?? '[]', true) ?: [];
         if (empty($alertaRecibida)) {
             $ALERTAERROR = "No hay folios para enviar en la alerta automática.";
         } else {
-            $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO ?? '');
+            $destinatarios = obtenerDestinatariosCronPt($CRON_PT_CONFIG);
+            if (empty($destinatarios)) {
+                $ALERTAERROR = "No hay destinatarios configurados en Cron PT.";
+            } else {
             $remitente = 'informes@volcanfoods.cl';
             $usuarioSMTP = 'informes@volcanfoods.cl';
             $contrasenaSMTP = '1z=EWfu0026k';
@@ -300,6 +312,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                 $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
             } else {
                 $ALERTAERROR = $errorEnvio ?: "No fue posible enviar la alerta automática.";
+            }
             }
         }
     }
