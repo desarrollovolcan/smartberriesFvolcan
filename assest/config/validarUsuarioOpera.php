@@ -40,8 +40,9 @@
     include_once "../../assest/controlador/AUSUARIO_ADO.php";
 
     include_once '../../assest/controlador/EMPRESA_ADO.php';
-    include_once '../../assest/controlador/PLANTA_ADO.php';
-    include_once '../../assest/controlador/TEMPORADA_ADO.php';
+include_once '../../assest/controlador/PLANTA_ADO.php';
+include_once '../../assest/controlador/TEMPORADA_ADO.php';
+include_once '../../assest/config/cronPtHelper.php';
 
 
     $USUARIO_ADO = new USUARIO_ADO();
@@ -101,4 +102,3 @@
         session_destroy();
         header('Location: iniciarSession.php');
     } 
-
