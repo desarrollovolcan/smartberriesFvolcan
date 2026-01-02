@@ -87,6 +87,10 @@ $ARRAYDESPACHO="";
 $ARRAYDESPACHO2="";
 $ARRAYTINPSAG = "";
 $ARRAYINPSAG = "";
+$ALERTAFOLIOS = [];
+$MENSAJEENVIOALERTA = "";
+$ALERTAERROR = "";
+$ALERTA_FOLIOS_ENVIADA_HOY = isset($_SESSION['ALERTA_FOLIOS_FECHA']) && $_SESSION['ALERTA_FOLIOS_FECHA'] === date('Y-m-d');
 $CACHEPRODUCTOR = [];
 $CACHEVESPECIES = [];
 $CACHEESPECIES = [];
@@ -101,9 +105,151 @@ $CACHEPLANTA = [];
 $CACHETEMPORADA = [];
 $CACHEICARGA = [];
 
+function obtenerDestinatariosAutorizacion($correoSolicitante)
+{
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correoSolicitante = trim((string) $correoSolicitante);
+
+    if ($correoSolicitante !== '') {
+        $correosBase = array_filter(
+            $correosBase,
+            fn($correo) => strcasecmp($correo, $correoSolicitante) !== 0
+        );
+    }
+
+    return array_values(array_filter(array_unique($correosBase)));
+}
+
+function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuario, $contrasena, $host, $puerto, $timeout = 30)
+{
+    $destinatarios = (array) $destinatarios;
+    $contextoSSL = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ]
+    ]);
+
+    $conexion = @stream_socket_client("ssl://{$host}:{$puerto}", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $contextoSSL);
+
+    if (!$conexion) {
+        return [false, "No se pudo conectar al servidor SMTP ({$errstr})"];
+    }
+
+    if (function_exists('stream_set_timeout')) {
+        stream_set_timeout($conexion, $timeout);
+    }
+
+    $leerRespuesta = function () use ($conexion) {
+        $respuesta = '';
+        while ($linea = fgets($conexion, 515)) {
+            $respuesta .= $linea;
+            if (isset($linea[3]) && $linea[3] === ' ') {
+                break;
+            }
+        }
+        return $respuesta;
+    };
+
+    $comando = function ($instruccion, $codigoEsperado) use ($conexion, $leerRespuesta) {
+        fwrite($conexion, $instruccion . "\r\n");
+        $respuesta = $leerRespuesta();
+        if (substr($respuesta, 0, 3) !== $codigoEsperado) {
+            throw new Exception("Error SMTP en '{$instruccion}': {$respuesta}");
+        }
+        return $respuesta;
+    };
+
+    $respuestaInicial = $leerRespuesta();
+    if (substr($respuestaInicial, 0, 3) !== '220') {
+        fclose($conexion);
+        return [false, "El servidor SMTP no respondió correctamente: {$respuestaInicial}"];
+    }
+
+    $hostEhlo = $host ?: 'localhost';
+    try {
+        $comando('EHLO ' . $hostEhlo, '250');
+    } catch (Exception $e) {
+        $comando('HELO ' . $hostEhlo, '250');
+    }
+
+    try {
+        $comando('AUTH LOGIN', '334');
+        $comando(base64_encode($usuario), '334');
+        $comando(base64_encode($contrasena), '235');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error de autenticación SMTP: " . $e->getMessage()];
+    }
+
+    try {
+        $comando("MAIL FROM:<{$remitente}>", '250');
+        foreach ($destinatarios as $correo) {
+            $comando("RCPT TO:<{$correo}>", '250');
+        }
+        $comando('DATA', '354');
+
+        $cabeceras = "Date: " . date('r') . "\r\n" .
+            "Message-ID: <" . uniqid() . "@" . ($hostEhlo ?: 'localhost') . ">\r\n" .
+            "From: {$remitente}\r\n" .
+            "Return-Path: {$remitente}\r\n" .
+            "Reply-To: {$remitente}\r\n" .
+            "To: " . implode(', ', $destinatarios) . "\r\n" .
+            "Subject: {$asunto}\r\n" .
+            "MIME-Version: 1.0\r\n" .
+            "X-Mailer: PHP/" . phpversion() . "\r\n" .
+            "Content-Type: text/plain; charset=UTF-8\r\n\r\n";
+
+        $mensajeNormalizado = str_replace(["\r\n", "\n"], "\r\n", $mensaje);
+        fwrite($conexion, $cabeceras . $mensajeNormalizado . "\r\n.\r\n");
+        $respuestaData = $leerRespuesta();
+        if (substr($respuestaData, 0, 3) !== '250') {
+            throw new Exception("Error SMTP tras DATA: {$respuestaData}");
+        }
+        $comando('QUIT', '221');
+    } catch (Exception $e) {
+        fclose($conexion);
+        return [false, "Error al enviar correo: " . $e->getMessage()];
+    }
+
+    fclose($conexion);
+    return [true, null];
+}
+
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES 
 if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
     $ARRAYEXIEXPORTACION = $EXIEXPORTACION_ADO->listarExiexportacionAgrupadoPorFolioEmpresaPlantaTemporadaDisponible($EMPRESAS, $PLANTAS, $TEMPORADAS);
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS']) && !$ALERTA_FOLIOS_ENVIADA_HOY) {
+    $alertaRecibida = json_decode($_POST['DATA_ALERTA'] ?? '[]', true) ?: [];
+    if (empty($alertaRecibida)) {
+        $ALERTAERROR = "No hay folios para enviar en la alerta automática.";
+    } else {
+        $destinatarios = obtenerDestinatariosAutorizacion($CORREOUSUARIO ?? '');
+        $remitente = 'informes@volcanfoods.cl';
+        $usuarioSMTP = 'informes@volcanfoods.cl';
+        $contrasenaSMTP = '1z=EWfu0026k';
+        $hostSMTP = 'mail.volcanfoods.cl';
+        $puertoSMTP = 465;
+
+        $lineas = array_map(function ($item) {
+            return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']}";
+        }, $alertaRecibida);
+
+        $mensaje = "Listado de folios con más de 3 días sin inspección SAG:\r\n\r\n" . implode("\r\n", $lineas) . "\r\n\r\nEnviado automáticamente a las 12:55.";
+        $asunto = "Alerta diaria folios sin inspección SAG";
+
+        [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
+        if ($envioOk) {
+            $_SESSION['ALERTA_FOLIOS_FECHA'] = date('Y-m-d');
+            $ALERTA_FOLIOS_ENVIADA_HOY = true;
+            $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
+        } else {
+            $ALERTAERROR = $errorEnvio ?: "No fue posible enviar la alerta automática.";
+        }
+    }
 }
 ?>
 
@@ -167,6 +313,31 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                 </div>
                             </div>
                             <?php include_once "../../assest/config/verIndicadorEconomico.php"; ?>
+                        </div>
+                    </div>
+                    <?php if($MENSAJEENVIOALERTA){ ?>
+                        <div class="alert alert-success" role="alert">
+                            <?php echo $MENSAJEENVIOALERTA; ?>
+                        </div>
+                    <?php } ?>
+                    <?php if($ALERTAERROR){ ?>
+                        <div class="alert alert-danger" role="alert">
+                            <?php echo $ALERTAERROR; ?>
+                        </div>
+                    <?php } ?>
+                    <div class="alert alert-info" role="alert">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Envío automático 12:55:</strong>
+                                <?php if ($ALERTA_FOLIOS_ENVIADA_HOY) { ?>
+                                    <span>La alerta ya fue enviada hoy.</span>
+                                <?php } else { ?>
+                                    <span>Se enviará el listado de folios sin inspección.</span>
+                                <?php } ?>
+                            </div>
+                            <div>
+                                <span id="contador-alerta" class="badge badge-primary"></span>
+                            </div>
                         </div>
                     </div>
                     <!-- Main content -->
@@ -595,6 +766,15 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                             }
                                                             $RESALTARFOLIO = ($r['ID_INPSAG'] == "" || $r['ID_INPSAG'] == null) && is_numeric($DIASENEXISTENCIA) && $DIASENEXISTENCIA > 3;
                                                             $CLASERESALTADO = $RESALTARFOLIO ? "text-danger" : "";
+                                                            if ($RESALTARFOLIO) {
+                                                                $ALERTAFOLIOS[] = [
+                                                                    'folio' => $r['FOLIO_AUXILIAR_EXIEXPORTACION'],
+                                                                    'productor' => $NOMBREPRODUCTOR,
+                                                                    'variedad' => $NOMBREVESPECIES,
+                                                                    'dias' => $DIASENEXISTENCIA,
+                                                                    'embalado' => $r['EMBALADO'],
+                                                                ];
+                                                            }
                                                             ?>
                                                             <tr class="text-center <?php echo $CLASERESALTADO; ?>">
                                                                 <td>                                                                   
@@ -718,10 +898,55 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
             <!- LLAMADA ARCHIVO DEL DISEÑO DEL FOOTER Y MENU USUARIO -!>
                 <?php include_once "../../assest/config/footer.php"; ?>
                 <?php include_once "../../assest/config/menuExtraFruta.php"; ?>
+    <form id="form-alerta-folios" method="POST" style="display:none;">
+        <input type="hidden" name="ENVIAR_ALERTA_FOLIOS" value="1">
+        <input type="hidden" name="DATA_ALERTA" value='<?php echo htmlspecialchars(json_encode($ALERTAFOLIOS), ENT_QUOTES, 'UTF-8'); ?>'>
+    </form>
     </div>
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script>
+            (function(){
+                const form = document.getElementById('form-alerta-folios');
+                const contador = document.getElementById('contador-alerta');
+                const alertaEnviada = <?php echo $ALERTA_FOLIOS_ENVIADA_HOY ? 'true' : 'false'; ?>;
+                const hayFolios = <?php echo !empty($ALERTAFOLIOS) ? 'true' : 'false'; ?>;
+                if (!form || !contador || alertaEnviada || !hayFolios) {
+                    if (contador) {
+                        contador.textContent = alertaEnviada ? 'Envío realizado' : 'Sin folios pendientes';
+                    }
+                    return;
+                }
+                let envioEjecutado = false;
+                const calcularObjetivo = () => {
+                    const ahora = new Date();
+                    const objetivo = new Date();
+                    objetivo.setHours(12,55,0,0);
+                    if (objetivo <= ahora) {
+                        objetivo.setDate(objetivo.getDate() + 1);
+                    }
+                    return objetivo;
+                };
+                let objetivo = calcularObjetivo();
+                const actualizar = () => {
+                    const ahora = new Date();
+                    const restante = objetivo - ahora;
+                    if (restante <= 0 && !envioEjecutado) {
+                        envioEjecutado = true;
+                        contador.textContent = 'Enviando alerta...';
+                        form.submit();
+                        return;
+                    }
+                    const totalSegundos = Math.max(0, Math.floor(restante / 1000));
+                    const horas = String(Math.floor(totalSegundos / 3600)).padStart(2,'0');
+                    const minutos = String(Math.floor((totalSegundos % 3600) / 60)).padStart(2,'0');
+                    const segundos = String(totalSegundos % 60).padStart(2,'0');
+                    contador.textContent = `${horas}:${minutos}:${segundos}`;
+                };
+                actualizar();
+                setInterval(actualizar, 1000);
+            })();
+
             // const Toast = Swal.mixin({
             //     toast: true,
             //     position: 'top',
