@@ -29,13 +29,26 @@ $MENSAJE_EJECUCION = null;
 $MENSAJE_EJECUCION_TIPO = 'success';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) {
-    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --force';
+    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --force --reset';
     $salida = [];
     $codigo = 0;
     exec($comando . ' 2>&1', $salida, $codigo);
     $MENSAJE_EJECUCION = trim(implode("\n", $salida));
     if ($MENSAJE_EJECUCION === '') {
         $MENSAJE_EJECUCION = $codigo === 0 ? 'Cron ejecutado correctamente.' : 'No fue posible ejecutar el cron.';
+    }
+    if ($codigo !== 0) {
+        $MENSAJE_EJECUCION_TIPO = 'danger';
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['REINICIAR_CRON_PT'])) {
+    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --reset-only';
+    $salida = [];
+    $codigo = 0;
+    exec($comando . ' 2>&1', $salida, $codigo);
+    $MENSAJE_EJECUCION = trim(implode("\n", $salida));
+    if ($MENSAJE_EJECUCION === '') {
+        $MENSAJE_EJECUCION = $codigo === 0 ? 'Cron reiniciado correctamente.' : 'No fue posible reiniciar el cron.';
     }
     if ($codigo !== 0) {
         $MENSAJE_EJECUCION_TIPO = 'danger';
@@ -187,9 +200,14 @@ if (isset($_GET['estado_cron_pt'])) {
                                             <span id="estado-cron" class="badge badge-pill <?php echo $CONFIG_ENVIO['habilitado'] ? 'badge-success' : 'badge-secondary'; ?> mr-10">
                                                 <?php echo $CONFIG_ENVIO['habilitado'] ? 'Habilitado' : 'Deshabilitado'; ?>
                                             </span>
-                                            <form method="post" class="m-0">
+                                            <form method="post" class="m-0 mr-10">
                                                 <button type="submit" name="EJECUTAR_CRON_PT" class="btn btn-sm btn-primary">
                                                     Ejecutar cron ahora
+                                                </button>
+                                            </form>
+                                            <form method="post" class="m-0">
+                                                <button type="submit" name="REINICIAR_CRON_PT" class="btn btn-sm btn-outline-secondary">
+                                                    Restaurar cron
                                                 </button>
                                             </form>
                                         </div>
