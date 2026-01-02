@@ -293,7 +293,8 @@ if (!$temporadaId) {
 
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
-if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
+$lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
+if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
@@ -347,7 +348,7 @@ foreach ($empresas as $empresa) {
 }
 
 if ($enviosRealizados > 0 && !$desdeInclude) {
-    @file_put_contents($lockFile, $hoy . ' ' . $horaConfig);
+    @file_put_contents($lockFile, $lockToken);
 }
 
 echo "Proceso finalizado. Envios: {$enviosRealizados}\n";
