@@ -173,7 +173,7 @@ if (isset($_GET['estado_cron_pt'])) {
                                             <span class="cron-ejecucion-subtitle">Listado de tareas activas y próximas ejecuciones.</span>
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <span class="badge badge-pill <?php echo $CONFIG_ENVIO['habilitado'] ? 'badge-success' : 'badge-secondary'; ?> mr-10">
+                                            <span id="estado-cron" class="badge badge-pill <?php echo $CONFIG_ENVIO['habilitado'] ? 'badge-success' : 'badge-secondary'; ?> mr-10">
                                                 <?php echo $CONFIG_ENVIO['habilitado'] ? 'Habilitado' : 'Deshabilitado'; ?>
                                             </span>
                                             <form method="post" class="m-0">
@@ -269,14 +269,20 @@ if (isset($_GET['estado_cron_pt'])) {
         });
     </script>
     <script>
-        const estadoInicial = <?php echo json_encode($CONFIG_ENVIO['actualizado_en'] ?? null); ?>;
-        let ultimoActualizado = estadoInicial;
+        const estadoInicial = {
+            timestamp: <?php echo json_encode($timestampProxima); ?>,
+            hora: <?php echo json_encode($CONFIG_ENVIO['hora'] ?? ''); ?>,
+            dias: <?php echo json_encode($diasSeleccionados); ?>,
+            habilitado: <?php echo json_encode($CONFIG_ENVIO['habilitado']); ?>
+        };
+        let ultimoEstado = estadoInicial;
 
         function aplicarEstadoCron(data) {
             const proxima = document.getElementById('proxima-ejecucion');
             const hora = document.getElementById('cron-hora');
             const dias = document.getElementById('cron-dias');
             const contador = document.querySelector('.cron-countdown');
+            const estado = document.getElementById('estado-cron');
 
             if (proxima) {
                 if (data.proxima_ejecucion) {
@@ -296,14 +302,33 @@ if (isset($_GET['estado_cron_pt'])) {
             if (dias) {
                 dias.textContent = (data.dias && data.dias.length) ? data.dias.join(', ') : 'No definidos';
             }
+            if (estado) {
+                const habilitado = !!data.habilitado;
+                estado.textContent = habilitado ? 'Habilitado' : 'Deshabilitado';
+                estado.classList.toggle('badge-success', habilitado);
+                estado.classList.toggle('badge-secondary', !habilitado);
+            }
+        }
+
+        function estadoCambio(data) {
+            const dias = data.dias || [];
+            return data.timestamp !== ultimoEstado.timestamp ||
+                (data.hora || '') !== ultimoEstado.hora ||
+                JSON.stringify(dias) !== JSON.stringify(ultimoEstado.dias) ||
+                !!data.habilitado !== !!ultimoEstado.habilitado;
         }
 
         function verificarActualizacionCron() {
             fetch('cronEjecutados.php?estado_cron_pt=1', { cache: 'no-store' })
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data.actualizado_en !== ultimoActualizado) {
-                        ultimoActualizado = data.actualizado_en;
+                    if (estadoCambio(data)) {
+                        ultimoEstado = {
+                            timestamp: data.timestamp || null,
+                            hora: data.hora || '',
+                            dias: data.dias || [],
+                            habilitado: !!data.habilitado
+                        };
                         aplicarEstadoCron(data);
                         actualizarCuentaRegresiva();
                     }
