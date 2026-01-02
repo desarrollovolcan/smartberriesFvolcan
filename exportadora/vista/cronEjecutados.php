@@ -4,6 +4,7 @@ include_once "../../assest/config/validarUsuarioExpo.php";
 
 $RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
 $RUTA_EJECUCION_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alertaFoliosExiexportacion.php';
+$RUTA_LOCK_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alerta_folios_exiexportacion.lock';
 
 $CONFIG_ENVIO = [
     'habilitado' => true,
@@ -42,16 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) 
     }
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['REINICIAR_CRON_PT'])) {
-    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --reset-only';
-    $salida = [];
-    $codigo = 0;
-    exec($comando . ' 2>&1', $salida, $codigo);
-    $MENSAJE_EJECUCION = trim(implode("\n", $salida));
-    if ($MENSAJE_EJECUCION === '') {
-        $MENSAJE_EJECUCION = $codigo === 0 ? 'Cron reiniciado correctamente.' : 'No fue posible reiniciar el cron.';
-    }
-    if ($codigo !== 0) {
-        $MENSAJE_EJECUCION_TIPO = 'danger';
+    if (file_exists($RUTA_LOCK_CRON_PT)) {
+        $resultado = @unlink($RUTA_LOCK_CRON_PT);
+        if ($resultado) {
+            $MENSAJE_EJECUCION = 'Cron reiniciado correctamente.';
+        } else {
+            $MENSAJE_EJECUCION = 'No fue posible reiniciar el cron.';
+            $MENSAJE_EJECUCION_TIPO = 'danger';
+        }
+    } else {
+        $MENSAJE_EJECUCION = 'No hay bloqueo activo para reiniciar.';
     }
 }
 
