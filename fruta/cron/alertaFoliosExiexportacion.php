@@ -20,7 +20,7 @@ require_once $BASE_PATH . '/assest/controlador/PLANTA_ADO.php';
 require_once $BASE_PATH . '/assest/controlador/TEMPORADA_ADO.php';
 
 date_default_timezone_set('America/Santiago');
-$CONFIG_PATH = __DIR__ . '/../../data/config_cron_pt.json';
+$CONFIG_PATH = $BASE_PATH . '/data/config_cron_pt.json';
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {

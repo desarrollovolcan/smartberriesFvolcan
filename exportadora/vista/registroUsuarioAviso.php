@@ -9,7 +9,7 @@ include_once '../../assest/controlador/EMPRESA_ADO.php';
 include_once '../../assest/controlador/PLANTA_ADO.php';
 include_once '../../assest/controlador/USUARIO_ADO.php';
 
-$RUTA_CONFIG_CRON_PT = __DIR__ . '/../../data/config_cron_pt.json';
+$RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
 
 
 //INCIALIZAR LAS VARIBLES
