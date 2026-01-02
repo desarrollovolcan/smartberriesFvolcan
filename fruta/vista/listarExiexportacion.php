@@ -206,6 +206,9 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                         <th>Fecha Inspección </th>
                                                         <th>Tipo Inspección </th> -->
                                                         <th>Tipo Manejo</th>
+                                                        <th>Condición SAG</th>
+                                                        <th>Número SIF</th>
+                                                        <th>Días en Existencia</th>
                                                         <!-- <th>Tipo Calibre </th>
                                                         <th>Tipo Embalaje </th>
                                                         <th>Stock</th>
@@ -525,6 +528,27 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                             } else {
                                                                 $PREFRIO = "Sin Datos";
                                                             }
+                                                            if ($r['EMBALADO']) {
+                                                                $FECHAEMBALADO = DateTime::createFromFormat('Y-m-d', $r['EMBALADO']);
+                                                                $FECHAEMBALADODOS = DateTime::createFromFormat('d/m/Y', $r['EMBALADO']);
+                                                                if ($FECHAEMBALADO) {
+                                                                    $FECHAEMBALADO->setTime(0, 0);
+                                                                    $DIASENEXISTENCIA = $FECHAEMBALADO->diff(new DateTime('today'))->format('%a');
+                                                                } elseif ($FECHAEMBALADODOS) {
+                                                                    $FECHAEMBALADODOS->setTime(0, 0);
+                                                                    $DIASENEXISTENCIA = $FECHAEMBALADODOS->diff(new DateTime('today'))->format('%a');
+                                                                } else {
+                                                                    $DIASENEXISTENCIA = "Sin Datos";
+                                                                }
+                                                            } else {
+                                                                $DIASENEXISTENCIA = "Sin Datos";
+                                                            }
+                                                            $NUMEROSIF = "Sin Datos";
+                                                            if ($ARRAYINPSAG) {
+                                                                $NUMEROSIF = isset($ARRAYINPSAG[0]["CIF"]) ? $ARRAYINPSAG[0]["CIF"] : "Sin Datos";
+                                                            }
+                                                            $RESALTARFOLIO = ($r['ID_INPSAG'] == "" || $r['ID_INPSAG'] == null) && is_numeric($DIASENEXISTENCIA) && $DIASENEXISTENCIA > 3;
+                                                            $CLASERESALTADO = $RESALTARFOLIO ? "text-danger font-weight-bold" : "";
                                                             ?>
                                                             <tr class="text-center">
                                                                 <td>                                                                   
@@ -579,6 +603,9 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 <td><?php echo $FECHAINPSAG; ?></td>
                                                                 <td><?php echo $NOMBRETINPSAG; */ ?></td> -->
                                                                 <td><?php echo $NOMBRETMANEJO; ?></td>
+                                                                <td class="<?php echo $CLASERESALTADO; ?>"><?php echo $ESTADOSAG; ?></td>
+                                                                <td class="<?php echo $CLASERESALTADO; ?>"><?php echo $NUMEROSIF; ?></td>
+                                                                <td class="<?php echo $CLASERESALTADO; ?>"><?php echo $DIASENEXISTENCIA; ?></td>
                                                                 <!--<td><?php /*  echo $NOMBRETCALIBRE; ?></td>
                                                                 <td><?php echo $NOMBRETEMBALAJE; ?></td>
                                                                 <td><?php echo $STOCK; ?></td>
