@@ -81,6 +81,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         file_put_contents($RUTA_CONFIG_CRON_PT, json_encode($configLimpia, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $CONFIG_ENVIO = array_merge($CONFIG_ENVIO, $configLimpia);
         $MENSAJE_CONFIG = "Configuración guardada correctamente para el envío automático.";
+
+        if (!empty($_POST['TEST_ENVIO_CRON'])) {
+            $destinatariosManual = array_filter(array_map('trim', explode(',', $configLimpia['correos'] ?? '')));
+            $destinatariosUsuarios = $configLimpia['usuarios'] ?? [];
+            $destinatariosPrueba = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
+
+            if (!empty($destinatariosPrueba)) {
+                require_once "../../assest/config/validarUsuarioExpo.php";
+                require_once '../../assest/controlador/EMPRESA_ADO.php';
+                require_once '../../assest/controlador/PLANTA_ADO.php';
+                require_once '../../fruta/cron/alertaFoliosExiexportacion.php';
+                $mensajePrueba = "Prueba de configuración Cron PT. Hora: {$configLimpia['hora']}, Días: ".implode(',', $configLimpia['dias']).".";
+                [$ok, $error] = enviarCorreoSMTP($destinatariosPrueba, "Prueba envío Cron PT", $mensajePrueba, 'informes@volcanfoods.cl', 'informes@volcanfoods.cl', '1z=EWfu0026k', 'mail.volcanfoods.cl', 465);
+                if ($ok) {
+                    $MENSAJE_CONFIG = "Configuración guardada y correo de prueba enviado.";
+                } else {
+                    $MENSAJE_CONFIG = "Configuración guardada, pero el envío de prueba falló: {$error}";
+                }
+            } else {
+                $MENSAJE_CONFIG = "Configuración guardada. No se enviaron pruebas por falta de destinatarios.";
+            }
+        }
     }
 }
 
@@ -623,9 +645,14 @@ if ($_POST) {
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-10">
                                         <div id="alerta-config" class="text-success" style="display:none;"></div>
-                                        <button type="button" class="btn btn-success btn-sm" id="GUARDAR_CONFIG_ENVIO">
-                                            <i class="ti-save"></i> Guardar configuración
-                                        </button>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-success btn-sm" id="GUARDAR_CONFIG_ENVIO">
+                                                <i class="ti-save"></i> Guardar configuración
+                                            </button>
+                                            <button type="button" class="btn btn-info btn-sm" id="PROBAR_ENVIO_CONFIG">
+                                                <i class="ti-email"></i> Probar envío
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -641,6 +668,7 @@ if ($_POST) {
         <?php include_once "../../assest/config/menuExtraExpo.php"; ?>
         <form id="form-config-cron-pt" method="POST" style="display:none;">
             <input type="hidden" name="CONFIG_CRON_PT" id="CONFIG_CRON_PT">
+            <input type="hidden" name="TEST_ENVIO_CRON" id="TEST_ENVIO_CRON">
         </form>
     </div>
     <?php include_once "../../assest/config/urlBase.php"; ?>
@@ -657,9 +685,11 @@ if ($_POST) {
             const plantasSelect = document.getElementById('PLANTAS_DESTINO');
             const usuariosSelect = document.getElementById('USUARIOS_DESTINO');
             const guardarBtn = document.getElementById('GUARDAR_CONFIG_ENVIO');
+            const probarBtn = document.getElementById('PROBAR_ENVIO_CONFIG');
             const alerta = document.getElementById('alerta-config');
             const formCron = document.getElementById('form-config-cron-pt');
             const inputCron = document.getElementById('CONFIG_CRON_PT');
+            const inputTest = document.getElementById('TEST_ENVIO_CRON');
             const diasCheckboxes = Array.from(document.querySelectorAll('[id^="DIA_"]'));
 
             const cargarConfig = () => {
@@ -682,7 +712,7 @@ if ($_POST) {
                 }catch(e){}
             };
 
-            const guardarConfig = () => {
+            const guardarConfig = (probar=false) => {
                 const hora = (horaInput.value || '').trim();
                 const dias = diasCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
                 const correos = (correosInput.value || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
@@ -731,6 +761,9 @@ if ($_POST) {
                 localStorage.setItem(keyConfig, JSON.stringify(datos));
                 if(formCron && inputCron){
                     inputCron.value = JSON.stringify(datos);
+                    if(inputTest){
+                        inputTest.value = probar ? '1' : '';
+                    }
                     formCron.submit();
                 }
                 alerta.style.display = 'block';
@@ -739,7 +772,10 @@ if ($_POST) {
             };
 
             if(guardarBtn){
-                guardarBtn.addEventListener('click', guardarConfig);
+                guardarBtn.addEventListener('click', () => guardarConfig(false));
+            }
+            if(probarBtn){
+                probarBtn.addEventListener('click', () => guardarConfig(true));
             }
             cargarConfig();
         })();
