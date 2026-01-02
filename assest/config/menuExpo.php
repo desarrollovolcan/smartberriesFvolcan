@@ -772,6 +772,12 @@ $ARRAYPLANTACAMBIAR = $PLANTA_ADO->listarPlantaPropiaCBX();
               <span>Cron PT</span>
             </a>
           </li>
+          <li>
+            <a href="cronEjecutados.php">
+              <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/schedule.svg" class="svg-icon" alt="">
+              <span>Cron ejecutados</span>
+            </a>
+          </li>
         <?php  } ?>
       <?php  } ?>
     </ul>
