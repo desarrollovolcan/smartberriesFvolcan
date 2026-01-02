@@ -208,6 +208,9 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
 }
 
 $options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::']);
+if ($options === false) {
+    $options = [];
+}
 $temporadaManual = isset($options['temporada']) ? (int) $options['temporada'] : null;
 $force = array_key_exists('force', $options);
 
