@@ -9,6 +9,7 @@ if (isset($_SESSION["ID_USUARIO"], $_SESSION["NOMBRE_USUARIO"], $_SESSION["ID_EM
         exit;
     }
 }
+include_once '../../assest/config/cronPtHelper.php';
 
 include_once '../../assest/controlador/EMPRESA_ADO.php';
 include_once '../../assest/controlador/PLANTA_ADO.php';
