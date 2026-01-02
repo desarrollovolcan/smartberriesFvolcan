@@ -8,6 +8,7 @@ $RUTA_EJECUCION_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alertaFoliosExiexpo
 $CONFIG_ENVIO = [
     'habilitado' => true,
     'actualizado_en' => null,
+    'fecha_inicio' => '',
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -72,6 +73,15 @@ function obtenerProximaEjecucion(array $config): ?DateTime
     $minutoInt = max(0, min(59, (int) $partesHora[1]));
 
     $now = new DateTime('now');
+    if (!empty($config['fecha_inicio'])) {
+        $inicio = DateTime::createFromFormat('Y-m-d', $config['fecha_inicio']);
+        if ($inicio) {
+            $inicio->setTime(0, 0, 0);
+            if ($inicio > $now) {
+                $now = $inicio;
+            }
+        }
+    }
     for ($i = 0; $i <= 7; $i++) {
         $candidato = clone $now;
         if ($i > 0) {
@@ -102,6 +112,7 @@ if (isset($_GET['estado_cron_pt'])) {
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'habilitado' => $CONFIG_ENVIO['habilitado'],
+        'fecha_inicio' => $CONFIG_ENVIO['fecha_inicio'] ?? '',
         'hora' => $CONFIG_ENVIO['hora'] ?? '',
         'dias' => $diasSeleccionados,
         'proxima_ejecucion' => $proximaEjecucion ? $proximaEjecucion->format('d/m/Y H:i') : null,
@@ -218,6 +229,7 @@ if (isset($_GET['estado_cron_pt'])) {
                                                     <td>
                                                         <div><strong>Hora:</strong> <span id="cron-hora"><?php echo $CONFIG_ENVIO['hora'] ?: 'No definida'; ?></span></div>
                                                         <div><strong>Días:</strong> <span id="cron-dias"><?php echo !empty($diasSeleccionados) ? implode(', ', $diasSeleccionados) : 'No definidos'; ?></span></div>
+                                                        <div><strong>Inicio:</strong> <span id="cron-inicio"><?php echo $CONFIG_ENVIO['fecha_inicio'] ?: 'No definida'; ?></span></div>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -275,6 +287,7 @@ if (isset($_GET['estado_cron_pt'])) {
             const dias = document.getElementById('cron-dias');
             const contador = document.querySelector('.cron-countdown');
             const estado = document.getElementById('estado-cron');
+            const inicio = document.getElementById('cron-inicio');
 
             if (proxima) {
                 if (data.proxima_ejecucion) {
@@ -293,6 +306,9 @@ if (isset($_GET['estado_cron_pt'])) {
             }
             if (dias) {
                 dias.textContent = (data.dias && data.dias.length) ? data.dias.join(', ') : 'No definidos';
+            }
+            if (inicio) {
+                inicio.textContent = data.fecha_inicio || 'No definida';
             }
             if (estado) {
                 const habilitado = !!data.habilitado;
