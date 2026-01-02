@@ -760,8 +760,14 @@ $ARRAYPLANTACAMBIAR = $PLANTA_ADO->listarPlantaPropiaCBX();
           </li>    
         <?php  } ?>   
         <?php if($PADAVISO=="1"){ ?>
+          <li class="treeview">
+            <a href="#">
+              <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/miscellaneous.svg" class="svg-icon" alt="">
+              <span>Registro Aviso</span>
+            </a>
+          </li>
           <li>
-            <a href="registroUsuarioAviso.php">
+            <a href="registroUsuarioAviso.php#tab-cron">
               <img src="../../api/cryptioadmin10/html/images/svg-icon/sidebar-menu/miscellaneous.svg" class="svg-icon" alt="">
               <span>Registro Aviso</span>
             </a>
