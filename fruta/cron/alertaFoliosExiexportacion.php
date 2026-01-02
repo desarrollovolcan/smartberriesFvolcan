@@ -238,9 +238,11 @@ if (!$desdeInclude) {
         exit(0);
     }
 
-    $horaActual = date('H:i');
-    if (!$force && $horaActual !== $horaConfig) {
-        echo "Hora actual {$horaActual} distinta a configurada {$horaConfig}. Abortando.\n";
+    $ahora = new DateTime('now');
+    $objetivo = DateTime::createFromFormat('H:i', $horaConfig) ?: new DateTime('today');
+    $objetivo->setDate((int)$ahora->format('Y'), (int)$ahora->format('m'), (int)$ahora->format('d'));
+    if (!$force && $ahora < $objetivo) {
+        echo "Aún no se alcanza la hora configurada ({$horaConfig}). Abortando.\n";
         exit(0);
     }
 }
