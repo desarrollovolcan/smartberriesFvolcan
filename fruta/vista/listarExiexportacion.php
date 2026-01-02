@@ -391,37 +391,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                             <?php echo $ALERTAERROR; ?>
                         </div>
                     <?php } ?>
-                    <?php if ($CRON_PT_EN_EJECUCION) { ?>
-                        <div class="alert alert-info" role="alert">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                <div>
-                                    <strong>Cron PT activo:</strong>
-                                    <?php if ($ALERTA_FOLIOS_ENVIADA_HOY) { ?>
-                                        <span>La alerta ya fue enviada hoy.</span>
-                                    <?php } else { ?>
-                                        <span>Se enviará un correo con los folios más antiguos sin inspección.</span>
-                                    <?php } ?>
-                                    <div class="small text-muted">
-                                        Hora: <?php echo htmlspecialchars($CRON_PT_HORA ?: 'No definida', ENT_QUOTES, 'UTF-8'); ?>
-                                        <?php if (!empty($CRON_PT_DIAS_TEXTO)) { ?>
-                                            | Días: <?php echo htmlspecialchars(implode(', ', $CRON_PT_DIAS_TEXTO), ENT_QUOTES, 'UTF-8'); ?>
-                                        <?php } ?>
-                                    </div>
-                                </div>
-                                <div class="mt-10 mt-md-0">
-                                    <span id="contador-alerta" class="badge badge-primary"></span>
-                                </div>
-                            </div>
-                        </div>
-                    <?php } elseif (!$CRON_PT_HABILITADO) { ?>
-                        <div class="alert alert-danger" role="alert">
-                            Cron PT deshabilitado. No se ejecutará al iniciar sesión.
-                        </div>
-                    <?php } elseif (!$CRON_PT_CONFIG_VALIDO) { ?>
-                        <div class="alert alert-warning" role="alert">
-                            Cron PT requiere hora y días configurados para ejecutarse.
-                        </div>
-                    <?php } ?>
+                    <?php
+                    $MOSTRAR_CRON_PT_FOOTER = $CRON_PT_EN_EJECUCION;
+                    $CRON_PT_FOOTER_HORA = $CRON_PT_HORA;
+                    $CRON_PT_FOOTER_DIAS = $CRON_PT_DIAS_TEXTO;
+                    ?>
                     <!-- Main content -->
                     <section class="content">
                         <div class="box">
@@ -990,8 +964,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
         <script>
             (function(){
                 const form = document.getElementById('form-alerta-folios');
-                const contador = document.getElementById('contador-alerta');
-                const alertaEnviada = <?php echo $ALERTA_FOLIOS_ENVIADA_HOY ? 'true' : 'false'; ?>;
+                const contador = document.getElementById('cron-pt-footer-countdown');
+                const estado = document.getElementById('cron-pt-footer-status');
                 const hayFolios = <?php echo !empty($ALERTAFOLIOS) ? 'true' : 'false'; ?>;
                 const cronConfig = <?php echo json_encode([
                     'habilitado' => $CRON_PT_HABILITADO,
@@ -999,9 +973,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                     'dias' => array_values($CRON_PT_DIAS)
                 ], JSON_UNESCAPED_UNICODE); ?>;
 
-                if (!form || !contador || alertaEnviada || !hayFolios) {
+                if (!form || !contador) {
                     if (contador) {
-                        contador.textContent = alertaEnviada ? 'Envío realizado' : 'Sin folios pendientes';
+                        contador.textContent = 'Sin datos';
                     }
                     return;
                 }
@@ -1010,6 +984,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                         contador.textContent = 'Cron PT sin horario';
                     }
                     return;
+                }
+                if (!hayFolios && estado) {
+                    estado.textContent = 'Sin folios pendientes';
+                } else if (estado) {
+                    estado.textContent = 'Próximo envío';
                 }
                 let envioEjecutado = false;
                 const calcularObjetivo = () => {
@@ -1036,9 +1015,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
                 const actualizar = () => {
                     const ahora = new Date();
                     const restante = objetivo - ahora;
-                    if (restante <= 0 && !envioEjecutado) {
+                    if (restante <= 0 && !envioEjecutado && hayFolios) {
                         envioEjecutado = true;
-                        contador.textContent = 'Enviando alerta...';
+                        contador.textContent = 'Enviando...';
                         form.submit();
                         return;
                     }
