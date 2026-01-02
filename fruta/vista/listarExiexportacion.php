@@ -87,6 +87,19 @@ $ARRAYDESPACHO="";
 $ARRAYDESPACHO2="";
 $ARRAYTINPSAG = "";
 $ARRAYINPSAG = "";
+$CACHEPRODUCTOR = [];
+$CACHEVESPECIES = [];
+$CACHEESPECIES = [];
+$CACHEESTANDAR = [];
+$CACHETMANEJO = [];
+$CACHETCALIBRE = [];
+$CACHETEMBALAJE = [];
+$CACHETCATEGORIA = [];
+$CACHETCOLOR = [];
+$CACHEEMPRESA = [];
+$CACHEPLANTA = [];
+$CACHETEMPORADA = [];
+$CACHEICARGA = [];
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES 
 if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
@@ -206,6 +219,9 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                         <th>Fecha Inspección </th>
                                                         <th>Tipo Inspección </th> -->
                                                         <th>Tipo Manejo</th>
+                                                        <th>Condición SAG</th>
+                                                        <th>Número SIF</th>
+                                                        <th>Días en Existencia</th>
                                                         <!-- <th>Tipo Calibre </th>
                                                         <th>Tipo Embalaje </th>
                                                         <th>Stock</th>
@@ -299,9 +315,11 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 $COLOR="Sin Datos";
                                                             }                                                                                                                    
                                                             if ($r['ID_ICARGA']) {
-                                                                $ARRAYVERICARGA=$ICARGA_ADO->verIcarga($r['ID_ICARGA']);
-                                                                if($ARRAYVERICARGA){
-                                                                    $NUMEROREFERENCIA=$ARRAYVERICARGA[0]["NREFERENCIA_ICARGA"];
+                                                                if (!isset($CACHEICARGA[$r['ID_ICARGA']])) {
+                                                                    $CACHEICARGA[$r['ID_ICARGA']] = $ICARGA_ADO->verIcarga($r['ID_ICARGA']);
+                                                                }
+                                                                if($CACHEICARGA[$r['ID_ICARGA']]){
+                                                                    $NUMEROREFERENCIA=$CACHEICARGA[$r['ID_ICARGA']][0]["NREFERENCIA_ICARGA"];
                                                                 }else{
                                                                     $NUMEROREFERENCIA =  "Sin Datos";
                                                                 }
@@ -413,7 +431,10 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 $NOMBRETINPSAG = "Sin Datos";
                                                             }
                                                   
-                                                            $ARRAYVERPRODUCTORID = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
+                                                            if (!isset($CACHEPRODUCTOR[$r['ID_PRODUCTOR']])) {
+                                                                $CACHEPRODUCTOR[$r['ID_PRODUCTOR']] = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
+                                                            }
+                                                            $ARRAYVERPRODUCTORID = $CACHEPRODUCTOR[$r['ID_PRODUCTOR']];
                                                             if ($ARRAYVERPRODUCTORID) {
 
                                                                 $CSGPRODUCTOR = $ARRAYVERPRODUCTORID[0]['CSG_PRODUCTOR'];
@@ -422,7 +443,10 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 $CSGPRODUCTOR = "Sin Datos";
                                                                 $NOMBREPRODUCTOR = "Sin Datos";
                                                             }
-                                                            $ARRAYEVERERECEPCIONID = $EEXPORTACION_ADO->verEstandar($r['ID_ESTANDAR']);
+                                                            if (!isset($CACHEESTANDAR[$r['ID_ESTANDAR']])) {
+                                                                $CACHEESTANDAR[$r['ID_ESTANDAR']] = $EEXPORTACION_ADO->verEstandar($r['ID_ESTANDAR']);
+                                                            }
+                                                            $ARRAYEVERERECEPCIONID = $CACHEESTANDAR[$r['ID_ESTANDAR']];
                                                             if ($ARRAYEVERERECEPCIONID) {
                                                                 $CODIGOESTANDAR = $ARRAYEVERERECEPCIONID[0]['CODIGO_ESTANDAR'];
                                                                 $NOMBREESTANDAR = $ARRAYEVERERECEPCIONID[0]['NOMBRE_ESTANDAR'];
@@ -430,11 +454,18 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 $CODIGOESTANDAR = "Sin Datos";
                                                                 $NOMBREESTANDAR = "Sin Datos";
                                                             }
-                                                            $ARRAYVERVESPECIESID = $VESPECIES_ADO->verVespecies($r['ID_VESPECIES']);
+                                                            if (!isset($CACHEVESPECIES[$r['ID_VESPECIES']])) {
+                                                                $CACHEVESPECIES[$r['ID_VESPECIES']] = $VESPECIES_ADO->verVespecies($r['ID_VESPECIES']);
+                                                            }
+                                                            $ARRAYVERVESPECIESID = $CACHEVESPECIES[$r['ID_VESPECIES']];
                                                             if ($ARRAYVERVESPECIESID) {
                                                                 $NOMBREVESPECIES = $ARRAYVERVESPECIESID[0]['NOMBRE_VESPECIES'];
-                                                                $ARRAYVERESPECIESID = $ESPECIES_ADO->verEspecies($ARRAYVERVESPECIESID[0]['ID_ESPECIES']);
-                                                                if ($ARRAYVERVESPECIESID) {
+                                                                $IDESPECIES = $ARRAYVERVESPECIESID[0]['ID_ESPECIES'];
+                                                                if (!isset($CACHEESPECIES[$IDESPECIES])) {
+                                                                    $CACHEESPECIES[$IDESPECIES] = $ESPECIES_ADO->verEspecies($IDESPECIES);
+                                                                }
+                                                                $ARRAYVERESPECIESID = $CACHEESPECIES[$IDESPECIES];
+                                                                if ($ARRAYVERESPECIESID) {
                                                                     $NOMBRESPECIES = $ARRAYVERESPECIESID[0]['NOMBRE_ESPECIES'];
                                                                 } else {
                                                                     $NOMBRESPECIES = "Sin Datos";
@@ -443,55 +474,73 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 $NOMBREVESPECIES = "Sin Datos";
                                                                 $NOMBRESPECIES = "Sin Datos";
                                                             }
-                                                            $ARRAYTMANEJO = $TMANEJO_ADO->verTmanejo($r['ID_TMANEJO']);
+                                                            if (!isset($CACHETMANEJO[$r['ID_TMANEJO']])) {
+                                                                $CACHETMANEJO[$r['ID_TMANEJO']] = $TMANEJO_ADO->verTmanejo($r['ID_TMANEJO']);
+                                                            }
+                                                            $ARRAYTMANEJO = $CACHETMANEJO[$r['ID_TMANEJO']];
                                                             if ($ARRAYTMANEJO) {
                                                                 $NOMBRETMANEJO = $ARRAYTMANEJO[0]['NOMBRE_TMANEJO'];
                                                             } else {
                                                                 $NOMBRETMANEJO = "Sin Datos";
                                                             }
-                                                            $ARRAYTCALIBRE = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
+                                                            if (!isset($CACHETCALIBRE[$r['ID_TCALIBRE']])) {
+                                                                $CACHETCALIBRE[$r['ID_TCALIBRE']] = $TCALIBRE_ADO->verCalibre($r['ID_TCALIBRE']);
+                                                            }
+                                                            $ARRAYTCALIBRE = $CACHETCALIBRE[$r['ID_TCALIBRE']];
                                                             if ($ARRAYTCALIBRE) {
                                                                 $NOMBRETCALIBRE = $ARRAYTCALIBRE[0]['NOMBRE_TCALIBRE'];
                                                             } else {
                                                                 $NOMBRETCALIBRE = "Sin Datos";
                                                             }
-                                                            $ARRAYTEMBALAJE = $TEMBALAJE_ADO->verEmbalaje($r['ID_TEMBALAJE']);
+                                                            if (!isset($CACHETEMBALAJE[$r['ID_TEMBALAJE']])) {
+                                                                $CACHETEMBALAJE[$r['ID_TEMBALAJE']] = $TEMBALAJE_ADO->verEmbalaje($r['ID_TEMBALAJE']);
+                                                            }
+                                                            $ARRAYTEMBALAJE = $CACHETEMBALAJE[$r['ID_TEMBALAJE']];
                                                             if ($ARRAYTEMBALAJE) {
                                                                 $NOMBRETEMBALAJE = $ARRAYTEMBALAJE[0]['NOMBRE_TEMBALAJE'];
                                                             } else {
                                                                 $NOMBRETEMBALAJE = "Sin Datos";
                                                             }
-                                                            $ARRAYTEMBALAJE = $TEMBALAJE_ADO->verEmbalaje($r['ID_TEMBALAJE']);
-                                                            if ($ARRAYTEMBALAJE) {
-                                                                $NOMBRETEMBALAJE = $ARRAYTEMBALAJE[0]['NOMBRE_TEMBALAJE'];
-                                                            } else {
-                                                                $NOMBRETEMBALAJE = "Sin Datos";
+                                                            if (!isset($CACHETCATEGORIA[$r['ID_TCATEGORIA']])) {
+                                                                $CACHETCATEGORIA[$r['ID_TCATEGORIA']] = $TCATEGORIA_ADO->verTcategoria($r['ID_TCATEGORIA']);
                                                             }
-                                                            $ARRAYTCATEGORIA=$TCATEGORIA_ADO->verTcategoria($r['ID_TCATEGORIA']);
+                                                            $ARRAYTCATEGORIA=$CACHETCATEGORIA[$r['ID_TCATEGORIA']];
                                                             if($ARRAYTCATEGORIA){
                                                             $NOMBRETCATEGORIA= $ARRAYTCATEGORIA[0]["NOMBRE_TCATEGORIA"];
                                                             }else{
                                                                 $NOMBRETCATEGORIA = "Sin Datos";
                                                             }   
-                                                            $ARRAYTCOLOR=$TCOLOR_ADO->verTcolor($r['ID_TCOLOR']);
+                                                            if (!isset($CACHETCOLOR[$r['ID_TCOLOR']])) {
+                                                                $CACHETCOLOR[$r['ID_TCOLOR']] = $TCOLOR_ADO->verTcolor($r['ID_TCOLOR']);
+                                                            }
+                                                            $ARRAYTCOLOR=$CACHETCOLOR[$r['ID_TCOLOR']];
                                                             if($ARRAYTCOLOR){
                                                                 $NOMBRETCOLOR= $ARRAYTCOLOR[0]["NOMBRE_TCOLOR"];
                                                             }else{
                                                                 $NOMBRETCOLOR = "Sin Datos";
                                                             } 
-                                                            $ARRAYEMPRESA = $EMPRESA_ADO->verEmpresa($r['ID_EMPRESA']);
+                                                            if (!isset($CACHEEMPRESA[$r['ID_EMPRESA']])) {
+                                                                $CACHEEMPRESA[$r['ID_EMPRESA']] = $EMPRESA_ADO->verEmpresa($r['ID_EMPRESA']);
+                                                            }
+                                                            $ARRAYEMPRESA = $CACHEEMPRESA[$r['ID_EMPRESA']];
                                                             if ($ARRAYEMPRESA) {
                                                                 $NOMBREEMPRESA = $ARRAYEMPRESA[0]['NOMBRE_EMPRESA'];
                                                             } else {
                                                                 $NOMBREEMPRESA = "Sin Datos";
                                                             }
-                                                            $ARRAYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
+                                                            if (!isset($CACHEPLANTA[$r['ID_PLANTA']])) {
+                                                                $CACHEPLANTA[$r['ID_PLANTA']] = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
+                                                            }
+                                                            $ARRAYPLANTA = $CACHEPLANTA[$r['ID_PLANTA']];
                                                             if ($ARRAYPLANTA) {
                                                                 $NOMBREPLANTA = $ARRAYPLANTA[0]['NOMBRE_PLANTA'];
                                                             } else {
                                                                 $NOMBREPLANTA = "Sin Datos";
                                                             }
-                                                            $ARRAYTEMPORADA = $TEMPORADA_ADO->verTemporada($r['ID_TEMPORADA']);
+                                                            if (!isset($CACHETEMPORADA[$r['ID_TEMPORADA']])) {
+                                                                $CACHETEMPORADA[$r['ID_TEMPORADA']] = $TEMPORADA_ADO->verTemporada($r['ID_TEMPORADA']);
+                                                            }
+                                                            $ARRAYTEMPORADA = $CACHETEMPORADA[$r['ID_TEMPORADA']];
                                                             if ($ARRAYTEMPORADA) {
                                                                 $NOMBRETEMPORADA = $ARRAYTEMPORADA[0]['NOMBRE_TEMPORADA'];
                                                             } else {
@@ -525,8 +574,29 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                             } else {
                                                                 $PREFRIO = "Sin Datos";
                                                             }
+                                                            if ($r['EMBALADO']) {
+                                                                $FECHAEMBALADO = DateTime::createFromFormat('Y-m-d', $r['EMBALADO']);
+                                                                $FECHAEMBALADODOS = DateTime::createFromFormat('d/m/Y', $r['EMBALADO']);
+                                                                if ($FECHAEMBALADO) {
+                                                                    $FECHAEMBALADO->setTime(0, 0);
+                                                                    $DIASENEXISTENCIA = $FECHAEMBALADO->diff(new DateTime('today'))->format('%a');
+                                                                } elseif ($FECHAEMBALADODOS) {
+                                                                    $FECHAEMBALADODOS->setTime(0, 0);
+                                                                    $DIASENEXISTENCIA = $FECHAEMBALADODOS->diff(new DateTime('today'))->format('%a');
+                                                                } else {
+                                                                    $DIASENEXISTENCIA = "Sin Datos";
+                                                                }
+                                                            } else {
+                                                                $DIASENEXISTENCIA = "Sin Datos";
+                                                            }
+                                                            $NUMEROSIF = "Sin Datos";
+                                                            if ($ARRAYINPSAG && isset($ARRAYINPSAG[0]["CORRELATIVO_INPSAG"]) && strlen($ARRAYINPSAG[0]["CORRELATIVO_INPSAG"])>0) {
+                                                                $NUMEROSIF = $ARRAYINPSAG[0]["CORRELATIVO_INPSAG"];
+                                                            }
+                                                            $RESALTARFOLIO = ($r['ID_INPSAG'] == "" || $r['ID_INPSAG'] == null) && is_numeric($DIASENEXISTENCIA) && $DIASENEXISTENCIA > 3;
+                                                            $CLASERESALTADO = $RESALTARFOLIO ? "text-danger" : "";
                                                             ?>
-                                                            <tr class="text-center">
+                                                            <tr class="text-center <?php echo $CLASERESALTADO; ?>">
                                                                 <td>                                                                   
                                                                     <span class="<?php echo $TRECHAZOCOLOR; ?>">
                                                                         <?php echo $r['FOLIO_EXIEXPORTACION']; ?>
@@ -579,6 +649,9 @@ if ($EMPRESAS  && $PLANTAS && $TEMPORADAS) {
                                                                 <td><?php echo $FECHAINPSAG; ?></td>
                                                                 <td><?php echo $NOMBRETINPSAG; */ ?></td> -->
                                                                 <td><?php echo $NOMBRETMANEJO; ?></td>
+                                                                <td><?php echo $ESTADOSAG; ?></td>
+                                                                <td><?php echo $NUMEROSIF; ?></td>
+                                                                <td><?php echo $DIASENEXISTENCIA; ?></td>
                                                                 <!--<td><?php /*  echo $NOMBRETCALIBRE; ?></td>
                                                                 <td><?php echo $NOMBRETEMBALAJE; ?></td>
                                                                 <td><?php echo $STOCK; ?></td>
