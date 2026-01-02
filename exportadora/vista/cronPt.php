@@ -14,6 +14,7 @@ $USUARIO_ADO = new USUARIO_ADO();
 
 $CONFIG_ENVIO = [
     'habilitado' => true,
+    'actualizado_en' => null,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -39,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     if (is_array($configRecibida)) {
         $configLimpia = [
             'habilitado' => isset($configRecibida['habilitado']) ? (bool) $configRecibida['habilitado'] : true,
+            'actualizado_en' => time(),
             'hora' => $configRecibida['hora'] ?? '',
             'dias' => isset($configRecibida['dias']) && is_array($configRecibida['dias']) ? array_values(array_unique($configRecibida['dias'])) : [],
             'correos' => $configRecibida['correos'] ?? '',

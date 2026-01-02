@@ -7,6 +7,7 @@ if (!function_exists('obtenerConfigCronPt')) {
     {
         $config = [
             'habilitado' => true,
+            'actualizado_en' => null,
             'hora' => '',
             'dias' => [],
             'correos' => '',

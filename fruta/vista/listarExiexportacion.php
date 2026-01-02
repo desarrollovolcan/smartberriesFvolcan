@@ -107,6 +107,7 @@ $CACHEICARGA = [];
 $RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
 $CRON_PT_CONFIG = [
     'habilitado' => true,
+    'actualizado_en' => null,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -121,6 +122,7 @@ if (file_exists($RUTA_CONFIG_CRON_PT)) {
     }
 }
 $CRON_PT_CONFIG['habilitado'] = isset($CRON_PT_CONFIG['habilitado']) ? (bool) $CRON_PT_CONFIG['habilitado'] : true;
+$CRON_PT_ACTUALIZADO_EN = isset($CRON_PT_CONFIG['actualizado_en']) ? (int) $CRON_PT_CONFIG['actualizado_en'] : 0;
 $CRON_PT_HORA = trim((string) ($CRON_PT_CONFIG['hora'] ?? ''));
 $CRON_PT_DIAS = isset($CRON_PT_CONFIG['dias']) && is_array($CRON_PT_CONFIG['dias']) ? array_values(array_unique($CRON_PT_CONFIG['dias'])) : [];
 $CRON_PT_CONFIG_VALIDO = $CRON_PT_HORA !== '' && !empty($CRON_PT_DIAS);
@@ -138,6 +140,14 @@ $DIAS_SEMANA_CRON = [
 $CRON_PT_DIAS_TEXTO = array_map(function ($dia) use ($DIAS_SEMANA_CRON) {
     return $DIAS_SEMANA_CRON[(string) $dia] ?? $dia;
 }, $CRON_PT_DIAS);
+
+if ($CRON_PT_ACTUALIZADO_EN > 0 && isset($_SESSION['ALERTA_FOLIOS_CONFIG_TS'])) {
+    if ($CRON_PT_ACTUALIZADO_EN > (int) $_SESSION['ALERTA_FOLIOS_CONFIG_TS']) {
+        unset($_SESSION['ALERTA_FOLIOS_FECHA']);
+        $ALERTA_FOLIOS_ENVIADA_HOY = false;
+        $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $CRON_PT_ACTUALIZADO_EN;
+    }
+}
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
@@ -284,6 +294,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['ENVIAR_ALERTA_FOLIOS'
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
             if ($envioOk) {
                 $_SESSION['ALERTA_FOLIOS_FECHA'] = date('Y-m-d');
+                $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $CRON_PT_ACTUALIZADO_EN;
                 $ALERTA_FOLIOS_ENVIADA_HOY = true;
                 $MENSAJEENVIOALERTA = "Alerta automática enviada correctamente.";
             } else {
