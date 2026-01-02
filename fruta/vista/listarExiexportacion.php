@@ -141,8 +141,9 @@ $CRON_PT_DIAS_TEXTO = array_map(function ($dia) use ($DIAS_SEMANA_CRON) {
     return $DIAS_SEMANA_CRON[(string) $dia] ?? $dia;
 }, $CRON_PT_DIAS);
 
-if ($CRON_PT_ACTUALIZADO_EN > 0 && isset($_SESSION['ALERTA_FOLIOS_CONFIG_TS'])) {
-    if ($CRON_PT_ACTUALIZADO_EN > (int) $_SESSION['ALERTA_FOLIOS_CONFIG_TS']) {
+if ($CRON_PT_ACTUALIZADO_EN > 0) {
+    $ultimoConfigTs = isset($_SESSION['ALERTA_FOLIOS_CONFIG_TS']) ? (int) $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] : 0;
+    if ($CRON_PT_ACTUALIZADO_EN > $ultimoConfigTs) {
         unset($_SESSION['ALERTA_FOLIOS_FECHA']);
         $ALERTA_FOLIOS_ENVIADA_HOY = false;
         $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $CRON_PT_ACTUALIZADO_EN;
