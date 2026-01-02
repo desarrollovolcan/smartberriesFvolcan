@@ -5,6 +5,9 @@ include_once "../../assest/config/validarUsuarioExpo.php";
 //LLAMADA ARCHIVOS NECESARIOS PARA LAS OPERACIONES
 
 include_once '../../assest/modelo/AVISO.php';
+include_once '../../assest/controlador/EMPRESA_ADO.php';
+include_once '../../assest/controlador/PLANTA_ADO.php';
+include_once '../../assest/controlador/USUARIO_ADO.php';
 
 
 //INCIALIZAR LAS VARIBLES
@@ -12,6 +15,9 @@ include_once '../../assest/modelo/AVISO.php';
 
 //INIICIALIZAR MODELO
 $AVISO =  new AVISO();
+$EMPRESA_ADO = new EMPRESA_ADO();
+$PLANTA_ADO = new PLANTA_ADO();
+$USUARIO_ADO = new USUARIO_ADO();
 
 //INCIALIZAR VARIBALES A OCUPAR PARA LA FUNCIONALIDAD
 
@@ -36,6 +42,17 @@ $ARRAYUSUARIO = "";
 $ARRAYUSUARIOID = "";
 $ARRAYTUSUARIOS = "";
 $ARRAYUSUARIOBUSCARNOMBREUSUARIO = "";
+$CONFIG_ENVIO = [
+    'hora' => '',
+    'dias' => [],
+    'correos' => '',
+    'empresas' => [],
+    'plantas' => [],
+    'usuarios' => []
+];
+$ARRAYEMPRESAS = $EMPRESA_ADO->listarEmpresaCBX();
+$ARRAYPLANTAS = $PLANTA_ADO->listarPlantaCBX();
+$ARRAYUSUARIOS = $USUARIO_ADO->listarUsuarioCBX();
 
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
@@ -304,7 +321,7 @@ if ($_POST) {
                 <!-- Main content -->
                 <section class="content">
                     <div class="row">
-                            <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
+                        <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                             <div class="box">
                                 <div class="box-header with-border bg-primary">                                    
                                     <h4 class="box-title">Registro Usuario</h4>                                                
@@ -490,6 +507,107 @@ if ($_POST) {
                                 </div>
                             </div>
                         </div>
+                        <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
+                            <div class="box">
+                                <div class="box-header with-border bg-success">
+                                    <h4 class="box-title">Configuración de envío automático</h4>
+                                </div>
+                                <div class="box-body">
+                                    <p class="text-muted mb-15">Define la hora, los días de envío y los correos de destino. Esta configuración se almacena en este navegador.</p>
+                                    <ul class="nav nav-pills mb-15" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-toggle="tab" href="#tab-horario" role="tab">Horario y días</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-toggle="tab" href="#tab-correos" role="tab">Correos destino</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane active" id="tab-horario" role="tabpanel">
+                                            <div class="row">
+                                                <div class="col-md-4 col-sm-12">
+                                                    <div class="form-group">
+                                                        <label>Hora de envío</label>
+                                                        <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
+                                                        <small class="form-text text-muted">Ejemplo: 12:55</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8 col-sm-12">
+                                                    <div class="form-group">
+                                                        <label>Días de envío</label>
+                                                        <div class="d-flex flex-wrap">
+                                                            <?php
+                                                                $diasSemana = [
+                                                                    '1' => 'Lunes',
+                                                                    '2' => 'Martes',
+                                                                    '3' => 'Miércoles',
+                                                                    '4' => 'Jueves',
+                                                                    '5' => 'Viernes',
+                                                                    '6' => 'Sábado',
+                                                                    '7' => 'Domingo'
+                                                                ];
+                                                                foreach ($diasSemana as $diaClave => $diaNombre) {
+                                                                    echo '<div class="mr-15 mb-5 custom-control custom-checkbox">';
+                                                                    echo '<input type="checkbox" class="custom-control-input" id="DIA_'.$diaClave.'" value="'.$diaClave.'">';
+                                                                    echo '<label class="custom-control-label" for="DIA_'.$diaClave.'">'.$diaNombre.'</label>';
+                                                                    echo '</div>';
+                                                                }
+                                                            ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="tab-correos" role="tabpanel">
+                                            <div class="form-group">
+                                                <label>Correos de destino</label>
+                                                <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="3" placeholder="Separar por coma. Ej: correo1@dominio.cl, correo2@dominio.cl"></textarea>
+                                                <small class="form-text text-muted">Puedes agregar varios correos separados por coma.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Empresas</label>
+                                                <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
+                                                        <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
+                                                            <?php echo $empresa['NOMBRE_EMPRESA']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona las empresas para las que se enviará información.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Plantas</label>
+                                                <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYPLANTAS as $planta) { ?>
+                                                        <option value="<?php echo $planta['ID_PLANTA']; ?>">
+                                                            <?php echo $planta['NOMBRE_PLANTA']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona las plantas para incluir en el envío.</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Destinatarios (usuarios)</label>
+                                                <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
+                                                    <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
+                                                        <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
+                                                            <?php echo $usuario['NOMBRE_USUARIO'].' - '.$usuario['EMAIL_USUARIO']; ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <small class="form-text text-muted">Selecciona usuarios para agregar sus correos automáticamente.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-15">
+                                        <div id="alerta-config" class="text-success" style="display:none;"></div>
+                                        <button type="button" class="btn btn-success" id="GUARDAR_CONFIG_ENVIO">
+                                            <i class="ti-save"></i> Guardar configuración
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <!-- /.box -->
                     </div>
                     <!--.row -->
@@ -501,6 +619,96 @@ if ($_POST) {
         <?php include_once "../../assest/config/menuExtraExpo.php"; ?>
     </div>
     <?php include_once "../../assest/config/urlBase.php"; ?>
+    <script>
+        (function(){
+            const keyConfig = 'config_envio_aviso';
+            const horaInput = document.getElementById('HORA_ENVIO');
+            const correosInput = document.getElementById('CORREOS_DESTINO');
+            const empresasSelect = document.getElementById('EMPRESAS_DESTINO');
+            const plantasSelect = document.getElementById('PLANTAS_DESTINO');
+            const usuariosSelect = document.getElementById('USUARIOS_DESTINO');
+            const guardarBtn = document.getElementById('GUARDAR_CONFIG_ENVIO');
+            const alerta = document.getElementById('alerta-config');
+            const diasCheckboxes = Array.from(document.querySelectorAll('[id^="DIA_"]'));
+
+            const cargarConfig = () => {
+                try{
+                    const datos = JSON.parse(localStorage.getItem(keyConfig) || '{}');
+                    if(datos.hora){ horaInput.value = datos.hora; }
+                    if(Array.isArray(datos.dias)){
+                        diasCheckboxes.forEach(cb => { cb.checked = datos.dias.includes(cb.value); });
+                    }
+                    if(datos.correos){ correosInput.value = datos.correos; }
+                    if(Array.isArray(datos.empresas) && empresasSelect){
+                        $(empresasSelect).val(datos.empresas).trigger('change');
+                    }
+                    if(Array.isArray(datos.plantas) && plantasSelect){
+                        $(plantasSelect).val(datos.plantas).trigger('change');
+                    }
+                    if(Array.isArray(datos.usuarios) && usuariosSelect){
+                        $(usuariosSelect).val(datos.usuarios).trigger('change');
+                    }
+                }catch(e){}
+            };
+
+            const guardarConfig = () => {
+                const hora = (horaInput.value || '').trim();
+                const dias = diasCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
+                const correos = (correosInput.value || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+                const empresas = empresasSelect ? Array.from(empresasSelect.selectedOptions).map(o => o.value) : [];
+                const plantas = plantasSelect ? Array.from(plantasSelect.selectedOptions).map(o => o.value) : [];
+                const usuarios = usuariosSelect ? Array.from(usuariosSelect.selectedOptions).map(o => o.value) : [];
+
+                alerta.style.display = 'none';
+                alerta.classList.remove('text-danger','text-success');
+
+                if(!hora){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe definir una hora de envío.';
+                    return;
+                }
+                if(dias.length === 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe seleccionar al menos un día.';
+                    return;
+                }
+                const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const invalidos = correos.filter(c => !formatoCorreo.test(c));
+                if(invalidos.length > 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Correo inválido: ' + invalidos.join(', ');
+                    return;
+                }
+
+                if(empresas.length === 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe seleccionar al menos una empresa.';
+                    return;
+                }
+                if(plantas.length === 0){
+                    alerta.style.display = 'block';
+                    alerta.classList.add('text-danger');
+                    alerta.textContent = 'Debe seleccionar al menos una planta.';
+                    return;
+                }
+                const listaUsuarios = usuarios;
+                const datos = {hora, dias, correos: correos.join(', '), empresas, plantas, usuarios: listaUsuarios};
+                localStorage.setItem(keyConfig, JSON.stringify(datos));
+                alerta.style.display = 'block';
+                alerta.classList.add('text-success');
+                alerta.textContent = 'Configuración guardada en este navegador.';
+            };
+
+            if(guardarBtn){
+                guardarBtn.addEventListener('click', guardarConfig);
+            }
+            cargarConfig();
+        })();
+    </script>
     <?php        
             //OPERACIONES
             //OPERACION DE REGISTRO DE FILA
