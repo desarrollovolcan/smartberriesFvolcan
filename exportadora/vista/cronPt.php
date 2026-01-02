@@ -54,6 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         file_put_contents($RUTA_CONFIG_CRON_PT, json_encode($configLimpia, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $CONFIG_ENVIO = array_merge($CONFIG_ENVIO, $configLimpia);
         $MENSAJE_CONFIG = "Configuración guardada correctamente para el envío automático.";
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            unset($_SESSION['ALERTA_FOLIOS_FECHA']);
+            $_SESSION['ALERTA_FOLIOS_CONFIG_TS'] = $configLimpia['actualizado_en'];
+        }
 
         if (!empty($_POST['TEST_ENVIO_CRON'])) {
             $destinatariosManual = array_filter(array_map('trim', explode(',', $configLimpia['correos'] ?? '')));
