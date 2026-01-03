@@ -49,32 +49,45 @@ foreach ($USUARIO_ADO->listarUsuarioCBX() ?: [] as $usuario) {
 $MENSAJE_EJECUCION = null;
 $MENSAJE_EJECUCION_TIPO = 'success';
 
+function ejecutarCronPtDesdeVista(string $rutaScript, bool $force, array &$salida, int &$codigo): bool
+{
+    if (!function_exists('exec')) {
+        return false;
+    }
+
+    $phpBin = PHP_BINARY ?? '';
+    if (!is_string($phpBin) || $phpBin === '' || (!file_exists($phpBin) && !is_executable($phpBin))) {
+        return false;
+    }
+
+    $comando = escapeshellarg($phpBin) . ' ' . escapeshellarg($rutaScript);
+    if ($force) {
+        $comando .= ' --force';
+    }
+    exec($comando . ' 2>&1', $salida, $codigo);
+    return true;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) {
     if (empty($CONFIG_ENVIO['habilitado'])) {
         $MENSAJE_EJECUCION = 'El cron está deshabilitado. Habilítalo antes de ejecutar manualmente.';
         $MENSAJE_EJECUCION_TIPO = 'warning';
-    } elseif (!file_exists($RUTA_EJECUCION_CRON_PT)) {
-        $MENSAJE_EJECUCION = 'No se encontró el archivo del cron para ejecutar.';
-        $MENSAJE_EJECUCION_TIPO = 'danger';
     } else {
-        if (!defined('CRON_FOLIOS_INCLUDE_ONLY')) {
-            define('CRON_FOLIOS_INCLUDE_ONLY', true);
-        }
-        $resultadoTexto = '';
-        $huboError = false;
-        ob_start();
-        try {
-            require $RUTA_EJECUCION_CRON_PT;
-        } catch (Throwable $error) {
-            $huboError = true;
-            $MENSAJE_EJECUCION = 'Error al ejecutar el cron: ' . $error->getMessage();
+        $salida = [];
+        $codigo = 0;
+        $ejecutado = ejecutarCronPtDesdeVista($RUTA_EJECUCION_CRON_PT, true, $salida, $codigo);
+        if (!$ejecutado) {
+            $MENSAJE_EJECUCION = 'No se pudo ejecutar el cron desde la vista. Verifica que PHP CLI esté disponible.';
             $MENSAJE_EJECUCION_TIPO = 'danger';
-        }
-        $salida = trim(ob_get_clean());
-        if (!$huboError) {
-            $resultadoTexto = $salida;
-            $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'Cron ejecutado. Si no se enviaron correos, revisa destinatarios y filtros.';
-            $MENSAJE_EJECUCION_TIPO = 'success';
+        } else {
+            $resultadoTexto = trim(implode("\n", $salida));
+            if ($codigo === 0) {
+                $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'Cron ejecutado. Si no se enviaron correos, revisa destinatarios y filtros.';
+                $MENSAJE_EJECUCION_TIPO = 'success';
+            } else {
+                $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'No fue posible ejecutar el cron.';
+                $MENSAJE_EJECUCION_TIPO = 'danger';
+            }
         }
     }
 }
@@ -176,6 +189,8 @@ if (isset($_GET['estado_cron_pt'])) {
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'habilitado' => $CONFIG_ENVIO['habilitado'],
+        'server_time' => date('d/m/Y H:i'),
+        'server_timestamp' => time(),
         'fecha_inicio' => $CONFIG_ENVIO['fecha_inicio'] ?? '',
         'hora' => $CONFIG_ENVIO['hora'] ?? '',
         'dias' => $diasSeleccionados,
@@ -188,6 +203,33 @@ if (isset($_GET['estado_cron_pt'])) {
         'timestamp' => $timestampProxima,
         'actualizado_en' => $CONFIG_ENVIO['actualizado_en'] ?? null,
     ]);
+    exit;
+}
+
+if (isset($_GET['auto_run_cron_pt'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    $salida = [];
+    $codigo = 0;
+    $respuesta = [
+        'ok' => false,
+        'mensaje' => 'Cron no ejecutado.',
+        'salida' => [],
+        'codigo' => null,
+    ];
+    if (!empty($CONFIG_ENVIO['habilitado'])) {
+        $ejecutado = ejecutarCronPtDesdeVista($RUTA_EJECUCION_CRON_PT, false, $salida, $codigo);
+        if ($ejecutado) {
+            $respuesta['ok'] = $codigo === 0;
+            $respuesta['salida'] = $salida;
+            $respuesta['codigo'] = $codigo;
+            $respuesta['mensaje'] = trim(implode("\n", $salida));
+        } else {
+            $respuesta['mensaje'] = 'No se pudo ejecutar el cron automáticamente. Verifica PHP CLI.';
+        }
+    } else {
+        $respuesta['mensaje'] = 'Cron deshabilitado.';
+    }
+    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -241,6 +283,11 @@ if (isset($_GET['estado_cron_pt'])) {
             color: #728096;
             text-transform: uppercase;
             letter-spacing: 0.03em;
+        }
+        .cron-ejecucion-time {
+            font-weight: 600;
+            color: #2b3a4b;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -301,6 +348,10 @@ if (isset($_GET['estado_cron_pt'])) {
                                     <div class="cron-ejecucion-section">
                                         <div class="row">
                                             <div class="col-md-4">
+                                                <div class="cron-ejecucion-label">Hora servidor</div>
+                                                <div class="cron-ejecucion-meta mb-5">
+                                                    <span id="server-time" class="cron-ejecucion-time"><?php echo date('d/m/Y H:i'); ?></span>
+                                                </div>
                                                 <div class="cron-ejecucion-label">Próxima ejecución</div>
                                                 <div class="cron-ejecucion-meta mb-5">
                                                     <?php if ($proximaEjecucion) { ?>
@@ -389,6 +440,8 @@ if (isset($_GET['estado_cron_pt'])) {
     </div>
 
     <script>
+        let serverTimestamp = null;
+
         function formatCountdown(ms) {
             if (ms <= 0) {
                 return 'En ejecución';
@@ -436,6 +489,7 @@ if (isset($_GET['estado_cron_pt'])) {
             const usuarios = document.getElementById('cron-usuarios');
             const empresas = document.getElementById('cron-empresas');
             const plantas = document.getElementById('cron-plantas');
+            const serverTime = document.getElementById('server-time');
 
             if (proxima) {
                 if (data.proxima_ejecucion) {
@@ -467,6 +521,12 @@ if (isset($_GET['estado_cron_pt'])) {
                 estado.classList.toggle('badge-success', habilitado);
                 estado.classList.toggle('badge-secondary', !habilitado);
             }
+            if (serverTime) {
+                serverTime.textContent = data.server_time || serverTime.textContent;
+            }
+            if (data.server_timestamp) {
+                serverTimestamp = parseInt(data.server_timestamp, 10);
+            }
             const renderChips = (element, items, emptyText) => {
                 if (!element) {
                     return;
@@ -491,6 +551,21 @@ if (isset($_GET['estado_cron_pt'])) {
             renderChips(usuarios, data.usuarios || [], 'Sin usuarios asignados.');
             renderChips(empresas, data.empresas || [], 'Sin empresas asignadas.');
             renderChips(plantas, data.plantas || [], 'Sin plantas asignadas.');
+
+            if (data.timestamp && serverTimestamp) {
+                const objetivo = parseInt(data.timestamp, 10);
+                const yaEjecutado = localStorage.getItem('cronPtUltimaEjecucion');
+                if (objetivo <= serverTimestamp && String(yaEjecutado) !== String(objetivo)) {
+                    fetch('cronEjecutados.php?auto_run_cron_pt=1', { cache: 'no-store' })
+                        .then((response) => response.json())
+                        .then(() => {
+                            localStorage.setItem('cronPtUltimaEjecucion', String(objetivo));
+                        })
+                        .catch(() => {
+                            // Evitar fallos en UI.
+                        });
+                }
+            }
         }
 
         function verificarActualizacionCron() {
@@ -506,7 +581,22 @@ if (isset($_GET['estado_cron_pt'])) {
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            verificarActualizacionCron();
             setInterval(verificarActualizacionCron, 15000);
+            setInterval(() => {
+                if (serverTimestamp && serverTime) {
+                    serverTimestamp += 1;
+                    const fecha = new Date(serverTimestamp * 1000);
+                    const formato = fecha.toLocaleString('es-CL', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    serverTime.textContent = formato;
+                }
+            }, 1000);
         });
     </script>
 </body>
