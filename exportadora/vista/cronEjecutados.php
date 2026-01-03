@@ -53,27 +53,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) 
     if (empty($CONFIG_ENVIO['habilitado'])) {
         $MENSAJE_EJECUCION = 'El cron está deshabilitado. Habilítalo antes de ejecutar manualmente.';
         $MENSAJE_EJECUCION_TIPO = 'warning';
-    } elseif (!function_exists('exec')) {
-        $MENSAJE_EJECUCION = 'No es posible ejecutar el cron desde esta vista porque la función exec está deshabilitada.';
+    } elseif (!file_exists($RUTA_EJECUCION_CRON_PT)) {
+        $MENSAJE_EJECUCION = 'No se encontró el archivo del cron para ejecutar.';
         $MENSAJE_EJECUCION_TIPO = 'danger';
     } else {
-        $phpBin = PHP_BINARY ?? '';
-        if (!is_string($phpBin) || $phpBin === '' || (!file_exists($phpBin) && !is_executable($phpBin))) {
-            $MENSAJE_EJECUCION = 'No se encontró un ejecutable PHP disponible para lanzar el cron desde la vista.';
-            $MENSAJE_EJECUCION_TIPO = 'danger';
-        } else {
-        $salida = [];
-        $codigo = 0;
-        $comando = escapeshellarg($phpBin) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --force';
-        exec($comando . ' 2>&1', $salida, $codigo);
-        $resultadoTexto = trim(implode("\n", $salida));
-        if ($codigo === 0) {
-            $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'Cron ejecutado correctamente.';
-            $MENSAJE_EJECUCION_TIPO = 'success';
-        } else {
-            $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'No fue posible ejecutar el cron.';
+        if (!defined('CRON_FOLIOS_INCLUDE_ONLY')) {
+            define('CRON_FOLIOS_INCLUDE_ONLY', true);
+        }
+        $resultadoTexto = '';
+        $huboError = false;
+        ob_start();
+        try {
+            require $RUTA_EJECUCION_CRON_PT;
+        } catch (Throwable $error) {
+            $huboError = true;
+            $MENSAJE_EJECUCION = 'Error al ejecutar el cron: ' . $error->getMessage();
             $MENSAJE_EJECUCION_TIPO = 'danger';
         }
+        $salida = trim(ob_get_clean());
+        if (!$huboError) {
+            $resultadoTexto = $salida;
+            $MENSAJE_EJECUCION = $resultadoTexto !== '' ? $resultadoTexto : 'Cron ejecutado. Si no se enviaron correos, revisa destinatarios y filtros.';
+            $MENSAJE_EJECUCION_TIPO = 'success';
         }
     }
 }
