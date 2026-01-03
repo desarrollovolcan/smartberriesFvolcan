@@ -64,75 +64,53 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <?php include_once "../../assest/config/urlHead.php"; ?>
     <style>
         .detalle-modal .modal-content {
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-            border-radius: 14px;
-            overflow: hidden;
+            border: 1px solid #d0d7e3;
+            box-shadow: 0 8px 22px rgba(0, 54, 94, 0.08);
+            border-radius: 10px;
         }
 
         .detalle-modal .modal-header {
-            background: #f8fafc;
-            color: #1f2937;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 18px;
+            background: #fff;
+            color: #0f4a7a;
+            border-bottom: 1px solid #d0d7e3;
+            padding: 10px 12px;
         }
 
         .detalle-modal .modal-title {
             font-weight: 700;
-            letter-spacing: 0.25px;
+            letter-spacing: 0.2px;
             margin: 0;
-            color: #1f2937;
+            color: #0f4a7a;
         }
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
-            letter-spacing: 0.5px;
-            color: #6b7280;
+            letter-spacing: 0.4px;
+            color: #5a6f86;
             margin-bottom: 2px;
             opacity: 0.9;
         }
 
         .detalle-modal .close {
-            color: #6b7280;
-            opacity: 0.9;
-            font-weight: 700;
-        }
-
-        .detalle-hero {
-            margin: 0 -12px 14px;
-            background: #f1f5f9;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0;
-        }
-
-        .detalle-hero .brand-banner {
-            width: 100%;
-            overflow: hidden;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .detalle-hero .brand-banner img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            display: block;
+            color: #0f4a7a;
+            opacity: 0.85;
         }
 
         .detalle-modal .modal-body {
-            background: #ffffff;
-            padding: 12px 14px 10px;
+            background: #fff;
+            padding: 10px;
         }
 
         .detalle-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 10px;
+            gap: 6px;
             align-items: stretch;
             grid-auto-rows: 1fr;
         }
 
         .detalle-resumen-table {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .detalle-resumen-table .detalle-table {
@@ -140,8 +118,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-resumen-table thead th {
-            background: #f1f5f9;
-            color: #334155;
+            background: #f2f6fb;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.4px;
@@ -151,15 +128,14 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-resumen-table tbody td {
             font-size: 14px;
             font-weight: 700;
-            background: #ffffff;
         }
 
         .detalle-card {
             background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border: 1px solid #dce4ef;
+            border-radius: 8px;
             padding: 0;
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 1px 4px rgba(15, 62, 91, 0.05);
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -167,41 +143,90 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
 
         .detalle-card h5 {
             font-size: 12px;
-            font-weight: 700;
-            color: #1f2937;
+            font-weight: 600;
+            color: #0f2d4a;
             margin: 0;
             letter-spacing: 0.3px;
-            padding: 10px 12px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            border-bottom: 1px solid #dce4ef;
         }
 
-        .detalle-card table {
+        .detalle-card .titulo-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .detalle-table {
+            width: 100%;
+            margin: 0;
+            table-layout: fixed;
+        }
+
+        .detalle-card .detalle-table {
+            flex: 1;
+        }
+
+        .detalle-table th,
+        .detalle-table td {
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #12263f;
+            vertical-align: top;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .badge-amarillo {
+            background: #f7c948;
+            color: #7a4b00;
+        }
+
+        .badge-azul {
+            background: #e5efff;
+            color: #0f4a7a;
+        }
+
+        .badge-celeste {
+            background: #d5f5ff;
+            color: #0b5b73;
+        }
+
+        .detalle-table {
             width: 100%;
             border-collapse: collapse;
+            margin: 0;
+        }
+
+        .detalle-table th {
+            width: 46%;
+            padding: 6px 8px;
             font-size: 12px;
-            color: #334155;
+            font-weight: 600;
+            color: #304a6b;
+            background: #f5f7fb;
+            border-bottom: 1px solid #e7ecf4;
         }
 
-        .detalle-card th,
-        .detalle-card td {
-            padding: 7px 12px;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: top;
-            word-wrap: break-word;
+        .detalle-table td {
+            padding: 6px 8px;
+            font-size: 12.5px;
+            color: #0f2d4a;
+            border-bottom: 1px solid #eef2f7;
             word-break: break-word;
-            white-space: normal;
         }
 
-        .detalle-card th {
-            background: #f8fafc;
-            color: #64748b;
-            width: 42%;
-            font-weight: 700;
-        }
-
-        .detalle-card td {
-            font-weight: 700;
+        .detalle-table tr:last-child th,
+        .detalle-table tr:last-child td {
+            border-bottom: none;
         }
 
         .detalle-table.resumen-table th,
@@ -212,45 +237,57 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-badge {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            min-width: 90px;
-            padding: 6px 10px;
-            border-radius: 10px;
-            background: #eef2f7;
-            color: #334155;
+            padding: 4px 10px;
+            background: #e7f0fb;
+            color: #0f4a7a;
+            border-radius: 999px;
             font-weight: 700;
-            border: 1px solid #e2e8f0;
+            font-size: 12px;
+            border: 1px solid #c7d6ea;
+        }
+
+        .detalle-estado-calidad {
+            background: #f4f6fa;
+            color: #0f2d4a;
+            border-color: #d6deea;
         }
 
         .detalle-modal .modal-footer {
+            border-top: 1px solid #d0d7e3;
             padding: 12px 14px;
-            border-top: 1px solid #e2e8f0;
-            background: #f8fafc;
+            background: #fff;
         }
 
         .detalle-modal .btn-primary {
-            background: #e2e8f0;
-            border-color: #e2e8f0;
-            color: #1f2937;
+            background: #0d6efd;
+            border: 1px solid #0b5ed7;
+            box-shadow: none;
             font-weight: 700;
         }
 
         .detalle-modal .btn-secondary {
-            background: #ffffff;
-            color: #334155;
-            border-color: #cbd5f5;
+            color: #0a2f57 !important;
+            border: 1px solid #c5d3e6;
+            background: #e7eef7;
             font-weight: 700;
+            box-shadow: none;
         }
 
         .detalle-modal .btn {
-            min-width: 170px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
         }
 
         .mov-link {
-            color: #475569;
+            color: #0c63a8;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .mov-link:hover,
+        .mov-link:focus {
             text-decoration: underline;
-            font-weight: 600;
         }
     </style>
         <!- FUNCIONES BASES -!>
@@ -312,7 +349,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                 <div class="row">
                                     <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                                         <div class="table-responsive">
-                                            <table id="hexistencia" class="table-hover table-bordered" style="width: 300%;">
+                                            <table id="hexistencia" class="table-hover table-bordered" style="width: 100%;">
                                                                                                 <thead>
                                                     <tr class="text-center">
                                                         <th>Trazabilidad</th>
@@ -599,7 +636,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             ?>
                                                             <tr class="text-center">
     <td>
-        <button type="button" class="btn btn-sm btn-outline-info btn-block" data-toggle="modal" data-target="#detalleExistenciaModal"
+        <button type="button" class="btn btn-info btn-sm detalle-existencia" data-toggle="modal" data-target="#detalleExistenciaModal"
             data-folio="<?php echo htmlspecialchars($r['FOLIO_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-folio-aux="<?php echo htmlspecialchars($r['FOLIO_AUXILIAR_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-estado="<?php echo htmlspecialchars($ESTADO, ENT_QUOTES, 'UTF-8'); ?>"
@@ -784,26 +821,19 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             </div>
 
             <!- LLAMADA ARCHIVO DEL DISEÑO DEL FOOTER Y MENU USUARIO -!>
-            <div class="modal fade detalle-modal" id="detalleExistenciaModal" tabindex="-1" role="dialog" aria-labelledby="detalleExistenciaModalLabel" aria-hidden="true">
+            <div class="modal fade" id="detalleExistenciaModal" tabindex="-1" role="dialog" aria-labelledby="detalleExistenciaModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content detalle-modal">
                     <div class="modal-header">
                         <div>
-                            <div class="modal-subtitle">Detalle de existencia</div>
-                            <h4 class="modal-title" id="detalleExistenciaModalLabel">Historial</h4>
+                            <p class="modal-subtitle mb-0 text-uppercase">Historial de existencia</p>
+                            <h4 class="modal-title" id="detalleExistenciaModalLabel">Detalle existencia</h4>
                         </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <?php if ($LOGOEMPRESA) : ?>
-                            <div class="detalle-hero">
-                                <div class="brand-banner">
-                                    <img src="<?php echo $LOGOEMPRESA; ?>" alt="Imagen institucional" />
-                                </div>
-                            </div>
-                        <?php endif; ?>
                         <div class="detalle-resumen-table">
                             <table class="detalle-table resumen-table">
                                 <thead>
