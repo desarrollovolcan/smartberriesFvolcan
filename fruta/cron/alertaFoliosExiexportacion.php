@@ -2,7 +2,8 @@
 /**
  * Envío automático de folios de exportación con más de 3 días sin inspección SAG.
  * Ejecutar vía CLI o cron, opcionalmente filtrando por empresa/planta/temporada:
- *   php alertaFoliosExiexportacion.php --empresa=1 --planta=2 --temporada=5 --force
+ *   php alertaFoliosExiexportacion.php --empresa=1 --planta=2 --temporada=5 --force --reset
+ *   php alertaFoliosExiexportacion.php --reset-only
  */
 
 $BASE_PATH = dirname(__DIR__, 2);
@@ -207,7 +208,7 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
     return $resultado;
 }
 
-$options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::']);
+$options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::', 'reset::', 'reset-only::']);
 if ($options === false) {
     $options = [];
 }
@@ -216,6 +217,8 @@ $force = array_key_exists('force', $options);
 
 $config = [
     'habilitado' => true,
+    'fecha_inicio' => '',
+    'permitir_multiples' => false,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -232,12 +235,24 @@ if (file_exists($CONFIG_PATH)) {
 
 $config['habilitado'] = isset($config['habilitado']) ? (bool) $config['habilitado'] : true;
 $horaConfig = trim((string)($config['hora'] ?? ''));
+$fechaInicioConfig = trim((string)($config['fecha_inicio'] ?? ''));
+$permitirMultiples = !empty($config['permitir_multiples']);
 $diaSemana = (int)date('N'); //1 lunes
 $desdeInclude = defined('CRON_FOLIOS_INCLUDE_ONLY');
 if (!$desdeInclude) {
     if (empty($config['habilitado'])) {
         echo "Cron PT deshabilitado. Abortando.\n";
         exit(0);
+    }
+    if ($fechaInicioConfig) {
+        $fechaInicio = DateTime::createFromFormat('Y-m-d', $fechaInicioConfig);
+        if ($fechaInicio && !$force) {
+            $fechaActual = new DateTime('today');
+            if ($fechaActual < $fechaInicio) {
+                echo "Cron PT aún no inicia. Fecha inicio: {$fechaInicioConfig}.\n";
+                exit(0);
+            }
+        }
     }
     if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
         echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
@@ -281,7 +296,17 @@ if (!$temporadaId) {
 
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
-if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $hoy . ' ' . $horaConfig) {
+$lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
+$ignorarLock = !empty($options['reset']) || !empty($options['reset-only']);
+if (!empty($options['reset'])) {
+    @unlink($lockFile);
+}
+if (!empty($options['reset-only'])) {
+    @unlink($lockFile);
+    echo "Lock del cron reiniciado.\n";
+    exit(0);
+}
+if (!$force && !$desdeInclude && !$ignorarLock && !$permitirMultiples && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
@@ -334,8 +359,8 @@ foreach ($empresas as $empresa) {
     }
 }
 
-if ($enviosRealizados > 0 && !$desdeInclude) {
-    @file_put_contents($lockFile, $hoy . ' ' . $horaConfig);
+if ($enviosRealizados > 0 && !$desdeInclude && !$permitirMultiples) {
+    @file_put_contents($lockFile, $lockToken);
 }
 
 echo "Proceso finalizado. Envios: {$enviosRealizados}\n";
