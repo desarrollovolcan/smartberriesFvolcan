@@ -64,51 +64,51 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <?php include_once "../../assest/config/urlHead.php"; ?>
     <style>
         .detalle-modal .modal-content {
-            border: 1px solid #c7d6eb;
-            box-shadow: 0 12px 30px rgba(5, 43, 92, 0.15);
-            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            border-radius: 14px;
             overflow: hidden;
         }
 
         .detalle-modal .modal-header {
-            background: linear-gradient(120deg, #0b559f 0%, #0c3972 100%);
-            color: #f6f9ff;
-            border: none;
-            padding: 14px 18px;
+            background: #f8fafc;
+            color: #1f2937;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 18px;
         }
 
         .detalle-modal .modal-title {
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: 0.25px;
             margin: 0;
-            color: #f6f9ff;
+            color: #1f2937;
         }
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
             letter-spacing: 0.5px;
-            color: #d6e4f9;
+            color: #6b7280;
             margin-bottom: 2px;
-            opacity: 0.95;
+            opacity: 0.9;
         }
 
         .detalle-modal .close {
-            color: #f2f6fb;
-            opacity: 1;
-            font-weight: 800;
+            color: #6b7280;
+            opacity: 0.9;
+            font-weight: 700;
         }
 
         .detalle-hero {
             margin: 0 -12px 14px;
-            background: #e8f0fb;
-            border-bottom: 1px solid #d7e4f5;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
             padding: 0;
         }
 
         .detalle-hero .brand-banner {
             width: 100%;
             overflow: hidden;
-            border-bottom: 1px solid #d7e4f5;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .detalle-hero .brand-banner img {
@@ -119,8 +119,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-modal .modal-body {
-            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 28%, #ffffff 100%);
-            padding: 12px 14px 8px;
+            background: #ffffff;
+            padding: 12px 14px 10px;
         }
 
         .detalle-grid {
@@ -140,26 +140,26 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-resumen-table thead th {
-            background: #0c3972;
-            color: #f2f6fb;
+            background: #f1f5f9;
+            color: #334155;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.4px;
-            font-weight: 800;
+            font-weight: 700;
         }
 
         .detalle-resumen-table tbody td {
             font-size: 14px;
-            font-weight: 800;
-            background: #f9fbff;
+            font-weight: 700;
+            background: #ffffff;
         }
 
         .detalle-card {
             background: #fff;
-            border: 1px solid #d3deef;
-            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 0;
-            box-shadow: 0 10px 18px rgba(12, 57, 114, 0.08);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -168,25 +168,25 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-card h5 {
             font-size: 12px;
             font-weight: 700;
-            color: #0c3972;
+            color: #1f2937;
             margin: 0;
             letter-spacing: 0.3px;
             padding: 10px 12px;
-            background: linear-gradient(90deg, #eef3fb 0%, #dfe9f7 100%);
-            border-bottom: 1px solid #d6e1f3;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .detalle-card table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
-            color: #1f3a56;
+            color: #334155;
         }
 
         .detalle-card th,
         .detalle-card td {
             padding: 7px 12px;
-            border-bottom: 1px solid #eef2f7;
+            border-bottom: 1px solid #f1f5f9;
             vertical-align: top;
             word-wrap: break-word;
             word-break: break-word;
@@ -194,8 +194,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-card th {
-            background: #fafbfc;
-            color: #4d637d;
+            background: #f8fafc;
+            color: #64748b;
             width: 42%;
             font-weight: 700;
         }
@@ -216,30 +216,30 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             min-width: 90px;
             padding: 6px 10px;
             border-radius: 10px;
-            background: #d8e8ff;
-            color: #0b2f57;
-            font-weight: 800;
-            border: 1px solid #b7c9e6;
+            background: #eef2f7;
+            color: #334155;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
         }
 
         .detalle-modal .modal-footer {
             padding: 12px 14px;
-            border-top: 1px solid #d3deef;
-            background: #e8f0fb;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
         }
 
         .detalle-modal .btn-primary {
-            background: #0b559f;
-            border-color: #0b559f;
-            color: #ffffff;
-            font-weight: 800;
+            background: #e2e8f0;
+            border-color: #e2e8f0;
+            color: #1f2937;
+            font-weight: 700;
         }
 
         .detalle-modal .btn-secondary {
             background: #ffffff;
-            color: #0c3972;
-            border-color: #0c3972;
-            font-weight: 800;
+            color: #334155;
+            border-color: #cbd5f5;
+            font-weight: 700;
         }
 
         .detalle-modal .btn {
@@ -248,9 +248,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .mov-link {
-            color: #0f4a7a;
+            color: #475569;
             text-decoration: underline;
-            font-weight: 700;
+            font-weight: 600;
         }
     </style>
         <!- FUNCIONES BASES -!>
