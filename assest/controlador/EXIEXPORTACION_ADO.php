@@ -1659,7 +1659,7 @@ class EXIEXPORTACION_ADO
                                                     treembalaje.NOMBRE_TREEMBALAJE AS 'TREEMBALAJE_NOMBRE',
                                                     repaletizaje.INGRESO AS 'REPALETIZAJE_FECHA',
                                                     repaletizaje.NUMERO_REPALETIZAJE AS 'REPALETIZAJE_NUMERO',
-                                                    inpsag.FECHA AS 'INPSAG_FECHA',
+                                                    inpsag.FECHA_INPSAG AS 'INPSAG_FECHA',
                                                     inpsag.NUMERO_INPSAG AS 'INPSAG_NUMERO',
                                                     inpsag.CORRELATIVO_INPSAG AS 'INPSAG_CORRELATIVO',
                                                     tinpsag.NOMBRE_TINPSAG AS 'TINPSAG_NOMBRE',
