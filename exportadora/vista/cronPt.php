@@ -100,21 +100,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     <style>
         .cron-pt-card {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid #e7ebf3;
         }
         .cron-pt-header h4 {
-            font-weight: 700;
+            font-weight: 600;
             color: #1f2d3d;
         }
         .cron-pt-section-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: #3f4b5b;
         }
         .cron-pt-helper {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: #7a8899;
+        }
+        .cron-pt-compact .form-group {
+            margin-bottom: 0.5rem;
+        }
+        .cron-pt-compact .custom-control-label {
+            font-size: 0.82rem;
         }
     </style>
 </head>
@@ -146,10 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                         <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                             <div class="box cron-pt-card">
                                 <div class="box-body">
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-20 cron-pt-header">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-10 cron-pt-header">
                                         <div>
-                                            <h4 class="mb-5">Configuración Cron PT</h4>
-                                            <small class="text-muted">Horario, días, destinos y alcance</small>
+                                            <h4 class="mb-0">Configuración Cron PT</h4>
                                         </div>
                                         <div class="d-flex align-items-center mt-10 mt-md-0">
                                             <span id="estado-cron-pt" class="badge badge-pill badge-success mr-10">Habilitado</span>
@@ -161,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <?php echo $MENSAJE_CONFIG; ?>
                                         </div>
                                     <?php } ?>
-                                    <div class="row">
+                                    <div class="row cron-pt-compact">
                                         <div class="col-md-4 col-sm-12">
                                             <div class="form-group mb-10">
                                                 <label class="cron-pt-section-title">Fecha de inicio</label>
@@ -242,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <div class="cron-pt-helper">Delimita el alcance por empresa y planta.</div>
                                         </div>
                                     </div>
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-20">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-10">
                                         <div id="alerta-config" class="text-success" style="display:none;"></div>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-success btn-sm" id="GUARDAR_CONFIG_ENVIO">
