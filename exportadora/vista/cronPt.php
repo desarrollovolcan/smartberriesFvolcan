@@ -272,9 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         (function () {
             const keyConfig = 'config_envio_cron_pt';
             const servidorConfig = <?php echo json_encode($CONFIG_ENVIO, JSON_UNESCAPED_UNICODE); ?>;
-            if (!localStorage.getItem(keyConfig)) {
-                localStorage.setItem(keyConfig, JSON.stringify(servidorConfig));
-            }
+            localStorage.setItem(keyConfig, JSON.stringify(servidorConfig));
             const horaInput = document.getElementById('HORA_ENVIO');
             const fechaInicioInput = document.getElementById('FECHA_INICIO');
             const permitirMultiplesInput = document.getElementById('PERMITIR_MULTIPLES');
@@ -309,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
 
             const cargarConfig = () => {
                 try {
-                    const datos = JSON.parse(localStorage.getItem(keyConfig) || '{}');
+                    const datos = servidorConfig || JSON.parse(localStorage.getItem(keyConfig) || '{}');
                     if (typeof datos.habilitado !== 'undefined') {
                         actualizarEstado(!!datos.habilitado);
                     }
