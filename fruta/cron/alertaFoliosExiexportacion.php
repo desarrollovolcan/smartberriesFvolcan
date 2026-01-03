@@ -218,6 +218,7 @@ $force = array_key_exists('force', $options);
 $config = [
     'habilitado' => true,
     'fecha_inicio' => '',
+    'permitir_multiples' => false,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -235,6 +236,7 @@ if (file_exists($CONFIG_PATH)) {
 $config['habilitado'] = isset($config['habilitado']) ? (bool) $config['habilitado'] : true;
 $horaConfig = trim((string)($config['hora'] ?? ''));
 $fechaInicioConfig = trim((string)($config['fecha_inicio'] ?? ''));
+$permitirMultiples = !empty($config['permitir_multiples']);
 $diaSemana = (int)date('N'); //1 lunes
 $desdeInclude = defined('CRON_FOLIOS_INCLUDE_ONLY');
 if (!$desdeInclude) {
@@ -304,7 +306,7 @@ if (!empty($options['reset-only'])) {
     echo "Lock del cron reiniciado.\n";
     exit(0);
 }
-if (!$force && !$desdeInclude && !$ignorarLock && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
+if (!$force && !$desdeInclude && !$ignorarLock && !$permitirMultiples && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
@@ -357,7 +359,7 @@ foreach ($empresas as $empresa) {
     }
 }
 
-if ($enviosRealizados > 0 && !$desdeInclude) {
+if ($enviosRealizados > 0 && !$desdeInclude && !$permitirMultiples) {
     @file_put_contents($lockFile, $lockToken);
 }
 
