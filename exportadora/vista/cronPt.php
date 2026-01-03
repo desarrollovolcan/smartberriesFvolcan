@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
             border: 1px solid #e7ebf3;
         }
         .cron-pt-card .form-group {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.6rem;
         }
         .cron-pt-title {
             font-weight: 600;
@@ -113,6 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         .cron-pt-helper {
             font-size: 0.78rem;
             color: #7a8899;
+        }
+        .cron-pt-section {
+            padding: 12px;
+            border: 1px solid #eef1f6;
+            border-radius: 6px;
+            background: #fbfcff;
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -159,86 +166,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <?php echo $MENSAJE_CONFIG; ?>
                                         </div>
                                     <?php } ?>
-                                    <div class="row">
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Fecha de inicio</label>
-                                                <input type="date" class="form-control" id="FECHA_INICIO" name="FECHA_INICIO">
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Repetir el mismo día</label>
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" class="custom-control-input" id="PERMITIR_MULTIPLES">
-                                                    <label class="custom-control-label" for="PERMITIR_MULTIPLES">Permitir múltiples ejecuciones en el día</label>
+                                    <div class="cron-pt-section">
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Fecha inicio</label>
+                                                    <input type="date" class="form-control" id="FECHA_INICIO" name="FECHA_INICIO">
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label>Hora de envío</label>
-                                                <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
-                                            </div>
-                                            <div class="form-group mb-0">
-                                                <label>Días de envío</label>
-                                                <div class="d-flex flex-wrap">
-                                                    <?php
-                                                    $diasSemana = [
-                                                        '1' => 'Lunes',
-                                                        '2' => 'Martes',
-                                                        '3' => 'Miércoles',
-                                                        '4' => 'Jueves',
-                                                        '5' => 'Viernes',
-                                                        '6' => 'Sábado',
-                                                        '7' => 'Domingo'
-                                                    ];
-                                                    foreach ($diasSemana as $diaClave => $diaNombre) {
-                                                        echo '<div class="mr-10 mb-5 custom-control custom-checkbox">';
-                                                        echo '<input type="checkbox" class="custom-control-input" id="DIA_' . $diaClave . '" value="' . $diaClave . '">';
-                                                        echo '<label class="custom-control-label" for="DIA_' . $diaClave . '">' . $diaNombre . '</label>';
-                                                        echo '</div>';
-                                                    }
-                                                    ?>
+                                            <div class="col-md-3 col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Hora envío</label>
+                                                    <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
                                                 </div>
-                                                <div class="cron-pt-helper mt-5">Selecciona los días exactos de ejecución.</div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group mb-0">
+                                                    <label>Días de envío</label>
+                                                    <div class="d-flex flex-wrap">
+                                                        <?php
+                                                        $diasSemana = [
+                                                            '1' => 'Lunes',
+                                                            '2' => 'Martes',
+                                                            '3' => 'Miércoles',
+                                                            '4' => 'Jueves',
+                                                            '5' => 'Viernes',
+                                                            '6' => 'Sábado',
+                                                            '7' => 'Domingo'
+                                                        ];
+                                                        foreach ($diasSemana as $diaClave => $diaNombre) {
+                                                            echo '<div class="mr-10 mb-5 custom-control custom-checkbox">';
+                                                            echo '<input type="checkbox" class="custom-control-input" id="DIA_' . $diaClave . '" value="' . $diaClave . '">';
+                                                            echo '<label class="custom-control-label" for="DIA_' . $diaClave . '">' . $diaNombre . '</label>';
+                                                            echo '</div>';
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Correos (separados por coma)</label>
-                                                <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="4" placeholder="correo1@dominio.cl, correo2@dominio.cl"></textarea>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="PERMITIR_MULTIPLES">
+                                            <label class="custom-control-label" for="PERMITIR_MULTIPLES">Permitir múltiples ejecuciones el mismo día</label>
+                                        </div>
+                                    </div>
+                                    <div class="cron-pt-section">
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Correos (separados por coma)</label>
+                                                    <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="3" placeholder="correo1@dominio.cl, correo2@dominio.cl"></textarea>
+                                                </div>
                                             </div>
-                                            <div class="form-group mb-0">
-                                                <label>Usuarios</label>
-                                                <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
-                                                    <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
-                                                        <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
-                                                            <?php echo $usuario['NOMBRE_USUARIO'] . ' - ' . $usuario['EMAIL_USUARIO']; ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group mb-0">
+                                                    <label>Usuarios</label>
+                                                    <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
+                                                        <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
+                                                            <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
+                                                                <?php echo $usuario['NOMBRE_USUARIO'] . ' - ' . $usuario['EMAIL_USUARIO']; ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 col-sm-12">
-                                            <div class="form-group">
-                                                <label>Empresas</label>
-                                                <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
-                                                    <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
-                                                        <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
-                                                            <?php echo $empresa['NOMBRE_EMPRESA']; ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
+                                    </div>
+                                    <div class="cron-pt-section">
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Empresas</label>
+                                                    <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
+                                                        <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
+                                                            <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
+                                                                <?php echo $empresa['NOMBRE_EMPRESA']; ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label>Plantas</label>
-                                                <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
-                                                    <?php foreach ($ARRAYPLANTAS as $planta) { ?>
-                                                        <option value="<?php echo $planta['ID_PLANTA']; ?>">
-                                                            <?php echo $planta['NOMBRE_PLANTA']; ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group mb-0">
+                                                    <label>Plantas</label>
+                                                    <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
+                                                        <?php foreach ($ARRAYPLANTAS as $planta) { ?>
+                                                            <option value="<?php echo $planta['ID_PLANTA']; ?>">
+                                                                <?php echo $planta['NOMBRE_PLANTA']; ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <div class="cron-pt-helper">Delimita el alcance por empresa y planta.</div>
                                         </div>
+                                        <div class="cron-pt-helper">Delimita el alcance por empresa y planta.</div>
                                     </div>
                                     <div class="d-flex flex-wrap justify-content-between align-items-center mt-10">
                                         <div id="alerta-config" class="text-success" style="display:none;"></div>
