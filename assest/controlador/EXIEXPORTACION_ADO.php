@@ -1613,6 +1613,133 @@ class EXIEXPORTACION_ADO
         }
     }
 
+    public function listarExiexportacionEmpresaPlantaTemporadaDetalle($EMPRESA, $PLANTA, $TEMPORADA)
+    {
+        try {
+            $datos = $this->conexion->prepare("SELECT exi.*,
+                                                    DATEDIFF(SYSDATE(), exi.FECHA_EMBALADO_EXIEXPORTACION) AS 'DIAS',
+                                                    DATE_FORMAT(exi.FECHA_EMBALADO_EXIEXPORTACION, '%d-%m-%Y') AS 'EMBALADO',
+                                                    DATE_FORMAT(exi.INGRESO, '%d-%m-%Y ') AS 'INGRESO',
+                                                    DATE_FORMAT(exi.MODIFICACION, '%d-%m-%Y ') AS 'MODIFICACION',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_RECEPCION, '%d-%m-%Y'),'Sin Datos') AS 'RECEPCION',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_PROCESO, '%d-%m-%Y'),'Sin Datos') AS 'PROCESO',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_REEMBALAJE, '%d-%m-%Y'),'Sin Datos') AS 'REEMBALAJE',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_REPALETIZAJE, '%d-%m-%Y'),'Sin Datos') AS 'REPALETIZAJE',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_DESPACHO, '%d-%m-%Y'),'Sin Datos') AS 'DESPACHO',
+                                                    IFNULL(DATE_FORMAT(exi.FECHA_DESPACHOEX, '%d-%m-%Y'),'Sin Datos') AS 'DESPACHOEX',
+                                                    FORMAT(IFNULL(exi.CANTIDAD_ENVASE_EXIEXPORTACION,0),0,'de_DE') AS 'ENVASE',
+                                                    FORMAT(IFNULL(exi.KILOS_NETO_EXIEXPORTACION,0),2,'de_DE') AS 'NETO',
+                                                    FORMAT(IFNULL(exi.KILOS_DESHIRATACION_EXIEXPORTACION,0),2,'de_DE') AS 'DESHIRATACION',
+                                                    FORMAT(IFNULL(exi.PDESHIDRATACION_EXIEXPORTACION,0),2,'de_DE') AS 'PORCENTAJE',
+                                                    FORMAT(IFNULL(exi.KILOS_BRUTO_EXIEXPORTACION,0),2,'de_DE') AS 'BRUTO',
+                                                    IF(exi.STOCK = '0','Sin Datos',exi.STOCK ) AS 'STOCKR',
+                                                    icarga.NREFERENCIA_ICARGA AS 'ICARGA_REFERENCIA',
+                                                    recepcion.NUMERO_RECEPCION AS 'RECEPCION_NUMERO',
+                                                    recepcion.FECHA_RECEPCION AS 'RECEPCION_FECHA',
+                                                    recepcion.NUMERO_GUIA_RECEPCION AS 'RECEPCION_GUIA_NUMERO',
+                                                    recepcion.FECHA_GUIA_RECEPCION AS 'RECEPCION_GUIA_FECHA',
+                                                    recepcion.TRECEPCION AS 'RECEPCION_TIPO',
+                                                    recepcion.ID_PRODUCTOR AS 'RECEPCION_ID_PRODUCTOR',
+                                                    recepcion.ID_PLANTA2 AS 'RECEPCION_ID_PLANTA2',
+                                                    productor_recepcion.NOMBRE_PRODUCTOR AS 'RECEPCION_PRODUCTOR_NOMBRE',
+                                                    productor_recepcion.CSG_PRODUCTOR AS 'RECEPCION_PRODUCTOR_CSG',
+                                                    planta_recepcion.NOMBRE_PLANTA AS 'RECEPCION_PLANTA_NOMBRE',
+                                                    planta_recepcion.CODIGO_SAG_PLANTA AS 'RECEPCION_PLANTA_CSG',
+                                                    despacho2.NUMERO_DESPACHO AS 'DESPACHO2_NUMERO',
+                                                    despacho2.FECHA_DESPACHO AS 'DESPACHO2_FECHA',
+                                                    despacho2.NUMERO_GUIA_DESPACHO AS 'DESPACHO2_GUIA',
+                                                    despacho2.ID_PLANTA AS 'DESPACHO2_ID_PLANTA',
+                                                    planta_despacho2.NOMBRE_PLANTA AS 'DESPACHO2_PLANTA_NOMBRE',
+                                                    planta_despacho2.CODIGO_SAG_PLANTA AS 'DESPACHO2_PLANTA_CSG',
+                                                    proceso.NUMERO_PROCESO AS 'PROCESO_NUMERO',
+                                                    proceso.FECHA_PROCESO AS 'PROCESO_FECHA',
+                                                    tproceso.NOMBRE_TPROCESO AS 'TPROCESO_NOMBRE',
+                                                    reembalaje.ID_TREEMBALAJE AS 'REEMBALAJE_TIPO_ID',
+                                                    reembalaje.FECHA_REEMBALAJE AS 'REEMBALAJE_FECHA',
+                                                    treembalaje.NOMBRE_TREEMBALAJE AS 'TREEMBALAJE_NOMBRE',
+                                                    repaletizaje.INGRESO AS 'REPALETIZAJE_FECHA',
+                                                    repaletizaje.NUMERO_REPALETIZAJE AS 'REPALETIZAJE_NUMERO',
+                                                    inpsag.FECHA AS 'INPSAG_FECHA',
+                                                    inpsag.NUMERO_INPSAG AS 'INPSAG_NUMERO',
+                                                    inpsag.CORRELATIVO_INPSAG AS 'INPSAG_CORRELATIVO',
+                                                    tinpsag.NOMBRE_TINPSAG AS 'TINPSAG_NOMBRE',
+                                                    despacho.NUMERO_DESPACHO AS 'DESPACHO_NUMERO',
+                                                    despacho.FECHA_DESPACHO AS 'DESPACHO_FECHA',
+                                                    despacho.NUMERO_GUIA_DESPACHO AS 'DESPACHO_GUIA',
+                                                    despacho.TDESPACHO AS 'DESPACHO_TIPO',
+                                                    despacho.ID_PLANTA2 AS 'DESPACHO_PLANTA2_ID',
+                                                    despacho.ID_PLANTA3 AS 'DESPACHO_PLANTA3_ID',
+                                                    despacho.ID_PRODUCTOR AS 'DESPACHO_PRODUCTOR_ID',
+                                                    despacho.ID_COMPRADOR AS 'DESPACHO_COMPRADOR_ID',
+                                                    despacho.REGALO_DESPACHO AS 'DESPACHO_REGALO',
+                                                    planta_destino2.NOMBRE_PLANTA AS 'DESPACHO_PLANTA2_NOMBRE',
+                                                    planta_destino2.CODIGO_SAG_PLANTA AS 'DESPACHO_PLANTA2_CSG',
+                                                    planta_destino3.NOMBRE_PLANTA AS 'DESPACHO_PLANTA3_NOMBRE',
+                                                    planta_destino3.CODIGO_SAG_PLANTA AS 'DESPACHO_PLANTA3_CSG',
+                                                    productor_despacho.NOMBRE_PRODUCTOR AS 'DESPACHO_PRODUCTOR_NOMBRE',
+                                                    productor_despacho.CSG_PRODUCTOR AS 'DESPACHO_PRODUCTOR_CSG',
+                                                    comprador.NOMBRE_COMPRADOR AS 'DESPACHO_COMPRADOR_NOMBRE',
+                                                    despachoex.NUMERO_DESPACHOEX AS 'DESPACHOEX_NUMERO',
+                                                    despachoex.NUMERO_GUIA_DESPACHOEX AS 'DESPACHOEX_GUIA',
+                                                    despachoex.FECHA_DESPACHOEX AS 'DESPACHOEX_FECHA',
+                                                    dfinal.NOMBRE_DFINAL AS 'DESPACHOEX_DESTINO',
+                                                    productor.NOMBRE_PRODUCTOR AS 'PRODUCTOR_NOMBRE',
+                                                    productor.CSG_PRODUCTOR AS 'PRODUCTOR_CSG',
+                                                    estandar.CODIGO_ESTANDAR AS 'ESTANDAR_CODIGO',
+                                                    estandar.NOMBRE_ESTANDAR AS 'ESTANDAR_NOMBRE',
+                                                    vespecies.NOMBRE_VESPECIES AS 'VESPECIES_NOMBRE',
+                                                    especies.NOMBRE_ESPECIES AS 'ESPECIES_NOMBRE',
+                                                    tmanejo.NOMBRE_TMANEJO AS 'TMANEJO_NOMBRE',
+                                                    tcalibre.NOMBRE_TCALIBRE AS 'TCALIBRE_NOMBRE',
+                                                    tembalaje.NOMBRE_TEMBALAJE AS 'TEMBALAJE_NOMBRE',
+                                                    empresa.NOMBRE_EMPRESA AS 'EMPRESA_NOMBRE',
+                                                    planta.NOMBRE_PLANTA AS 'PLANTA_NOMBRE',
+                                                    temporada.NOMBRE_TEMPORADA AS 'TEMPORADA_NOMBRE'
+                                                FROM fruta_exiexportacion exi
+                                                LEFT JOIN fruta_icarga icarga ON exi.ID_ICARGA = icarga.ID_ICARGA
+                                                LEFT JOIN fruta_recepcionpt recepcion ON exi.ID_RECEPCION = recepcion.ID_RECEPCION
+                                                LEFT JOIN fruta_productor productor_recepcion ON recepcion.ID_PRODUCTOR = productor_recepcion.ID_PRODUCTOR
+                                                LEFT JOIN principal_planta planta_recepcion ON recepcion.ID_PLANTA2 = planta_recepcion.ID_PLANTA
+                                                LEFT JOIN fruta_despachopt despacho2 ON exi.ID_DESPACHO2 = despacho2.ID_DESPACHO
+                                                LEFT JOIN principal_planta planta_despacho2 ON despacho2.ID_PLANTA = planta_despacho2.ID_PLANTA
+                                                LEFT JOIN fruta_proceso proceso ON exi.ID_PROCESO = proceso.ID_PROCESO
+                                                LEFT JOIN fruta_tproceso tproceso ON proceso.ID_TPROCESO = tproceso.ID_TPROCESO
+                                                LEFT JOIN fruta_reembalaje reembalaje ON exi.ID_REEMBALAJE = reembalaje.ID_REEMBALAJE
+                                                LEFT JOIN fruta_treembalaje treembalaje ON reembalaje.ID_TREEMBALAJE = treembalaje.ID_TREEMBALAJE
+                                                LEFT JOIN fruta_repaletizajeex repaletizaje ON exi.ID_REPALETIZAJE = repaletizaje.ID_REPALETIZAJE
+                                                LEFT JOIN fruta_inpsag inpsag ON exi.ID_INPSAG = inpsag.ID_INPSAG
+                                                LEFT JOIN fruta_tinpsag tinpsag ON inpsag.ID_TINPSAG = tinpsag.ID_TINPSAG
+                                                LEFT JOIN fruta_despachopt despacho ON exi.ID_DESPACHO = despacho.ID_DESPACHO
+                                                LEFT JOIN principal_planta planta_destino2 ON despacho.ID_PLANTA2 = planta_destino2.ID_PLANTA
+                                                LEFT JOIN principal_planta planta_destino3 ON despacho.ID_PLANTA3 = planta_destino3.ID_PLANTA
+                                                LEFT JOIN fruta_productor productor_despacho ON despacho.ID_PRODUCTOR = productor_despacho.ID_PRODUCTOR
+                                                LEFT JOIN fruta_comprador comprador ON despacho.ID_COMPRADOR = comprador.ID_COMPRADOR
+                                                LEFT JOIN fruta_despachoex despachoex ON exi.ID_DESPACHOEX = despachoex.ID_DESPACHOEX
+                                                LEFT JOIN fruta_dfinal dfinal ON despachoex.ID_DFINAL = dfinal.ID_DFINAL
+                                                LEFT JOIN fruta_productor productor ON exi.ID_PRODUCTOR = productor.ID_PRODUCTOR
+                                                LEFT JOIN estandar_eexportacion estandar ON exi.ID_ESTANDAR = estandar.ID_ESTANDAR
+                                                LEFT JOIN fruta_vespecies vespecies ON exi.ID_VESPECIES = vespecies.ID_VESPECIES
+                                                LEFT JOIN fruta_especies especies ON vespecies.ID_ESPECIES = especies.ID_ESPECIES
+                                                LEFT JOIN fruta_tmanejo tmanejo ON exi.ID_TMANEJO = tmanejo.ID_TMANEJO
+                                                LEFT JOIN fruta_tcalibre tcalibre ON exi.ID_TCALIBRE = tcalibre.ID_TCALIBRE
+                                                LEFT JOIN fruta_tembalaje tembalaje ON exi.ID_TEMBALAJE = tembalaje.ID_TEMBALAJE
+                                                LEFT JOIN principal_empresa empresa ON exi.ID_EMPRESA = empresa.ID_EMPRESA
+                                                LEFT JOIN principal_planta planta ON exi.ID_PLANTA = planta.ID_PLANTA
+                                                LEFT JOIN principal_temporada temporada ON exi.ID_TEMPORADA = temporada.ID_TEMPORADA
+                                                WHERE exi.ID_EMPRESA = '" . $EMPRESA . "'
+                                                    AND exi.ID_PLANTA = '" . $PLANTA . "'
+                                                    AND exi.ID_TEMPORADA = '" . $TEMPORADA . "'
+                                          ;");
+            $datos->execute();
+            $resultado = $datos->fetchAll();
+            $datos=null;
+
+            return $resultado;
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
     public function listarExiexportacionEmpresaTemporada($EMPRESA,  $TEMPORADA)
     {
         try {
