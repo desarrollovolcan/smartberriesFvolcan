@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
 <html lang="es">
 
 <head>
-    <title>Cron PT</title>
+    <title>Cron Existencia PT</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="">
@@ -100,27 +100,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     <style>
         .cron-pt-card {
             background: #fff;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #e7ebf3;
         }
-        .cron-pt-header h4 {
+        .cron-pt-card .form-group {
+            margin-bottom: 0.75rem;
+        }
+        .cron-pt-title {
             font-weight: 600;
             color: #1f2d3d;
         }
-        .cron-pt-section-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #3f4b5b;
-        }
         .cron-pt-helper {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             color: #7a8899;
-        }
-        .cron-pt-compact .form-group {
-            margin-bottom: 0.5rem;
-        }
-        .cron-pt-compact .custom-control-label {
-            font-size: 0.82rem;
         }
     </style>
 </head>
@@ -133,12 +125,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                 <div class="content-header">
                     <div class="d-flex align-items-center">
                         <div class="mr-auto">
-                            <h3 class="page-title">Cron PT</h3>
+                            <h3 class="page-title">Cron Existencia PT</h3>
                             <div class="d-inline-block align-items-center">
                                 <nav>
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="index.php"><i class="mdi mdi-home-outline"></i></a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Configuración Cron PT</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Configuración envío existencia PT</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -152,9 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                         <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                             <div class="box cron-pt-card">
                                 <div class="box-body">
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-10 cron-pt-header">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-10">
                                         <div>
-                                            <h4 class="mb-0">Configuración Cron PT</h4>
+                                            <h4 class="mb-0 cron-pt-title">Configuración envío existencia PT</h4>
+                                            <div class="cron-pt-helper">Define cuándo y a quién se envía el correo de existencia de producto terminado.</div>
                                         </div>
                                         <div class="d-flex align-items-center mt-10 mt-md-0">
                                             <span id="estado-cron-pt" class="badge badge-pill badge-success mr-10">Habilitado</span>
@@ -166,25 +159,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <?php echo $MENSAJE_CONFIG; ?>
                                         </div>
                                     <?php } ?>
-                                    <div class="row cron-pt-compact">
+                                    <div class="row">
                                         <div class="col-md-4 col-sm-12">
-                                            <div class="form-group mb-10">
-                                                <label class="cron-pt-section-title">Fecha de inicio</label>
+                                            <div class="form-group">
+                                                <label>Fecha de inicio</label>
                                                 <input type="date" class="form-control" id="FECHA_INICIO" name="FECHA_INICIO">
                                             </div>
-                                            <div class="form-group mb-10">
-                                                <label class="cron-pt-section-title">Repetir el mismo día</label>
+                                            <div class="form-group">
+                                                <label>Repetir el mismo día</label>
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" class="custom-control-input" id="PERMITIR_MULTIPLES">
                                                     <label class="custom-control-label" for="PERMITIR_MULTIPLES">Permitir múltiples ejecuciones en el día</label>
                                                 </div>
                                             </div>
-                                            <div class="form-group mb-10">
-                                                <label class="cron-pt-section-title">Hora de envío</label>
+                                            <div class="form-group">
+                                                <label>Hora de envío</label>
                                                 <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
                                             </div>
                                             <div class="form-group mb-0">
-                                                <label class="cron-pt-section-title">Días de envío</label>
+                                                <label>Días de envío</label>
                                                 <div class="d-flex flex-wrap">
                                                     <?php
                                                     $diasSemana = [
@@ -209,11 +202,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                         </div>
                                         <div class="col-md-4 col-sm-12">
                                             <div class="form-group">
-                                                <label class="cron-pt-section-title">Correos (separados por coma)</label>
+                                                <label>Correos (separados por coma)</label>
                                                 <textarea class="form-control" id="CORREOS_DESTINO" name="CORREOS_DESTINO" rows="4" placeholder="correo1@dominio.cl, correo2@dominio.cl"></textarea>
                                             </div>
                                             <div class="form-group mb-0">
-                                                <label class="cron-pt-section-title">Usuarios</label>
+                                                <label>Usuarios</label>
                                                 <select class="form-control select2" id="USUARIOS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYUSUARIOS as $usuario) { ?>
                                                         <option value="<?php echo $usuario['EMAIL_USUARIO']; ?>">
@@ -225,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                         </div>
                                         <div class="col-md-4 col-sm-12">
                                             <div class="form-group">
-                                                <label class="cron-pt-section-title">Empresas</label>
+                                                <label>Empresas</label>
                                                 <select class="form-control select2" id="EMPRESAS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYEMPRESAS as $empresa) { ?>
                                                         <option value="<?php echo $empresa['ID_EMPRESA']; ?>">
@@ -235,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label class="cron-pt-section-title">Plantas</label>
+                                                <label>Plantas</label>
                                                 <select class="form-control select2" id="PLANTAS_DESTINO" multiple>
                                                     <?php foreach ($ARRAYPLANTAS as $planta) { ?>
                                                         <option value="<?php echo $planta['ID_PLANTA']; ?>">
