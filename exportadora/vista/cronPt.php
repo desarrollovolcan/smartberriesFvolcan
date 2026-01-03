@@ -15,6 +15,8 @@ $USUARIO_ADO = new USUARIO_ADO();
 $CONFIG_ENVIO = [
     'habilitado' => true,
     'actualizado_en' => null,
+    'fecha_inicio' => date('Y-m-d'),
+    'permitir_multiples' => false,
     'hora' => '',
     'dias' => [],
     'correos' => '',
@@ -41,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         $configLimpia = [
             'habilitado' => isset($configRecibida['habilitado']) ? (bool) $configRecibida['habilitado'] : true,
             'actualizado_en' => time(),
+            'fecha_inicio' => $configRecibida['fecha_inicio'] ?? date('Y-m-d'),
+            'permitir_multiples' => isset($configRecibida['permitir_multiples']) ? (bool) $configRecibida['permitir_multiples'] : false,
             'hora' => $configRecibida['hora'] ?? '',
             'dias' => isset($configRecibida['dias']) && is_array($configRecibida['dias']) ? array_values(array_unique($configRecibida['dias'])) : [],
             'correos' => $configRecibida['correos'] ?? '',
@@ -96,21 +100,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
     <style>
         .cron-pt-card {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid #e7ebf3;
         }
         .cron-pt-header h4 {
-            font-weight: 700;
+            font-weight: 600;
             color: #1f2d3d;
         }
         .cron-pt-section-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: #3f4b5b;
         }
         .cron-pt-helper {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: #7a8899;
+        }
+        .cron-pt-compact .form-group {
+            margin-bottom: 0.5rem;
+        }
+        .cron-pt-compact .custom-control-label {
+            font-size: 0.82rem;
         }
     </style>
 </head>
@@ -142,10 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                         <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 col-xs-12">
                             <div class="box cron-pt-card">
                                 <div class="box-body">
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-20 cron-pt-header">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-10 cron-pt-header">
                                         <div>
-                                            <h4 class="mb-5">Configuración Cron PT</h4>
-                                            <small class="text-muted">Horario, días, destinos y alcance</small>
+                                            <h4 class="mb-0">Configuración Cron PT</h4>
                                         </div>
                                         <div class="d-flex align-items-center mt-10 mt-md-0">
                                             <span id="estado-cron-pt" class="badge badge-pill badge-success mr-10">Habilitado</span>
@@ -157,8 +166,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <?php echo $MENSAJE_CONFIG; ?>
                                         </div>
                                     <?php } ?>
-                                    <div class="row">
+                                    <div class="row cron-pt-compact">
                                         <div class="col-md-4 col-sm-12">
+                                            <div class="form-group mb-10">
+                                                <label class="cron-pt-section-title">Fecha de inicio</label>
+                                                <input type="date" class="form-control" id="FECHA_INICIO" name="FECHA_INICIO">
+                                            </div>
+                                            <div class="form-group mb-10">
+                                                <label class="cron-pt-section-title">Repetir el mismo día</label>
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" class="custom-control-input" id="PERMITIR_MULTIPLES">
+                                                    <label class="custom-control-label" for="PERMITIR_MULTIPLES">Permitir múltiples ejecuciones en el día</label>
+                                                </div>
+                                            </div>
                                             <div class="form-group mb-10">
                                                 <label class="cron-pt-section-title">Hora de envío</label>
                                                 <input type="time" class="form-control" id="HORA_ENVIO" name="HORA_ENVIO">
@@ -227,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                                             <div class="cron-pt-helper">Delimita el alcance por empresa y planta.</div>
                                         </div>
                                     </div>
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-20">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-10">
                                         <div id="alerta-config" class="text-success" style="display:none;"></div>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-success btn-sm" id="GUARDAR_CONFIG_ENVIO">
@@ -257,10 +277,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
         (function () {
             const keyConfig = 'config_envio_cron_pt';
             const servidorConfig = <?php echo json_encode($CONFIG_ENVIO, JSON_UNESCAPED_UNICODE); ?>;
-            if (!localStorage.getItem(keyConfig)) {
-                localStorage.setItem(keyConfig, JSON.stringify(servidorConfig));
-            }
+            localStorage.setItem(keyConfig, JSON.stringify(servidorConfig));
             const horaInput = document.getElementById('HORA_ENVIO');
+            const fechaInicioInput = document.getElementById('FECHA_INICIO');
+            const permitirMultiplesInput = document.getElementById('PERMITIR_MULTIPLES');
             const correosInput = document.getElementById('CORREOS_DESTINO');
             const empresasSelect = document.getElementById('EMPRESAS_DESTINO');
             const plantasSelect = document.getElementById('PLANTAS_DESTINO');
@@ -292,12 +312,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
 
             const cargarConfig = () => {
                 try {
-                    const datos = JSON.parse(localStorage.getItem(keyConfig) || '{}');
+                    const datos = servidorConfig || JSON.parse(localStorage.getItem(keyConfig) || '{}');
                     if (typeof datos.habilitado !== 'undefined') {
                         actualizarEstado(!!datos.habilitado);
                     }
                     if (datos.hora) {
                         horaInput.value = datos.hora;
+                    }
+                    if (datos.fecha_inicio && fechaInicioInput) {
+                        fechaInicioInput.value = datos.fecha_inicio;
+                    }
+                    if (fechaInicioInput && !fechaInicioInput.value) {
+                        fechaInicioInput.value = new Date().toISOString().slice(0, 10);
+                    }
+                    if (permitirMultiplesInput) {
+                        permitirMultiplesInput.checked = !!datos.permitir_multiples;
                     }
                     if (Array.isArray(datos.dias)) {
                         diasCheckboxes.forEach(cb => { cb.checked = datos.dias.includes(cb.value); });
@@ -319,6 +348,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
 
             const guardarConfig = (probar = false) => {
                 const hora = (horaInput.value || '').trim();
+                const fechaInicio = (fechaInicioInput && fechaInicioInput.value) ? fechaInicioInput.value : new Date().toISOString().slice(0, 10);
+                const permitirMultiples = permitirMultiplesInput ? permitirMultiplesInput.checked : false;
                 const dias = diasCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
                 const correos = (correosInput.value || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
                 const empresas = empresasSelect ? Array.from(empresasSelect.selectedOptions).map(o => o.value) : [];
@@ -363,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['CONFIG_CRON_PT'])) {
                         return;
                     }
                 }
-                const datos = { habilitado: cronHabilitado, hora, dias, correos: correos.join(', '), empresas, plantas, usuarios };
+                const datos = { habilitado: cronHabilitado, fecha_inicio: fechaInicio, permitir_multiples: permitirMultiples, hora, dias, correos: correos.join(', '), empresas, plantas, usuarios };
                 localStorage.setItem(keyConfig, JSON.stringify(datos));
                 if (formCron && inputCron) {
                     inputCron.value = JSON.stringify(datos);
