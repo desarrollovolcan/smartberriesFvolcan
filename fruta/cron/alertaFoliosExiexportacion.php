@@ -295,6 +295,7 @@ if (!$temporadaId) {
 $lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
 $hoy = date('Y-m-d');
 $lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
+$ignorarLock = !empty($options['reset']) || !empty($options['reset-only']);
 if (!empty($options['reset'])) {
     @unlink($lockFile);
 }
@@ -303,7 +304,7 @@ if (!empty($options['reset-only'])) {
     echo "Lock del cron reiniciado.\n";
     exit(0);
 }
-if (!$force && !$desdeInclude && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
+if (!$force && !$desdeInclude && !$ignorarLock && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
     echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
     exit(0);
 }
