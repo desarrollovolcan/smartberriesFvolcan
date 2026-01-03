@@ -1655,7 +1655,7 @@ class EXIEXPORTACION_ADO
                                                     proceso.FECHA_PROCESO AS 'PROCESO_FECHA',
                                                     tproceso.NOMBRE_TPROCESO AS 'TPROCESO_NOMBRE',
                                                     reembalaje.ID_TREEMBALAJE AS 'REEMBALAJE_TIPO_ID',
-                                                    reembalaje.FECHA AS 'REEMBALAJE_FECHA',
+                                                    reembalaje.FECHA_REEMBALAJE AS 'REEMBALAJE_FECHA',
                                                     treembalaje.NOMBRE_TREEMBALAJE AS 'TREEMBALAJE_NOMBRE',
                                                     repaletizaje.INGRESO AS 'REPALETIZAJE_FECHA',
                                                     repaletizaje.NUMERO_REPALETIZAJE AS 'REPALETIZAJE_NUMERO',
