@@ -593,7 +593,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             } else {
                                                                 $PREFRIO = "Sin Datos";
                                                             }
-                                                            $PROMEDIO = ($r['ENVASE'] > 0) ? round($r['NETO'] / $r['ENVASE'], 2) : 0;
+                                                            $ENVASE_PROMEDIO = isset($r['ENVASE_NUM']) ? (float) $r['ENVASE_NUM'] : 0;
+                                                            $NETO_PROMEDIO = isset($r['NETO_NUM']) ? (float) $r['NETO_NUM'] : 0;
+                                                            $PROMEDIO = ($ENVASE_PROMEDIO > 0) ? round($NETO_PROMEDIO / $ENVASE_PROMEDIO, 2) : 0;
                                                             ?>
                                                             <tr class="text-center">
     <td>

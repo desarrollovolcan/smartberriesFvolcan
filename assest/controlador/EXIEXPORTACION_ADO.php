@@ -1629,6 +1629,8 @@ class EXIEXPORTACION_ADO
                                                     IFNULL(DATE_FORMAT(exi.FECHA_DESPACHOEX, '%d-%m-%Y'),'Sin Datos') AS 'DESPACHOEX',
                                                     FORMAT(IFNULL(exi.CANTIDAD_ENVASE_EXIEXPORTACION,0),0,'de_DE') AS 'ENVASE',
                                                     FORMAT(IFNULL(exi.KILOS_NETO_EXIEXPORTACION,0),2,'de_DE') AS 'NETO',
+                                                    IFNULL(exi.CANTIDAD_ENVASE_EXIEXPORTACION,0) AS 'ENVASE_NUM',
+                                                    IFNULL(exi.KILOS_NETO_EXIEXPORTACION,0) AS 'NETO_NUM',
                                                     FORMAT(IFNULL(exi.KILOS_DESHIRATACION_EXIEXPORTACION,0),2,'de_DE') AS 'DESHIRATACION',
                                                     FORMAT(IFNULL(exi.PDESHIDRATACION_EXIEXPORTACION,0),2,'de_DE') AS 'PORCENTAJE',
                                                     FORMAT(IFNULL(exi.KILOS_BRUTO_EXIEXPORTACION,0),2,'de_DE') AS 'BRUTO',
