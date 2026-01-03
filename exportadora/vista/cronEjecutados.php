@@ -228,6 +228,33 @@ if (isset($_GET['estado_cron_pt'])) {
     exit;
 }
 
+if (isset($_GET['auto_run_cron_pt'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    $salida = [];
+    $codigo = 0;
+    $respuesta = [
+        'ok' => false,
+        'mensaje' => 'Cron no ejecutado.',
+        'salida' => [],
+        'codigo' => null,
+    ];
+    if (!empty($CONFIG_ENVIO['habilitado'])) {
+        $ejecutado = ejecutarCronPtDesdeVista($RUTA_EJECUCION_CRON_PT, false, $salida, $codigo);
+        if ($ejecutado) {
+            $respuesta['ok'] = $codigo === 0;
+            $respuesta['salida'] = $salida;
+            $respuesta['codigo'] = $codigo;
+            $respuesta['mensaje'] = trim(implode("\n", $salida));
+        } else {
+            $respuesta['mensaje'] = 'No se pudo ejecutar el cron automáticamente. Verifica PHP CLI.';
+        }
+    } else {
+        $respuesta['mensaje'] = 'Cron deshabilitado.';
+    }
+    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
