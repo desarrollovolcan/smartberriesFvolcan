@@ -30,17 +30,8 @@ $MENSAJE_EJECUCION = null;
 $MENSAJE_EJECUCION_TIPO = 'success';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) {
-    $comando = escapeshellcmd(PHP_BINARY) . ' ' . escapeshellarg($RUTA_EJECUCION_CRON_PT) . ' --force --reset';
-    $salida = [];
-    $codigo = 0;
-    exec($comando . ' 2>&1', $salida, $codigo);
-    $MENSAJE_EJECUCION = trim(implode("\n", $salida));
-    if ($MENSAJE_EJECUCION === '') {
-        $MENSAJE_EJECUCION = $codigo === 0 ? 'Cron ejecutado correctamente.' : 'No fue posible ejecutar el cron.';
-    }
-    if ($codigo !== 0) {
-        $MENSAJE_EJECUCION_TIPO = 'danger';
-    }
+    $MENSAJE_EJECUCION = 'La ejecución manual del cron está deshabilitada en la vista para evitar errores del servidor. Use el cron del sistema o CLI.';
+    $MENSAJE_EJECUCION_TIPO = 'warning';
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['REINICIAR_CRON_PT'])) {
     if (file_exists($RUTA_LOCK_CRON_PT)) {
@@ -202,7 +193,7 @@ if (isset($_GET['estado_cron_pt'])) {
                                                 <?php echo $CONFIG_ENVIO['habilitado'] ? 'Habilitado' : 'Deshabilitado'; ?>
                                             </span>
                                             <form method="post" class="m-0 mr-10">
-                                                <button type="submit" name="EJECUTAR_CRON_PT" class="btn btn-sm btn-primary">
+                                                <button type="submit" name="EJECUTAR_CRON_PT" class="btn btn-sm btn-primary" disabled>
                                                     Ejecutar cron ahora
                                                 </button>
                                             </form>
