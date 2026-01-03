@@ -6,6 +6,7 @@ include_once '../../assest/controlador/PLANTA_ADO.php';
 include_once '../../assest/controlador/USUARIO_ADO.php';
 
 $RUTA_CONFIG_CRON_PT = dirname(__DIR__, 2) . '/data/config_cron_pt.json';
+$RUTA_STATUS_CRON_PT = dirname(__DIR__, 2) . '/data/cron_pt_status.json';
 $RUTA_EJECUCION_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alertaFoliosExiexportacion.php';
 $RUTA_LOCK_CRON_PT = dirname(__DIR__, 2) . '/fruta/cron/alerta_folios_exiexportacion.lock';
 
@@ -28,6 +29,20 @@ if (file_exists($RUTA_CONFIG_CRON_PT)) {
     }
 }
 $CONFIG_ENVIO['habilitado'] = isset($CONFIG_ENVIO['habilitado']) ? (bool) $CONFIG_ENVIO['habilitado'] : true;
+
+$ESTADO_CRON = [
+    'actualizado_en' => null,
+    'estado' => null,
+    'mensaje' => null,
+    'envios' => 0,
+    'errores' => [],
+];
+if (file_exists($RUTA_STATUS_CRON_PT)) {
+    $dataStatus = json_decode(file_get_contents($RUTA_STATUS_CRON_PT), true);
+    if (is_array($dataStatus)) {
+        $ESTADO_CRON = array_merge($ESTADO_CRON, $dataStatus);
+    }
+}
 
 $EMPRESA_ADO = new EMPRESA_ADO();
 $PLANTA_ADO = new PLANTA_ADO();
@@ -72,6 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['EJECUTAR_CRON_PT'])) 
     if (empty($CONFIG_ENVIO['habilitado'])) {
         $MENSAJE_EJECUCION = 'El cron está deshabilitado. Habilítalo antes de ejecutar manualmente.';
         $MENSAJE_EJECUCION_TIPO = 'warning';
+    } elseif (!file_exists($RUTA_EJECUCION_CRON_PT)) {
+        $MENSAJE_EJECUCION = 'No se encontró el archivo del cron para ejecutar.';
+        $MENSAJE_EJECUCION_TIPO = 'danger';
     } else {
         $salida = [];
         $codigo = 0;
@@ -202,6 +220,10 @@ if (isset($_GET['estado_cron_pt'])) {
         'proxima_ejecucion' => $proximaEjecucion ? $proximaEjecucion->format('d/m/Y H:i') : null,
         'timestamp' => $timestampProxima,
         'actualizado_en' => $CONFIG_ENVIO['actualizado_en'] ?? null,
+        'ultimo_estado' => $ESTADO_CRON['estado'] ?? null,
+        'ultimo_envio' => $ESTADO_CRON['actualizado_en'] ? date('d/m/Y H:i', strtotime($ESTADO_CRON['actualizado_en'])) : null,
+        'ultimo_mensaje' => $ESTADO_CRON['mensaje'] ?? null,
+        'ultimo_envios' => $ESTADO_CRON['envios'] ?? 0,
     ]);
     exit;
 }
@@ -340,6 +362,7 @@ if (isset($_GET['auto_run_cron_pt'])) {
                                             </form>
                                         </div>
                                     </div>
+                                    <div class="cron-ejecucion-subtitle mb-10">El envío automático depende del cron del servidor. Usa el botón solo para pruebas manuales.</div>
                                     <?php if (!empty($MENSAJE_EJECUCION)) { ?>
                                         <div class="alert alert-<?php echo $MENSAJE_EJECUCION_TIPO; ?> py-5 px-10">
                                             <?php echo nl2br(htmlspecialchars($MENSAJE_EJECUCION)); ?>
@@ -351,6 +374,14 @@ if (isset($_GET['auto_run_cron_pt'])) {
                                                 <div class="cron-ejecucion-label">Hora servidor</div>
                                                 <div class="cron-ejecucion-meta mb-5">
                                                     <span id="server-time" class="cron-ejecucion-time"><?php echo date('d/m/Y H:i'); ?></span>
+                                                </div>
+                                                <div class="cron-ejecucion-label">Última ejecución</div>
+                                                <div class="cron-ejecucion-meta mb-5">
+                                                    <span id="cron-ultimo-envio"><?php echo $ESTADO_CRON['actualizado_en'] ? date('d/m/Y H:i', strtotime($ESTADO_CRON['actualizado_en'])) : 'Sin registros'; ?></span>
+                                                </div>
+                                                <div class="cron-ejecucion-label">Resultado</div>
+                                                <div class="cron-ejecucion-meta mb-5">
+                                                    <span id="cron-ultimo-estado"><?php echo $ESTADO_CRON['mensaje'] ?? 'Sin resultados'; ?></span>
                                                 </div>
                                                 <div class="cron-ejecucion-label">Próxima ejecución</div>
                                                 <div class="cron-ejecucion-meta mb-5">
@@ -490,6 +521,8 @@ if (isset($_GET['auto_run_cron_pt'])) {
             const empresas = document.getElementById('cron-empresas');
             const plantas = document.getElementById('cron-plantas');
             const serverTime = document.getElementById('server-time');
+            const ultimoEnvio = document.getElementById('cron-ultimo-envio');
+            const ultimoEstado = document.getElementById('cron-ultimo-estado');
 
             if (proxima) {
                 if (data.proxima_ejecucion) {
@@ -527,6 +560,12 @@ if (isset($_GET['auto_run_cron_pt'])) {
             if (data.server_timestamp) {
                 serverTimestamp = parseInt(data.server_timestamp, 10);
             }
+            if (ultimoEnvio) {
+                ultimoEnvio.textContent = data.ultimo_envio ? data.ultimo_envio : 'Sin registros';
+            }
+            if (ultimoEstado) {
+                ultimoEstado.textContent = data.ultimo_mensaje ? data.ultimo_mensaje : 'Sin resultados';
+            }
             const renderChips = (element, items, emptyText) => {
                 if (!element) {
                     return;
@@ -552,20 +591,6 @@ if (isset($_GET['auto_run_cron_pt'])) {
             renderChips(empresas, data.empresas || [], 'Sin empresas asignadas.');
             renderChips(plantas, data.plantas || [], 'Sin plantas asignadas.');
 
-            if (data.timestamp && serverTimestamp) {
-                const objetivo = parseInt(data.timestamp, 10);
-                const yaEjecutado = localStorage.getItem('cronPtUltimaEjecucion');
-                if (objetivo <= serverTimestamp && String(yaEjecutado) !== String(objetivo)) {
-                    fetch('cronEjecutados.php?auto_run_cron_pt=1', { cache: 'no-store' })
-                        .then((response) => response.json())
-                        .then(() => {
-                            localStorage.setItem('cronPtUltimaEjecucion', String(objetivo));
-                        })
-                        .catch(() => {
-                            // Evitar fallos en UI.
-                        });
-                }
-            }
         }
 
         function verificarActualizacionCron() {

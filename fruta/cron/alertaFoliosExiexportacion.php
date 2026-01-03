@@ -21,7 +21,10 @@ require_once $BASE_PATH . '/assest/controlador/PLANTA_ADO.php';
 require_once $BASE_PATH . '/assest/controlador/TEMPORADA_ADO.php';
 
 date_default_timezone_set('America/Santiago');
+
 $CONFIG_PATH = $BASE_PATH . '/data/config_cron_pt.json';
+$STATUS_PATH = $BASE_PATH . '/data/cron_pt_status.json';
+$LOCK_PATH = __DIR__ . '/alerta_folios_exiexportacion.lock';
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
@@ -135,6 +138,51 @@ function enviarCorreoSMTP($destinatarios, $asunto, $mensaje, $remitente, $usuari
     return [true, null];
 }
 
+function cargarConfiguracionCronPt(string $ruta): array
+{
+    $config = [
+        'habilitado' => true,
+        'actualizado_en' => null,
+        'fecha_inicio' => '',
+        'permitir_multiples' => false,
+        'hora' => '',
+        'dias' => [],
+        'correos' => '',
+        'empresas' => [],
+        'plantas' => [],
+        'usuarios' => []
+    ];
+
+    if (file_exists($ruta)) {
+        $data = json_decode(file_get_contents($ruta), true);
+        if (is_array($data)) {
+            $config = array_merge($config, $data);
+        }
+    }
+
+    $config['habilitado'] = isset($config['habilitado']) ? (bool) $config['habilitado'] : true;
+    $config['permitir_multiples'] = !empty($config['permitir_multiples']);
+    $config['dias'] = isset($config['dias']) && is_array($config['dias']) ? array_values(array_unique($config['dias'])) : [];
+    $config['empresas'] = isset($config['empresas']) && is_array($config['empresas']) ? array_values(array_unique($config['empresas'])) : [];
+    $config['plantas'] = isset($config['plantas']) && is_array($config['plantas']) ? array_values(array_unique($config['plantas'])) : [];
+    $config['usuarios'] = isset($config['usuarios']) && is_array($config['usuarios']) ? array_values(array_unique($config['usuarios'])) : [];
+
+    return $config;
+}
+
+function guardarEstadoCronPt(string $ruta, array $data): void
+{
+    $payload = array_merge([
+        'actualizado_en' => date('c'),
+    ], $data);
+
+    $dir = dirname($ruta);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
+    }
+    file_put_contents($ruta, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
 function obtenerTemporadaVigente($TEMPORADA_ADO, $temporadaIdManual = null)
 {
     if ($temporadaIdManual) {
@@ -165,7 +213,7 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
             }
 
             $productor = "Sin Datos";
-            if (!isset($cache['PRODUCTOR'][$r['ID_PRODUCTOR']])){
+            if (!isset($cache['PRODUCTOR'][$r['ID_PRODUCTOR']])) {
                 $cache['PRODUCTOR'][$r['ID_PRODUCTOR']] = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
             }
             if (!empty($cache['PRODUCTOR'][$r['ID_PRODUCTOR']])) {
@@ -205,77 +253,113 @@ function obtenerFoliosAtrasados($empresaId, $plantaId, $temporadaId, $EXIEXPORTA
             ];
         }
     }
+
     return $resultado;
+}
+
+function obtenerDestinatariosConfigurados(array $config): array
+{
+    $manuales = array_filter(array_map('trim', explode(',', $config['correos'] ?? '')));
+    $usuarios = array_filter(array_map('trim', $config['usuarios'] ?? []));
+    return array_values(array_unique(array_merge($manuales, $usuarios)));
+}
+
+function validarEjecucionCron(array $config, bool $force, bool $desdeInclude): array
+{
+    if (empty($config['habilitado'])) {
+        return [false, 'Cron PT deshabilitado.'];
+    }
+
+    if ($force || $desdeInclude) {
+        return [true, null];
+    }
+
+    $hora = trim((string) ($config['hora'] ?? ''));
+    $dias = $config['dias'] ?? [];
+    if ($hora === '' || empty($dias)) {
+        return [false, 'Configuración de hora/días no definida.'];
+    }
+
+    $fechaInicioConfig = trim((string) ($config['fecha_inicio'] ?? ''));
+    if ($fechaInicioConfig) {
+        $fechaInicio = DateTime::createFromFormat('Y-m-d', $fechaInicioConfig);
+        if ($fechaInicio) {
+            $fechaActual = new DateTime('today');
+            if ($fechaActual < $fechaInicio) {
+                return [false, "Cron PT aún no inicia. Fecha inicio: {$fechaInicioConfig}."];
+            }
+        }
+    }
+
+    $diaSemana = (int) date('N');
+    if (!in_array((string) $diaSemana, $dias, true)) {
+        return [false, 'Hoy no está configurado como día de envío.'];
+    }
+
+    $ahora = new DateTime('now');
+    $objetivo = DateTime::createFromFormat('H:i', $hora) ?: new DateTime('today');
+    $objetivo->setDate((int) $ahora->format('Y'), (int) $ahora->format('m'), (int) $ahora->format('d'));
+    if ($ahora < $objetivo) {
+        return [false, "Aún no se alcanza la hora configurada ({$hora})."];
+    }
+
+    return [true, null];
 }
 
 $options = getopt('', ['empresa::', 'planta::', 'temporada::', 'force::', 'reset::', 'reset-only::']);
 if ($options === false) {
     $options = [];
 }
-$temporadaManual = isset($options['temporada']) ? (int) $options['temporada'] : null;
+
 $force = array_key_exists('force', $options);
+$reset = array_key_exists('reset', $options);
+$resetOnly = array_key_exists('reset-only', $options);
 
-$config = [
-    'habilitado' => true,
-    'fecha_inicio' => '',
-    'permitir_multiples' => false,
-    'hora' => '',
-    'dias' => [],
-    'correos' => '',
-    'empresas' => [],
-    'plantas' => [],
-    'usuarios' => []
-];
-if (file_exists($CONFIG_PATH)) {
-    $cfg = json_decode(file_get_contents($CONFIG_PATH), true);
-    if (is_array($cfg)) {
-        $config = array_merge($config, $cfg);
+if ($reset || $resetOnly) {
+    @unlink($LOCK_PATH);
+    if ($resetOnly) {
+        echo "Lock del cron reiniciado.\n";
+        exit(0);
     }
 }
 
-$config['habilitado'] = isset($config['habilitado']) ? (bool) $config['habilitado'] : true;
-$horaConfig = trim((string)($config['hora'] ?? ''));
-$fechaInicioConfig = trim((string)($config['fecha_inicio'] ?? ''));
-$permitirMultiples = !empty($config['permitir_multiples']);
-$diaSemana = (int)date('N'); //1 lunes
+$config = cargarConfiguracionCronPt($CONFIG_PATH);
 $desdeInclude = defined('CRON_FOLIOS_INCLUDE_ONLY');
-if (!$desdeInclude) {
-    if (empty($config['habilitado'])) {
-        echo "Cron PT deshabilitado. Abortando.\n";
-        exit(0);
-    }
-    if ($fechaInicioConfig) {
-        $fechaInicio = DateTime::createFromFormat('Y-m-d', $fechaInicioConfig);
-        if ($fechaInicio && !$force) {
-            $fechaActual = new DateTime('today');
-            if ($fechaActual < $fechaInicio) {
-                echo "Cron PT aún no inicia. Fecha inicio: {$fechaInicioConfig}.\n";
-                exit(0);
-            }
-        }
-    }
-    if (!$horaConfig || empty($config['dias']) || !in_array((string)$diaSemana, $config['dias'], true)) {
-        echo "Configuración de hora/días no válida o día no seleccionado. Abortando.\n";
-        exit(0);
-    }
 
-    $ahora = new DateTime('now');
-    $objetivo = DateTime::createFromFormat('H:i', $horaConfig) ?: new DateTime('today');
-    $objetivo->setDate((int)$ahora->format('Y'), (int)$ahora->format('m'), (int)$ahora->format('d'));
-    if (!$force && $ahora < $objetivo) {
-        echo "Aún no se alcanza la hora configurada ({$horaConfig}). Abortando.\n";
+[$puedeEjecutar, $motivo] = validarEjecucionCron($config, $force, $desdeInclude);
+if (!$puedeEjecutar) {
+    echo $motivo . "\n";
+    guardarEstadoCronPt($STATUS_PATH, [
+        'estado' => 'omitido',
+        'mensaje' => $motivo,
+        'envios' => 0,
+    ]);
+    exit(0);
+}
+
+$horaConfig = trim((string) ($config['hora'] ?? ''));
+$tokenLock = date('Y-m-d') . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
+if (!$force && !$desdeInclude && !$config['permitir_multiples'] && file_exists($LOCK_PATH)) {
+    $lockActual = trim((string) @file_get_contents($LOCK_PATH));
+    if ($lockActual === $tokenLock) {
+        echo "Alerta ya enviada hoy a la hora configurada.\n";
+        guardarEstadoCronPt($STATUS_PATH, [
+            'estado' => 'omitido',
+            'mensaje' => 'Alerta ya enviada hoy.',
+            'envios' => 0,
+        ]);
         exit(0);
     }
 }
 
-$empresaFiltroLista = array_map('intval', $config['empresas'] ?? []);
-$plantaFiltroLista = array_map('intval', $config['plantas'] ?? []);
-
-$destinatariosManual = array_filter(array_map('trim', explode(',', $config['correos'] ?? '')));
-$destinatariosUsuarios = array_filter(array_map('trim', $config['usuarios'] ?? []));
-$destinatarios = array_values(array_unique(array_merge($destinatariosManual, $destinatariosUsuarios)));
+$destinatarios = obtenerDestinatariosConfigurados($config);
 if (empty($destinatarios)) {
     echo "Sin destinatarios configurados.\n";
+    guardarEstadoCronPt($STATUS_PATH, [
+        'estado' => 'error',
+        'mensaje' => 'Sin destinatarios configurados.',
+        'envios' => 0,
+    ]);
     exit(0);
 }
 
@@ -288,39 +372,40 @@ $EMPRESA_ADO = new EMPRESA_ADO();
 $PLANTA_ADO = new PLANTA_ADO();
 $TEMPORADA_ADO = new TEMPORADA_ADO();
 
+$temporadaManual = isset($options['temporada']) ? (int) $options['temporada'] : null;
 $temporadaId = obtenerTemporadaVigente($TEMPORADA_ADO, $temporadaManual);
 if (!$temporadaId) {
     echo "No se encontró una temporada vigente.\n";
+    guardarEstadoCronPt($STATUS_PATH, [
+        'estado' => 'error',
+        'mensaje' => 'No se encontró temporada vigente.',
+        'envios' => 0,
+    ]);
     exit(1);
 }
 
-$lockFile = __DIR__ . '/alerta_folios_exiexportacion.lock';
-$hoy = date('Y-m-d');
-$lockToken = $hoy . ' ' . $horaConfig . ' ' . ($config['actualizado_en'] ?? '');
-$ignorarLock = !empty($options['reset']) || !empty($options['reset-only']);
-if (!empty($options['reset'])) {
-    @unlink($lockFile);
+$empresaFiltroLista = array_map('intval', $config['empresas'] ?? []);
+$plantaFiltroLista = array_map('intval', $config['plantas'] ?? []);
+
+if (isset($options['empresa'])) {
+    $empresaFiltroLista = array_filter([(int) $options['empresa']]);
 }
-if (!empty($options['reset-only'])) {
-    @unlink($lockFile);
-    echo "Lock del cron reiniciado.\n";
-    exit(0);
-}
-if (!$force && !$desdeInclude && !$ignorarLock && !$permitirMultiples && file_exists($lockFile) && trim(@file_get_contents($lockFile)) === $lockToken) {
-    echo "Alerta ya enviada hoy a la hora configurada. Use --force para reenviar.\n";
-    exit(0);
+if (isset($options['planta'])) {
+    $plantaFiltroLista = array_filter([(int) $options['planta']]);
 }
 
 $empresas = $EMPRESA_ADO->listarEmpresaCBX() ?: [];
 $plantas = $PLANTA_ADO->listarPlantaCBX() ?: [];
+
 $enviosRealizados = 0;
+$errores = [];
 
 foreach ($empresas as $empresa) {
-    if (!empty($empresaFiltroLista) && !in_array((int)$empresa['ID_EMPRESA'], $empresaFiltroLista, true)) {
+    if (!empty($empresaFiltroLista) && !in_array((int) $empresa['ID_EMPRESA'], $empresaFiltroLista, true)) {
         continue;
     }
     foreach ($plantas as $planta) {
-        if (!empty($plantaFiltroLista) && !in_array((int)$planta['ID_PLANTA'], $plantaFiltroLista, true)) {
+        if (!empty($plantaFiltroLista) && !in_array((int) $planta['ID_PLANTA'], $plantaFiltroLista, true)) {
             continue;
         }
 
@@ -342,7 +427,7 @@ foreach ($empresas as $empresa) {
         }
 
         $lineas = array_map(function ($item) {
-            return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']} | SIF: {$item['sif']} | Estandar: {$item['estandar']}";
+            return "Folio: {$item['folio']} | Productor: {$item['productor']} | Variedad: {$item['variedad']} | Días: {$item['dias']} | Embalado: {$item['embalado']} | SIF: {$item['sif']} | Estándar: {$item['estandar']}";
         }, $folios);
 
         $mensaje = "Empresa: {$empresa['NOMBRE_EMPRESA']}\r\nPlanta: {$planta['NOMBRE_PLANTA']}\r\nTemporada ID: {$temporadaId}\r\n\r\n";
@@ -354,13 +439,26 @@ foreach ($empresas as $empresa) {
             $enviosRealizados++;
             echo "Enviado: {$empresa['NOMBRE_EMPRESA']} / {$planta['NOMBRE_PLANTA']} (" . count($folios) . " folios)\n";
         } else {
-            echo "Error enviando {$empresa['NOMBRE_EMPRESA']} / {$planta['NOMBRE_PLANTA']}: {$error}\n";
+            $errores[] = "Error enviando {$empresa['NOMBRE_EMPRESA']} / {$planta['NOMBRE_PLANTA']}: {$error}";
+            echo end($errores) . "\n";
         }
     }
 }
 
-if ($enviosRealizados > 0 && !$desdeInclude && !$permitirMultiples) {
-    @file_put_contents($lockFile, $lockToken);
+if ($enviosRealizados > 0 && !$desdeInclude && !$config['permitir_multiples']) {
+    @file_put_contents($LOCK_PATH, $tokenLock);
 }
+
+$mensajeEstado = $enviosRealizados > 0 ? 'Envíos realizados correctamente.' : 'Sin envíos (sin folios o filtros sin coincidencia).';
+if (!empty($errores)) {
+    $mensajeEstado = 'Se ejecutó con errores.';
+}
+
+guardarEstadoCronPt($STATUS_PATH, [
+    'estado' => $enviosRealizados > 0 ? 'ok' : (empty($errores) ? 'sin_envios' : 'error'),
+    'mensaje' => $mensajeEstado,
+    'envios' => $enviosRealizados,
+    'errores' => $errores,
+]);
 
 echo "Proceso finalizado. Envios: {$enviosRealizados}\n";
