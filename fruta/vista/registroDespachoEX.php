@@ -2246,47 +2246,47 @@ if (isset($_POST)) {
                                             </div>
                                         </form>  
                                         
-                                        <div class="col-auto">
-                                                        <button type="submit" form="form" class="btn btn-success btn-block" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS">
-                                                                Agregar Termógrafos
-                                                        </button>
-                                                        </div>
+                                        <form method="post" id="form">
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-success btn-block" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS">
+                                                    Agregar Termógrafos
+                                                </button>
+                                            </div>
 
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Envase</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Envase</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
                                             </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Neto</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Neto</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
                                             </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Bruto</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Bruto</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
                                             </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                    <form method="post" id="form">
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2854,6 +2854,7 @@ if (isset($_POST)) {
   
 
             if ($SINO == 0) {
+                $MENSAJETERMOGRAFO2 = "";
 
                 //echo '<script> alert("accede 2");</script>';
                 $ARRAYIDDESPACHO = $_REQUEST['IDDESPACHO'];
@@ -2862,8 +2863,8 @@ if (isset($_POST)) {
                 $ARRAYTERMOGRAFO = $_REQUEST['TERMOGRAFO'];
                 $ARRAYIDTERMOGRAFO = $_REQUEST['IDTERMOGRAFO'];
 
-                var_dump($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO);
                 foreach ($ARRAYIDTERMOGRAFO as $ID) :
+                    $SINOTERMOGRAFO = 0;
                     $IDTERMOGRAFO = $ID - 1;
            
                     $IDDESPACHO = $ARRAYIDDESPACHO[$IDTERMOGRAFO];
@@ -2892,8 +2893,6 @@ if (isset($_POST)) {
                         $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDEXIEXPORTACIONTERMOGRAFO);
                         $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
                         // LLAMADA AL METODO DE REGISTRO DEL CONTROLADOR
-                        $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
-
                         $MENSAJETERMOGRAFO2 = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
 
                         //$AUSUARIO_ADO->agregarAusuario2("NULL",1,2,"".$_SESSION["NOMBRE_USUARIO"].", Se agrego el precio a la Existencia en el despacho de producto terminado.","fruta_exiexportacion", "NULL" ,$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'], $_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );  
