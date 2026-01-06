@@ -2524,7 +2524,10 @@ if (isset($_POST)) {
 
                 $TERMOGRAFO = "";
                 if (isset($ARRAYTERMOGRAFO[$index])) {
-                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$index];
+                    $TERMOGRAFO = trim($ARRAYTERMOGRAFO[$index]);
+                }
+                if ($TERMOGRAFO === "") {
+                    continue;
                 }
 
                 $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$index]);
