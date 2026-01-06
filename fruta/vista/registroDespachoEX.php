@@ -2445,10 +2445,11 @@ if (isset($_POST)) {
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <script>
             function submitTermografosForm() {
-                var form = document.getElementById('form-termografos');
+                var form = document.getElementById('form_reg_dato');
                 if (!form) {
                     return;
                 }
+                syncTermografosToForm();
                 var trigger = form.querySelector('input[name="TERMOGRAFOS"]');
                 if (!trigger) {
                     trigger = document.createElement('input');
@@ -2516,6 +2517,7 @@ if (isset($_POST)) {
         {
             if (
                 empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
+                empty($request['FOLIOEXIEXPORTACIONTERMOGRAFO']) ||
                 empty($request['TERMOGRAFO']) ||
                 empty($request['IDDESPACHO'])
             ) {
@@ -2524,10 +2526,11 @@ if (isset($_POST)) {
 
             $ARRAYIDDESPACHO = $request['IDDESPACHO'];
             $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $request['FOLIOEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
 
             foreach ($ARRAYIDEXIEXPORTACIONTERMOGRAFO as $index => $idExiExportacion) :
-                if (!isset($ARRAYIDDESPACHO[$index])) {
+                if (!isset($ARRAYIDDESPACHO[$index]) || !isset($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index])) {
                     continue;
                 }
 
@@ -2539,7 +2542,7 @@ if (isset($_POST)) {
                     continue;
                 }
 
-                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$index]);
+                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
                 $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
@@ -2982,7 +2985,7 @@ if (isset($_POST)) {
                             Swal.fire({
                                 icon:"success",
                                 title:"Accion realizada",
-                                text:"Se agregaron los termógrafos correctamente.",
+                                text:"Termógrafo agregado con éxito.",
                                 showConfirmButton: true,
                                 confirmButtonText:"Cerrar",
                                 closeOnConfirm:false
