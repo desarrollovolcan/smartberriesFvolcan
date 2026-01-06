@@ -2288,7 +2288,6 @@ if (isset($_POST)) {
                                     <div class="table-responsive">
                                     <form method="post" id="form-termografos">
                                         <input type="hidden" name="IDP" value="<?php echo $IDOP; ?>" />
-                                        <input type="hidden" name="TERMOGRAFOS" value="TERMOGRAFOS" />
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
