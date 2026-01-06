@@ -2516,6 +2516,7 @@ if (isset($_POST)) {
         {
             if (
                 empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
+                empty($request['FOLIOEXIEXPORTACIONTERMOGRAFO']) ||
                 empty($request['TERMOGRAFO']) ||
                 empty($request['IDDESPACHO'])
             ) {
@@ -2524,10 +2525,11 @@ if (isset($_POST)) {
 
             $ARRAYIDDESPACHO = $request['IDDESPACHO'];
             $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $request['FOLIOEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
 
             foreach ($ARRAYIDEXIEXPORTACIONTERMOGRAFO as $index => $idExiExportacion) :
-                if (!isset($ARRAYIDDESPACHO[$index])) {
+                if (!isset($ARRAYIDDESPACHO[$index]) || !isset($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index])) {
                     continue;
                 }
 
@@ -2982,7 +2984,7 @@ if (isset($_POST)) {
                             Swal.fire({
                                 icon:"success",
                                 title:"Accion realizada",
-                                text:"Se agregaron los termógrafos correctamente.",
+                                text:"Termógrafo agregado con éxito.",
                                 showConfirmButton: true,
                                 confirmButtonText:"Cerrar",
                                 closeOnConfirm:false
