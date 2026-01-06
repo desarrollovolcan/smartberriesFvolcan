@@ -2542,7 +2542,7 @@ if (isset($_POST)) {
                     continue;
                 }
 
-                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$index]);
+                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
                 $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
