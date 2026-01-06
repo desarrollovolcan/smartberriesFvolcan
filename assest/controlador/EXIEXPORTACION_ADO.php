@@ -5449,6 +5449,20 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
             die($e->getMessage());
         }
     }
+
+    public function obtenerTermografoPorId($IDEXIEXPORTACION)
+    {
+        try {
+            $datos = $this->conexion->prepare("SELECT N_TERMOGRAFO FROM fruta_exiexportacion WHERE ID_EXIEXPORTACION = ? LIMIT 1;");
+            $datos->execute(array($IDEXIEXPORTACION));
+            $resultado = $datos->fetch();
+            $datos = null;
+
+            return $resultado ? $resultado['N_TERMOGRAFO'] : null;
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
     public function actualizarSelecionarSagCambiarEstado(EXIEXPORTACION $EXIEXPORTACION)
     {
         try {

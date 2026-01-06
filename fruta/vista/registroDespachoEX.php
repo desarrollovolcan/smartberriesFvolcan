@@ -2536,6 +2536,11 @@ if (isset($_POST)) {
                     continue;
                 }
 
+                $TERMOGRAFOACTUAL = $EXIEXPORTACION_ADO->obtenerTermografoPorId($idExiExportacion);
+                if ($TERMOGRAFOACTUAL !== null && trim((string)$TERMOGRAFOACTUAL) === $TERMOGRAFO) {
+                    continue;
+                }
+
                 $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('FOLIO_AUXILIAR_EXIEXPORTACION', $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index]);
