@@ -2288,6 +2288,7 @@ if (isset($_POST)) {
                                     <div class="table-responsive">
                                     <form method="post" id="form-termografos">
                                         <input type="hidden" name="TERMOGRAFOS" value="TERMOGRAFOS" />
+                                        <input type="hidden" name="IDP" value="<?php echo $IDOP; ?>" />
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2505,7 +2506,6 @@ if (isset($_POST)) {
         function actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
         {
             if (
-                empty($request['IDTERMOGRAFO']) ||
                 empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
                 empty($request['TERMOGRAFO']) ||
                 empty($request['IDDESPACHO'])
@@ -2516,24 +2516,19 @@ if (isset($_POST)) {
             $ARRAYIDDESPACHO = $request['IDDESPACHO'];
             $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
-            $ARRAYIDTERMOGRAFO = $request['IDTERMOGRAFO'];
 
-            foreach ($ARRAYIDTERMOGRAFO as $ID) :
-                $IDTERMOGRAFO = $ID - 1;
-                if (
-                    !isset($ARRAYIDDESPACHO[$IDTERMOGRAFO]) ||
-                    !isset($ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO])
-                ) {
+            foreach ($ARRAYIDEXIEXPORTACIONTERMOGRAFO as $index => $idExiExportacion) :
+                if (!isset($ARRAYIDDESPACHO[$index])) {
                     continue;
                 }
 
                 $TERMOGRAFO = "";
-                if (isset($ARRAYTERMOGRAFO[$IDTERMOGRAFO])) {
-                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
+                if (isset($ARRAYTERMOGRAFO[$index])) {
+                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$index];
                 }
 
-                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$IDTERMOGRAFO]);
-                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO]);
+                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$index]);
+                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
                 $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
             endforeach;
