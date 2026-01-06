@@ -2445,10 +2445,11 @@ if (isset($_POST)) {
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <script>
             function submitTermografosForm() {
-                var form = document.getElementById('form-termografos');
+                var form = document.getElementById('form_reg_dato');
                 if (!form) {
                     return;
                 }
+                syncTermografosToForm();
                 var trigger = form.querySelector('input[name="TERMOGRAFOS"]');
                 if (!trigger) {
                     trigger = document.createElement('input');
