@@ -5406,15 +5406,45 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
                         MODIFICACION = SYSDATE(), 
                         ID_DESPACHOEX = ?,    
                         N_TERMOGRAFO = ?         
-                    WHERE FOLIO_AUXILIAR_EXIEXPORTACION = ? ;";
-                $this->conexion->prepare($query)
-                ->execute(
+                    WHERE FOLIO_AUXILIAR_EXIEXPORTACION = ?
+                      AND ID_EXIEXPORTACION = ?
+                      AND ID_DESPACHOEX = ? ;";
+                $sentencia = $this->conexion->prepare($query);
+                $sentencia->execute(
                     array(
                         $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
                         $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
-                        $EXIEXPORTACION->__GET('FOLIO_AUXILIAR_EXIEXPORTACION')
+                        $EXIEXPORTACION->__GET('FOLIO_AUXILIAR_EXIEXPORTACION'),
+                        $EXIEXPORTACION->__GET('ID_EXIEXPORTACION'),
+                        $EXIEXPORTACION->__GET('ID_DESPACHOEX')
                     )
                 );
+            return $sentencia->rowCount();
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function actualizarDespachoAgregarTermografoPorId(EXIEXPORTACION $EXIEXPORTACION)
+    {
+        try {
+            $query = "
+                    UPDATE fruta_exiexportacion SET
+                        MODIFICACION = SYSDATE(), 
+                        ID_DESPACHOEX = ?,    
+                        N_TERMOGRAFO = ?         
+                    WHERE ID_EXIEXPORTACION = ?
+                      AND ID_DESPACHOEX = ? ;";
+            $sentencia = $this->conexion->prepare($query);
+            $sentencia->execute(
+                array(
+                    $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
+                    $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
+                    $EXIEXPORTACION->__GET('ID_EXIEXPORTACION'),
+                    $EXIEXPORTACION->__GET('ID_DESPACHOEX')
+                )
+            );
+            return $sentencia->rowCount();
         } catch (Exception $e) {
             die($e->getMessage());
         }

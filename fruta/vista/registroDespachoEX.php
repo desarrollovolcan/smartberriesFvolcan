@@ -2546,7 +2546,10 @@ if (isset($_POST)) {
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('FOLIO_AUXILIAR_EXIEXPORTACION', $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index]);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
-                $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorFolio($EXIEXPORTACION);
+                $filasActualizadas = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorFolio($EXIEXPORTACION);
+                if ($filasActualizadas === 0) {
+                    $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorId($EXIEXPORTACION);
+                }
             endforeach;
 
             return "";
