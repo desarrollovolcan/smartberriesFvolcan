@@ -2532,9 +2532,6 @@ if (isset($_POST)) {
                 if (isset($ARRAYTERMOGRAFO[$index])) {
                     $TERMOGRAFO = trim($ARRAYTERMOGRAFO[$index]);
                 }
-                if ($TERMOGRAFO === "") {
-                    continue;
-                }
 
                 $TERMOGRAFOACTUAL = $EXIEXPORTACION_ADO->obtenerTermografoPorId($idExiExportacion);
                 if ($TERMOGRAFOACTUAL !== null && trim((string)$TERMOGRAFOACTUAL) === $TERMOGRAFO) {
@@ -2544,7 +2541,7 @@ if (isset($_POST)) {
                 $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
                 $EXIEXPORTACION->__SET('FOLIO_AUXILIAR_EXIEXPORTACION', $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index]);
-                $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
+                $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO === "" ? null : $TERMOGRAFO);
                 $filasActualizadas = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorFolio($EXIEXPORTACION);
                 if ($filasActualizadas === 0) {
                     $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorId($EXIEXPORTACION);
