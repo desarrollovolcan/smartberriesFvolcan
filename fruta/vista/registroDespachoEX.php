@@ -2216,8 +2216,8 @@ if (isset($_POST)) {
                         </div>
                         <?php if (isset($_GET['op'])): ?>
                             <div class="card">                            
-                                <div class="card-header bg-info">
-                                    <h4 class="card-title">Detalle de Despacho de Producto Terminado</h4>
+                                <div class="card-header bg-success">
+                                    <h4 class="text-white">Detalle de Despacho de Producto Terminado</h4>
                                 </div>
                                 <div class="card-header">
                                     <div class="form-row align-items-center">
@@ -2247,10 +2247,10 @@ if (isset($_POST)) {
                                         </form>  
                                         
                                         <div class="col-auto">
-                                                        <button type="submit" form="form" class="btn btn-success btn-block" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS">
-                                                                Agregar Termógrafos
-                                                        </button>
-                                                        </div>
+                                            <button type="submit" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS" form="form_reg_dato">
+                                                Agregar Termógrafos
+                                            </button>
+                                        </div>
 
                                         <div class="col-auto">
                                             <label class="sr-only" for=""></label>
@@ -2286,7 +2286,6 @@ if (isset($_POST)) {
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                    <form method="post" id="form">
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2398,12 +2397,12 @@ if (isset($_POST)) {
                                                             <td><?php echo $r['EMBALADO']; ?></td>
                                                             <td>
                                                                 <div class="form-group">
-                                                                    <input type="hidden" class="form-control" placeholder="ID DESPACHO" id="IDP" name="IDP" value="<?php echo $IDOP; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDDESPACHO[]" value="<?php echo $IDOP; ?>" />
-                                                                    <input type="hidden" class="form-control" name="FOLIOEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDTERMOGRAFO[]" value="<?php echo  $CONTADOR; ?>">
-                                                                    <input type="text" placeholder="Termógrafo" class="form-control" name="TERMOGRAFO[]"
+                                                                    <input type="hidden" class="form-control" placeholder="ID DESPACHO" id="IDP" name="IDP" value="<?php echo $IDOP; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDDESPACHO[]" value="<?php echo $IDOP; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="FOLIOEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDTERMOGRAFO[]" value="<?php echo  $CONTADOR; ?>" form="form_reg_dato">
+                                                                    <input type="text" placeholder="Termógrafo" class="form-control" name="TERMOGRAFO[]" form="form_reg_dato"
                                                                     <?php //if ($ESTADO == 0) { echo "disabled";} ?> value="<?php echo $r['N_TERMOGRAFO']; ?>">
                                                                 </div>
                                                             </td>
@@ -2427,7 +2426,6 @@ if (isset($_POST)) {
                                                 <?php } ?>
                                             </tbody>
                                         </table>
-                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -2449,6 +2447,45 @@ if (isset($_POST)) {
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <?php
+        function actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
+        {
+            if (
+                empty($request['IDTERMOGRAFO']) ||
+                empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
+                empty($request['TERMOGRAFO']) ||
+                empty($request['IDDESPACHO'])
+            ) {
+                return "";
+            }
+
+            $ARRAYIDDESPACHO = $request['IDDESPACHO'];
+            $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
+            $ARRAYIDTERMOGRAFO = $request['IDTERMOGRAFO'];
+
+            foreach ($ARRAYIDTERMOGRAFO as $ID) :
+                $IDTERMOGRAFO = $ID - 1;
+                if (
+                    !isset($ARRAYIDDESPACHO[$IDTERMOGRAFO]) ||
+                    !isset($ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO])
+                ) {
+                    continue;
+                }
+
+                $TERMOGRAFO = "";
+                if (isset($ARRAYTERMOGRAFO[$IDTERMOGRAFO])) {
+                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
+                }
+
+                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$IDTERMOGRAFO]);
+                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO]);
+                $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
+                $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
+            endforeach;
+
+            return "";
+        }
+
         //OPERACION DE REGISTRO DE FILA
         if (isset($_REQUEST['CREAR'])) {
             $ARRAYNUMERO = $DESPACHOEX_ADO->obtenerNumero($_REQUEST['EMPRESA'], $_REQUEST['PLANTA'], $_REQUEST['TEMPORADA']);
@@ -2642,6 +2679,7 @@ if (isset($_POST)) {
             $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
             //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
             $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
+            actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
 
             $AUSUARIO_ADO->agregarAusuario2($NUMEROVER,1,2,"".$_SESSION["NOMBRE_USUARIO"].", Modificación de Despacho Exportación","fruta_despachoex",$_REQUEST['IDP'],$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'],$_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );
             
@@ -2754,6 +2792,7 @@ if (isset($_POST)) {
                 $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
                 $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
+                actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
 
                 $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
@@ -2854,51 +2893,7 @@ if (isset($_POST)) {
   
 
             if ($SINO == 0) {
-
-                //echo '<script> alert("accede 2");</script>';
-                $ARRAYIDDESPACHO = $_REQUEST['IDDESPACHO'];
-                $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $_REQUEST['IDEXIEXPORTACIONTERMOGRAFO'];
-                $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $_REQUEST['FOLIOEXIEXPORTACIONTERMOGRAFO'];
-                $ARRAYTERMOGRAFO = $_REQUEST['TERMOGRAFO'];
-                $ARRAYIDTERMOGRAFO = $_REQUEST['IDTERMOGRAFO'];
-
-                var_dump($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO);
-                foreach ($ARRAYIDTERMOGRAFO as $ID) :
-                    $IDTERMOGRAFO = $ID - 1;
-           
-                    $IDDESPACHO = $ARRAYIDDESPACHO[$IDTERMOGRAFO];
-                   
-                    $IDEXIEXPORTACIONTERMOGRAFO = $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
-                  
-                    $FOLIOEXIEXPORTACIONTERMOGRAFO = $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
-                   
-                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
-                
-
-                    //var_dump($TERMOGRAFO);
-
-                    if ($TERMOGRAFO != "") {
-                        $SINOTERMOGRAFO = 0;
-                        $MENSAJETERMOGRAFO2 = $MENSAJETERMOGRAFO2;
-                        //die('trae datos');
-                    } /*else {
-                        //die('no trae datos');
-                        $SINOTERMOGRAFO = 1;
-                        $MENSAJETERMOGRAFO2 = $MENSAJETERMOGRAFO2 . "" . $FOLIOEXIEXPORTACIONTERMOGRAFO . ": SE DEBE INGRESAR UN DATO. ";
-                    }*/
-                    if ($SINOTERMOGRAFO == 0) {
-                        //die('si trae ingresa');
-                        $EXIEXPORTACION->__SET('ID_DESPACHO', $IDDESPACHO);
-                        $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDEXIEXPORTACIONTERMOGRAFO);
-                        $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
-                        // LLAMADA AL METODO DE REGISTRO DEL CONTROLADOR
-                        $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
-
-                        $MENSAJETERMOGRAFO2 = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
-
-                        //$AUSUARIO_ADO->agregarAusuario2("NULL",1,2,"".$_SESSION["NOMBRE_USUARIO"].", Se agrego el precio a la Existencia en el despacho de producto terminado.","fruta_exiexportacion", "NULL" ,$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'], $_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );  
-                    }
-                endforeach;
+                $MENSAJETERMOGRAFO2 = actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
                 
                 if($MENSAJETERMOGRAFO2!=""){                
                     echo '
