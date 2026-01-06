@@ -2252,36 +2252,36 @@ if (isset($_POST)) {
                                             </button>
                                         </div>
 
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Envase</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Envase</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
                                             </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Neto</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Neto</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
                                             </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <label class="sr-only" for=""></label>
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">Total Bruto</div>
+                                            <div class="col-auto">
+                                                <label class="sr-only" for=""></label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Total Bruto</div>
+                                                    </div>
+                                                    <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
+                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
                                                 </div>
-                                                <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
-                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
                                             </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -2397,12 +2397,12 @@ if (isset($_POST)) {
                                                             <td><?php echo $r['EMBALADO']; ?></td>
                                                             <td>
                                                                 <div class="form-group">
-                                                                    <input type="hidden" class="form-control" placeholder="ID DESPACHO" id="IDP" name="IDP" value="<?php echo $IDOP; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDDESPACHO[]" value="<?php echo $IDOP; ?>" />
-                                                                    <input type="hidden" class="form-control" name="FOLIOEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />
-                                                                    <input type="hidden" class="form-control" name="IDTERMOGRAFO[]" value="<?php echo  $CONTADOR; ?>">
-                                                                    <input type="text" placeholder="Termógrafo" class="form-control" name="TERMOGRAFO[]"
+                                                                    <input type="hidden" class="form-control" placeholder="ID DESPACHO" id="IDP" name="IDP" value="<?php echo $IDOP; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDDESPACHO[]" value="<?php echo $IDOP; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="FOLIOEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" form="form_reg_dato" />
+                                                                    <input type="hidden" class="form-control" name="IDTERMOGRAFO[]" value="<?php echo  $CONTADOR; ?>" form="form_reg_dato">
+                                                                    <input type="text" placeholder="Termógrafo" class="form-control" name="TERMOGRAFO[]" form="form_reg_dato"
                                                                     <?php //if ($ESTADO == 0) { echo "disabled";} ?> value="<?php echo $r['N_TERMOGRAFO']; ?>">
                                                                 </div>
                                                             </td>
