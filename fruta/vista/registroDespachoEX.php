@@ -2247,7 +2247,7 @@ if (isset($_POST)) {
                                         </form>  
                                         
                                         <div class="col-auto">
-                                            <button type="submit" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" form="form-termografos" name="TERMOGRAFOS" value="TERMOGRAFOS">
+                                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" onclick="submitTermografosForm();">
                                                 Agregar Termógrafos
                                             </button>
                                         </div>
@@ -2288,6 +2288,7 @@ if (isset($_POST)) {
                                     <div class="table-responsive">
                                     <form method="post" id="form-termografos">
                                         <input type="hidden" name="IDP" value="<?php echo $IDOP; ?>" />
+                                        <input type="hidden" name="TERMOGRAFOS" value="TERMOGRAFOS" />
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2444,6 +2445,22 @@ if (isset($_POST)) {
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <script>
+            function submitTermografosForm() {
+                var form = document.getElementById('form-termografos');
+                if (!form) {
+                    return;
+                }
+                var trigger = form.querySelector('input[name="TERMOGRAFOS"]');
+                if (!trigger) {
+                    trigger = document.createElement('input');
+                    trigger.type = 'hidden';
+                    trigger.name = 'TERMOGRAFOS';
+                    form.appendChild(trigger);
+                }
+                trigger.value = 'TERMOGRAFOS';
+                form.submit();
+            }
+
             function syncTermografosToForm() {
                 var form = document.getElementById('form_reg_dato');
                 if (!form) {
