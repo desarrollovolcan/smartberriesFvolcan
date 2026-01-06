@@ -2247,7 +2247,7 @@ if (isset($_POST)) {
                                         </form>  
                                         
                                         <div class="col-auto">
-                                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" id="btnAgregarTermografos">
+                                            <button type="submit" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" form="form-termografos">
                                                 Agregar Termógrafos
                                             </button>
                                         </div>
@@ -2286,6 +2286,8 @@ if (isset($_POST)) {
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
+                                    <form method="post" id="form-termografos">
+                                        <input type="hidden" name="TERMOGRAFOS" value="TERMOGRAFOS" />
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2498,18 +2500,6 @@ if (isset($_POST)) {
                 });
             }
 
-            var botonTermografos = document.getElementById('btnAgregarTermografos');
-            if (botonTermografos && formRegistro) {
-                botonTermografos.addEventListener('click', function () {
-                    syncTermografosToForm();
-                    var accion = document.createElement('input');
-                    accion.type = 'hidden';
-                    accion.name = 'TERMOGRAFOS';
-                    accion.value = 'TERMOGRAFOS';
-                    formRegistro.appendChild(accion);
-                    formRegistro.submit();
-                });
-            }
         </script>
         <?php
         function actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
