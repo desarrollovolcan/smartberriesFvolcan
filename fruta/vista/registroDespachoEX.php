@@ -2247,7 +2247,7 @@ if (isset($_POST)) {
                                         </form>  
                                         
                                         <div class="col-auto">
-                                            <button type="submit" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS" form="form_reg_dato">
+                                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" id="btnAgregarTermografos">
                                                 Agregar Termógrafos
                                             </button>
                                         </div>
@@ -2446,6 +2446,71 @@ if (isset($_POST)) {
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
+        <script>
+            function syncTermografosToForm() {
+                var form = document.getElementById('form_reg_dato');
+                if (!form) {
+                    return;
+                }
+                var previous = form.querySelectorAll('input[data-termografo="1"]');
+                previous.forEach(function (input) {
+                    input.remove();
+                });
+
+                var termografoInputs = document.querySelectorAll('input[name="TERMOGRAFO[]"]');
+                termografoInputs.forEach(function (input) {
+                    var row = input.closest('tr');
+                    if (!row) {
+                        return;
+                    }
+                    var descriptors = [
+                        { name: 'IDDESPACHO[]', selector: 'input[name="IDDESPACHO[]"]' },
+                        { name: 'FOLIOEXIEXPORTACIONTERMOGRAFO[]', selector: 'input[name="FOLIOEXIEXPORTACIONTERMOGRAFO[]"]' },
+                        { name: 'IDEXIEXPORTACIONTERMOGRAFO[]', selector: 'input[name="IDEXIEXPORTACIONTERMOGRAFO[]"]' },
+                        { name: 'IDTERMOGRAFO[]', selector: 'input[name="IDTERMOGRAFO[]"]' }
+                    ];
+
+                    descriptors.forEach(function (descriptor) {
+                        var source = row.querySelector(descriptor.selector);
+                        if (source) {
+                            var hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = descriptor.name;
+                            hidden.value = source.value;
+                            hidden.setAttribute('data-termografo', '1');
+                            form.appendChild(hidden);
+                        }
+                    });
+
+                    var termHidden = document.createElement('input');
+                    termHidden.type = 'hidden';
+                    termHidden.name = 'TERMOGRAFO[]';
+                    termHidden.value = input.value;
+                    termHidden.setAttribute('data-termografo', '1');
+                    form.appendChild(termHidden);
+                });
+            }
+
+            var formRegistro = document.getElementById('form_reg_dato');
+            if (formRegistro) {
+                formRegistro.addEventListener('submit', function () {
+                    syncTermografosToForm();
+                });
+            }
+
+            var botonTermografos = document.getElementById('btnAgregarTermografos');
+            if (botonTermografos && formRegistro) {
+                botonTermografos.addEventListener('click', function () {
+                    syncTermografosToForm();
+                    var accion = document.createElement('input');
+                    accion.type = 'hidden';
+                    accion.name = 'TERMOGRAFOS';
+                    accion.value = 'TERMOGRAFOS';
+                    formRegistro.appendChild(accion);
+                    formRegistro.submit();
+                });
+            }
+        </script>
         <?php
         function actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
         {
