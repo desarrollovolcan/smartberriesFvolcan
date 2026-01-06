@@ -5384,7 +5384,7 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
                         ID_DESPACHO = ?,    
                         N_TERMOGRAFO = ?         
                     WHERE ID_EXIEXPORTACION= ? ;";
-            $this->conexion->prepare($query)
+                $this->conexion->prepare($query)
                 ->execute(
                     array(
                         $EXIEXPORTACION->__GET('ID_DESPACHO'),
@@ -5394,7 +5394,6 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
                     )
 
                 );
-                echo $query;
         } catch (Exception $e) {
             die($e->getMessage());
         }
