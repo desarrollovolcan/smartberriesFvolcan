@@ -2388,14 +2388,11 @@ if (isset($_POST)) {
                                                             <td><?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?> </td>
                                                             <td><?php echo $ESTADOSAG; ?></td>
                                                             <td>
-                                                                <form method="post" id="form1">
-                                                                    <input type="hidden" class="form-control" id="IDQUITAR" name="IDQUITAR" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />                                                                   
-                                                                    <div class="btn-group btn-block col-6" role="group" aria-label="Operaciones Detalle">
-                                                                        <button type="submit" class="btn btn-sm btn-danger   " id="QUITAR" name="QUITAR" data-toggle="tooltip" title="Quitar Existencia PT" <?php echo $DISABLED2; ?> <?php if ($ESTADO == 0) { echo "disabled"; } ?>>
-                                                                            <i class="ti-close"></i><br> Quitar
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
+                                                                <div class="btn-group btn-block col-6" role="group" aria-label="Operaciones Detalle">
+                                                                    <button type="submit" class="btn btn-sm btn-danger" id="QUITAR" name="QUITAR" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" data-toggle="tooltip" title="Quitar Existencia PT" <?php echo $DISABLED2; ?> <?php if ($ESTADO == 0) { echo "disabled"; } ?>>
+                                                                        <i class="ti-close"></i><br> Quitar
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                             <td><?php echo $r['EMBALADO']; ?></td>
                                                             <td>
@@ -2908,7 +2905,12 @@ if (isset($_POST)) {
         }
 
         if (isset($_REQUEST['QUITAR'])) {
-            $IDQUITAR = $_REQUEST['IDQUITAR'];
+            $IDQUITAR = "";
+            if (isset($_REQUEST['IDQUITAR'])) {
+                $IDQUITAR = $_REQUEST['IDQUITAR'];
+            } else {
+                $IDQUITAR = $_REQUEST['QUITAR'];
+            }
             $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDQUITAR);
             // LLAMADA AL METODO DE REGISTRO DEL CONTROLADOR
             $EXIEXPORTACION_ADO->actualizarDeselecionarDespachoExCambiarEstado($EXIEXPORTACION);            
