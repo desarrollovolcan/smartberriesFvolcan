@@ -5381,19 +5381,84 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
             $query = "
                     UPDATE fruta_exiexportacion SET
                         MODIFICACION = SYSDATE(), 
-                        ID_DESPACHO = ?,    
+                        ID_DESPACHOEX = ?,    
                         N_TERMOGRAFO = ?         
                     WHERE ID_EXIEXPORTACION= ? ;";
                 $this->conexion->prepare($query)
                 ->execute(
                     array(
-                        $EXIEXPORTACION->__GET('ID_DESPACHO'),
+                        $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
                         $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
                         $EXIEXPORTACION->__GET('ID_EXIEXPORTACION')
 
                     )
 
                 );
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+    public function actualizarDespachoAgregarTermografoPorFolio(EXIEXPORTACION $EXIEXPORTACION)
+    {
+        try {
+            $query = "
+                    UPDATE fruta_exiexportacion SET
+                        MODIFICACION = SYSDATE(), 
+                        ID_DESPACHOEX = ?,    
+                        N_TERMOGRAFO = ?         
+                    WHERE FOLIO_AUXILIAR_EXIEXPORTACION = ?
+                      AND ID_EXIEXPORTACION = ?
+                      AND ID_DESPACHOEX = ? ;";
+                $sentencia = $this->conexion->prepare($query);
+                $sentencia->execute(
+                    array(
+                        $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
+                        $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
+                        $EXIEXPORTACION->__GET('FOLIO_AUXILIAR_EXIEXPORTACION'),
+                        $EXIEXPORTACION->__GET('ID_EXIEXPORTACION'),
+                        $EXIEXPORTACION->__GET('ID_DESPACHOEX')
+                    )
+                );
+            return $sentencia->rowCount();
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function actualizarDespachoAgregarTermografoPorId(EXIEXPORTACION $EXIEXPORTACION)
+    {
+        try {
+            $query = "
+                    UPDATE fruta_exiexportacion SET
+                        MODIFICACION = SYSDATE(), 
+                        ID_DESPACHOEX = ?,    
+                        N_TERMOGRAFO = ?         
+                    WHERE ID_EXIEXPORTACION = ?
+                      AND ID_DESPACHOEX = ? ;";
+            $sentencia = $this->conexion->prepare($query);
+            $sentencia->execute(
+                array(
+                    $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
+                    $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
+                    $EXIEXPORTACION->__GET('ID_EXIEXPORTACION'),
+                    $EXIEXPORTACION->__GET('ID_DESPACHOEX')
+                )
+            );
+            return $sentencia->rowCount();
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function obtenerTermografoPorId($IDEXIEXPORTACION)
+    {
+        try {
+            $datos = $this->conexion->prepare("SELECT N_TERMOGRAFO FROM fruta_exiexportacion WHERE ID_EXIEXPORTACION = ? LIMIT 1;");
+            $datos->execute(array($IDEXIEXPORTACION));
+            $resultado = $datos->fetch();
+            $datos = null;
+
+            return $resultado ? $resultado['N_TERMOGRAFO'] : null;
         } catch (Exception $e) {
             die($e->getMessage());
         }

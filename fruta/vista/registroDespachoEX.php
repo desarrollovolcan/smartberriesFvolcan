@@ -2178,7 +2178,7 @@ if (isset($_POST)) {
                                                 <button type="button" class="btn btn-warning " data-toggle="tooltip" title="Cancelar" name="CANCELAR" value="CANCELAR" Onclick="irPagina('registroDespachoEX.php');">
                                                     <i class="ti-trash"></i> Cancelar
                                                 </button>
-                                                <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="Guardar" name="CREAR" value="CREAR"   onclick="return validacion()" >
+                                                <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="Guardar" name="CREAR" value="CREAR"   onclick="syncTermografosToForm(); return validacion()" >
                                                     <i class="ti-save-alt"></i> Guardar
                                                 </button>
                                             <?php } ?>
@@ -2186,10 +2186,10 @@ if (isset($_POST)) {
                                                 <button type="button" class="btn  btn-success " data-toggle="tooltip" title="Volver" name="VOLVER" value="VOLVER" Onclick="irPagina('listarDespachoEX.php'); ">
                                                     <i class="ti-back-left "></i> Volver
                                                 </button>
-                                                <button type="submit" class="btn btn-warning " data-toggle="tooltip" title="Guardar" name="GUARDAR" value="GUARDAR"  <?php echo $DISABLED2; ?> onclick="return validacion()">
+                                                <button type="submit" class="btn btn-warning " data-toggle="tooltip" title="Guardar" name="GUARDAR" value="GUARDAR"  <?php echo $DISABLED2; ?> onclick="syncTermografosToForm(); return validacion()">
                                                     <i class="ti-pencil-alt"></i> Guardar
                                                 </button>
-                                                <button type="submit" class="btn btn-danger " data-toggle="tooltip" title="Cerrar" name="CERRAR" value="CERRAR"  <?php echo $DISABLED2; ?> onclick="return validacion()">
+                                                <button type="submit" class="btn btn-danger " data-toggle="tooltip" title="Cerrar" name="CERRAR" value="CERRAR"  <?php echo $DISABLED2; ?> onclick="syncTermografosToForm(); return validacion()">
                                                     <i class="ti-save-alt"></i> Cerrar
                                                 </button>
                                             <?php } ?>
@@ -2246,12 +2246,6 @@ if (isset($_POST)) {
                                             </div>
                                         </form>  
                                         
-                                        <div class="col-auto">
-                                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" onclick="submitTermografosForm();">
-                                                Agregar Termógrafos
-                                            </button>
-                                        </div>
-
                                             <div class="col-auto">
                                                 <label class="sr-only" for=""></label>
                                                 <div class="input-group mb-2">
@@ -2445,10 +2439,11 @@ if (isset($_POST)) {
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <script>
             function submitTermografosForm() {
-                var form = document.getElementById('form-termografos');
+                var form = document.getElementById('form_reg_dato');
                 if (!form) {
                     return;
                 }
+                syncTermografosToForm();
                 var trigger = form.querySelector('input[name="TERMOGRAFOS"]');
                 if (!trigger) {
                     trigger = document.createElement('input');
@@ -2516,6 +2511,7 @@ if (isset($_POST)) {
         {
             if (
                 empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
+                empty($request['FOLIOEXIEXPORTACIONTERMOGRAFO']) ||
                 empty($request['TERMOGRAFO']) ||
                 empty($request['IDDESPACHO'])
             ) {
@@ -2524,10 +2520,11 @@ if (isset($_POST)) {
 
             $ARRAYIDDESPACHO = $request['IDDESPACHO'];
             $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $request['FOLIOEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
 
             foreach ($ARRAYIDEXIEXPORTACIONTERMOGRAFO as $index => $idExiExportacion) :
-                if (!isset($ARRAYIDDESPACHO[$index])) {
+                if (!isset($ARRAYIDDESPACHO[$index]) || !isset($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index])) {
                     continue;
                 }
 
@@ -2539,10 +2536,19 @@ if (isset($_POST)) {
                     continue;
                 }
 
-                $EXIEXPORTACION->__SET('ID_DESPACHO', $ARRAYIDDESPACHO[$index]);
+                $TERMOGRAFOACTUAL = $EXIEXPORTACION_ADO->obtenerTermografoPorId($idExiExportacion);
+                if ($TERMOGRAFOACTUAL !== null && trim((string)$TERMOGRAFOACTUAL) === $TERMOGRAFO) {
+                    continue;
+                }
+
+                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
                 $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
+                $EXIEXPORTACION->__SET('FOLIO_AUXILIAR_EXIEXPORTACION', $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index]);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
-                $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
+                $filasActualizadas = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorFolio($EXIEXPORTACION);
+                if ($filasActualizadas === 0) {
+                    $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorId($EXIEXPORTACION);
+                }
             endforeach;
 
             return "";
@@ -2982,7 +2988,7 @@ if (isset($_POST)) {
                             Swal.fire({
                                 icon:"success",
                                 title:"Accion realizada",
-                                text:"Se agregaron los termógrafos correctamente.",
+                                text:"Termógrafo agregado con éxito.",
                                 showConfirmButton: true,
                                 confirmButtonText:"Cerrar",
                                 closeOnConfirm:false
