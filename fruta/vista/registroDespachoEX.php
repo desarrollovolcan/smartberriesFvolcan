@@ -2246,12 +2246,6 @@ if (isset($_POST)) {
                                             </div>
                                         </form>  
                                         
-                                        <div class="col-auto">
-                                            <button type="button" class="btn btn-success btn-block mb-2" data-toggle="tooltip" title="Agregar Termografos" onclick="submitTermografosForm();">
-                                                Agregar Termógrafos
-                                            </button>
-                                        </div>
-
                                             <div class="col-auto">
                                                 <label class="sr-only" for=""></label>
                                                 <div class="input-group mb-2">
