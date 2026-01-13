@@ -508,8 +508,9 @@ if ($_POST) {
                                         <table id="sag" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr class="text-center">
-                                                    <th>Numero Interno</th>
-                                                    <th>Numero Inspecion</th>
+                                                    <th>Nº Interno</th>
+                                                    <th>Nº Inspección</th>
+                                                    <th>Conteo de folios</th>
                                                     <th>Estado</th>
                                                     <th class="text-center">Operaciónes</th>
                                                     <th class="text-center">Autorizaciones</th>
@@ -560,10 +561,58 @@ if ($_POST) {
                                                         $DISABLEDC="";
                                                     }
                                                     $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPorSag2($r['ID_INPSAG']);
-                                                    if(empty($ARRAYTOMADO)){
-                                                        $DISABLEDT="disabled";
-                                                    }else{
-                                                        $DISABLEDT="";
+                                                    $foliosAgrupados = [];
+                                                    $estadoFoliosAgrupados = [
+                                                        'Sin Condición' => [],
+                                                        'En Inspección' => [],
+                                                        'Aprobado Origen' => [],
+                                                        'Aprobado USDA' => [],
+                                                        'Fumigado' => [],
+                                                        'Rechazado' => [],
+                                                    ];
+                                                    if (empty($ARRAYTOMADO)) {
+                                                        $DISABLEDT = "disabled";
+                                                    } else {
+                                                        $DISABLEDT = "";
+                                                        foreach ($ARRAYTOMADO as $folioRegistro) {
+                                                            $numeroFolio = trim((string) ($folioRegistro['FOLIO_AUXILIAR_EXIEXPORTACION'] ?? $folioRegistro['FOLIO_EXIEXPORTACION'] ?? ''));
+                                                            if ($numeroFolio === '') {
+                                                                continue;
+                                                            }
+                                                            if (!isset($foliosAgrupados[$numeroFolio])) {
+                                                                $foliosAgrupados[$numeroFolio] = [
+                                                                    'aprobado' => false,
+                                                                    'rechazado' => false,
+                                                                ];
+                                                            }
+                                                            $estadoFolio = (int) ($folioRegistro['TESTADOSAG'] ?? 0);
+                                                            switch ($estadoFolio) {
+                                                                case 1:
+                                                                    $estadoNombre = 'En Inspección';
+                                                                    break;
+                                                                case 2:
+                                                                    $estadoNombre = 'Aprobado Origen';
+                                                                    break;
+                                                                case 3:
+                                                                    $estadoNombre = 'Aprobado USDA';
+                                                                    break;
+                                                                case 4:
+                                                                    $estadoNombre = 'Fumigado';
+                                                                    break;
+                                                                case 5:
+                                                                    $estadoNombre = 'Rechazado';
+                                                                    break;
+                                                                default:
+                                                                    $estadoNombre = 'Sin Condición';
+                                                                    break;
+                                                            }
+                                                            $estadoFoliosAgrupados[$estadoNombre][$numeroFolio] = true;
+                                                            if ($estadoFolio === 5) {
+                                                                $foliosAgrupados[$numeroFolio]['rechazado'] = true;
+                                                            } elseif (in_array($estadoFolio, [2, 3, 4], true)) {
+                                                                $foliosAgrupados[$numeroFolio]['aprobado'] = true;
+                                                            }
+                                                        }
                                                     }
                                                 
                                                 
@@ -584,6 +633,41 @@ if ($_POST) {
                                                     <tr class="text-center">
                                                         <td> <?php echo $r['NUMERO_INPSAG']; ?></td>
                                                         <td> <?php echo $r['CORRELATIVO_INPSAG']; ?></td>
+                                                        <td>
+                                                            <?php if ($foliosAgrupados) { ?>
+                                                                <div class="d-flex flex-column w-100">
+                                                                    <?php foreach ($estadoFoliosAgrupados as $estadoNombre => $foliosEstado) { ?>
+                                                                        <?php $cantidadFolios = count($foliosEstado); ?>
+                                                                        <?php if ($cantidadFolios > 0) { ?>
+                                                                            <?php
+                                                                            $claseEstado = 'badge-secondary';
+                                                                            switch ($estadoNombre) {
+                                                                                case 'En Inspección':
+                                                                                    $claseEstado = 'badge-info';
+                                                                                    break;
+                                                                                case 'Aprobado Origen':
+                                                                                case 'Aprobado USDA':
+                                                                                case 'Fumigado':
+                                                                                    $claseEstado = 'badge-success';
+                                                                                    break;
+                                                                                case 'Rechazado':
+                                                                                    $claseEstado = 'badge-danger';
+                                                                                    break;
+                                                                                default:
+                                                                                    $claseEstado = 'badge-secondary';
+                                                                                    break;
+                                                                            }
+                                                                            ?>
+                                                                            <span class="badge <?php echo $claseEstado; ?> d-block w-100 mb-1 text-center text-wrap">
+                                                                                <?php echo $estadoNombre; ?>: <?php echo $cantidadFolios; ?>
+                                                                            </span>
+                                                                        <?php } ?>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            <?php } else { ?>
+                                                                <span>-</span>
+                                                            <?php } ?>
+                                                        </td>
                                                         <td>
                                                             <?php if ($r['ESTADO'] == "0") { ?>
                                                                 <button type="button" class="btn btn-block btn-danger">Cerrado</button>
