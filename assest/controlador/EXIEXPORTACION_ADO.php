@@ -5474,20 +5474,19 @@ LEFT JOIN fruta_exiexportacion FEX ON RC.Folioex = FEX.FOLIO_EXIEXPORTACION
             $query = "
                     UPDATE fruta_exiexportacion SET
                         MODIFICACION = SYSDATE(), 
-                        ID_DESPACHO = ?,    
+                        ID_DESPACHOEX = ?,    
                         N_TERMOGRAFO = ?         
                     WHERE ID_EXIEXPORTACION= ? ;";
             $this->conexion->prepare($query)
                 ->execute(
                     array(
-                        $EXIEXPORTACION->__GET('ID_DESPACHO'),
+                        $EXIEXPORTACION->__GET('ID_DESPACHOEX'),
                         $EXIEXPORTACION->__GET('N_TERMOGRAFO'),
                         $EXIEXPORTACION->__GET('ID_EXIEXPORTACION')
 
                     )
 
                 );
-                echo $query;
         } catch (Exception $e) {
             die($e->getMessage());
         }

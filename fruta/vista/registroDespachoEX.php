@@ -17,9 +17,6 @@ include_once '../../assest/controlador/TEMBALAJE_ADO.php';
 
 
 include_once '../../assest/controlador/VESPECIES_ADO.php';
-include_once '../../assest/controlador/TRANSPORTE_ADO.php';
-
-
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/ICARGA_ADO.php';
 include_once '../../assest/controlador/CONDUCTOR_ADO.php';
@@ -83,7 +80,6 @@ $DFINAL_ADO =  new DFINAL_ADO();
 $PAIS_ADO =  new PAIS_ADO();
 $MERCADO_ADO =  new MERCADO_ADO();
 
-$TRANSPORTE_ADO =  new TRANSPORTE_ADO();
 $LCARGA_ADO =  new LCARGA_ADO();
 $LDESTINO_ADO =  new LDESTINO_ADO();
 
@@ -2178,7 +2174,7 @@ if (isset($_POST)) {
                                                 <button type="button" class="btn btn-warning " data-toggle="tooltip" title="Cancelar" name="CANCELAR" value="CANCELAR" Onclick="irPagina('registroDespachoEX.php');">
                                                     <i class="ti-trash"></i> Cancelar
                                                 </button>
-                                                <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="Guardar" name="CREAR" value="CREAR"   onclick="syncTermografosToForm(); return validacion()" >
+                                                <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="Guardar" name="CREAR" value="CREAR"   onclick="return validacion()" >
                                                     <i class="ti-save-alt"></i> Guardar
                                                 </button>
                                             <?php } ?>
@@ -2186,10 +2182,10 @@ if (isset($_POST)) {
                                                 <button type="button" class="btn  btn-success " data-toggle="tooltip" title="Volver" name="VOLVER" value="VOLVER" Onclick="irPagina('listarDespachoEX.php'); ">
                                                     <i class="ti-back-left "></i> Volver
                                                 </button>
-                                                <button type="submit" class="btn btn-warning " data-toggle="tooltip" title="Guardar" name="GUARDAR" value="GUARDAR"  <?php echo $DISABLED2; ?> onclick="syncTermografosToForm(); return validacion()">
+                                                <button type="submit" class="btn btn-warning " data-toggle="tooltip" title="Guardar" name="GUARDAR" value="GUARDAR"  <?php echo $DISABLED2; ?> onclick="return validacion()">
                                                     <i class="ti-pencil-alt"></i> Guardar
                                                 </button>
-                                                <button type="submit" class="btn btn-danger " data-toggle="tooltip" title="Cerrar" name="CERRAR" value="CERRAR"  <?php echo $DISABLED2; ?> onclick="syncTermografosToForm(); return validacion()">
+                                                <button type="submit" class="btn btn-danger " data-toggle="tooltip" title="Cerrar" name="CERRAR" value="CERRAR"  <?php echo $DISABLED2; ?> onclick="return validacion()">
                                                     <i class="ti-save-alt"></i> Cerrar
                                                 </button>
                                             <?php } ?>
@@ -2216,8 +2212,8 @@ if (isset($_POST)) {
                         </div>
                         <?php if (isset($_GET['op'])): ?>
                             <div class="card">                            
-                                <div class="card-header bg-success">
-                                    <h4 class="text-white">Detalle de Despacho de Producto Terminado</h4>
+                                <div class="card-header bg-info">
+                                    <h4 class="card-title">Detalle de Despacho de Producto Terminado</h4>
                                 </div>
                                 <div class="card-header">
                                     <div class="form-row align-items-center">
@@ -2246,42 +2242,41 @@ if (isset($_POST)) {
                                             </div>
                                         </form>  
                                         
-                                            <div class="col-auto">
-                                                <label class="sr-only" for=""></label>
-                                                <div class="input-group mb-2">
-                                                    <div class="input-group-prepend">
-                                                        <div class="input-group-text">Total Envase</div>
-                                                    </div>
-                                                    <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
-                                                    <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
+                                        <div class="col-auto">
+                                            <label class="sr-only" for=""></label>
+                                            <div class="input-group mb-2">
+                                                <div class="input-group-prepend">
+                                                    <div class="input-group-text">Total Envase</div>
                                                 </div>
+                                                <input type="hidden" class="form-control" id="TOTALENVASE" name="TOTALENVASE" value="<?php echo $TOTALENVASE; ?>" />
+                                                <input type="text" class="form-control" placeholder="Total Envase" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALENVASEV; ?>" disabled />
                                             </div>
-                                            <div class="col-auto">
-                                                <label class="sr-only" for=""></label>
-                                                <div class="input-group mb-2">
-                                                    <div class="input-group-prepend">
-                                                        <div class="input-group-text">Total Neto</div>
-                                                    </div>
-                                                    <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
-                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
+                                        </div>
+                                        <div class="col-auto">
+                                            <label class="sr-only" for=""></label>
+                                            <div class="input-group mb-2">
+                                                <div class="input-group-prepend">
+                                                    <div class="input-group-text">Total Neto</div>
                                                 </div>
+                                                <input type="hidden" class="form-control" id="TOTALNETO" name="TOTALNETO" value="<?php echo $TOTALNETO; ?>" />
+                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALNETOV; ?>" disabled />
                                             </div>
-                                            <div class="col-auto">
-                                                <label class="sr-only" for=""></label>
-                                                <div class="input-group mb-2">
-                                                    <div class="input-group-prepend">
-                                                        <div class="input-group-text">Total Bruto</div>
-                                                    </div>
-                                                    <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
-                                                    <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
+                                        </div>
+                                        <div class="col-auto">
+                                            <label class="sr-only" for=""></label>
+                                            <div class="input-group mb-2">
+                                                <div class="input-group-prepend">
+                                                    <div class="input-group-text">Total Bruto</div>
                                                 </div>
+                                                <input type="hidden" class="form-control" id="TOTALBRUTO" name="TOTALBRUTO" value="<?php echo $TOTALBRUTO; ?>" />
+                                                <input type="text" class="form-control" placeholder="Total Neto" id="TOTALENVASEV" name="TOTALENVASEV" value="<?php echo $TOTALBRUTOV; ?>" disabled />
                                             </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                    <form method="post" id="form-termografos">
-                                        <input type="hidden" name="IDP" value="<?php echo $IDOP; ?>" />
+                                    <form method="post" id="form">
                                         <table id="detalle" class="table-hover " style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -2381,18 +2376,23 @@ if (isset($_POST)) {
                                                             <td><?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?> </td>
                                                             <td><?php echo $ESTADOSAG; ?></td>
                                                             <td>
-                                                                <div class="btn-group btn-block col-6" role="group" aria-label="Operaciones Detalle">
-                                                                    <button type="submit" class="btn btn-sm btn-danger" id="QUITAR" name="QUITAR" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" data-toggle="tooltip" title="Quitar Existencia PT" <?php echo $DISABLED2; ?> <?php if ($ESTADO == 0) { echo "disabled"; } ?>>
-                                                                        <i class="ti-close"></i><br> Quitar
-                                                                    </button>
-                                                                </div>
+                                                                <form method="post" id="form1">
+                                                                    <input type="hidden" class="form-control" id="IDQUITAR" name="IDQUITAR" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />                                                                   
+                                                                    <div class="btn-group btn-block col-6" role="group" aria-label="Operaciones Detalle">
+                                                                        <button type="submit" class="btn btn-sm btn-danger   " id="QUITAR" name="QUITAR" data-toggle="tooltip" title="Quitar Existencia PT" <?php echo $DISABLED2; ?> <?php if ($ESTADO == 0) { echo "disabled"; } ?>>
+                                                                            <i class="ti-close"></i><br> Quitar
+                                                                        </button>
+                                                                    </div>
+                                                                </form>
                                                             </td>
                                                             <td><?php echo $r['EMBALADO']; ?></td>
                                                             <td>
                                                                 <div class="form-group">
+                                                                    <input type="hidden" class="form-control" placeholder="ID DESPACHO" id="IDP" name="IDP" value="<?php echo $IDOP; ?>" />
                                                                     <input type="hidden" class="form-control" name="IDDESPACHO[]" value="<?php echo $IDOP; ?>" />
                                                                     <input type="hidden" class="form-control" name="FOLIOEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['FOLIO_AUXILIAR_EXIEXPORTACION']; ?>" />
                                                                     <input type="hidden" class="form-control" name="IDEXIEXPORTACIONTERMOGRAFO[]" value="<?php echo $r['ID_EXIEXPORTACION']; ?>" />
+                                                                    <input type="hidden" class="form-control" name="IDTERMOGRAFO[]" value="<?php echo  $CONTADOR; ?>">
                                                                     <input type="text" placeholder="Termógrafo" class="form-control" name="TERMOGRAFO[]"
                                                                     <?php //if ($ESTADO == 0) { echo "disabled";} ?> value="<?php echo $r['N_TERMOGRAFO']; ?>">
                                                                 </div>
@@ -2417,6 +2417,7 @@ if (isset($_POST)) {
                                                 <?php } ?>
                                             </tbody>
                                         </table>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -2438,82 +2439,35 @@ if (isset($_POST)) {
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
         <script>
-            function submitTermografosForm() {
-                var form = document.getElementById('form_reg_dato');
-                if (!form) {
+            document.addEventListener('DOMContentLoaded', function () {
+                const mainForm = document.getElementById('form_reg_dato');
+                const termografoForm = document.getElementById('form');
+
+                if (!mainForm || !termografoForm) {
                     return;
                 }
-                syncTermografosToForm();
-                var trigger = form.querySelector('input[name="TERMOGRAFOS"]');
-                if (!trigger) {
-                    trigger = document.createElement('input');
-                    trigger.type = 'hidden';
-                    trigger.name = 'TERMOGRAFOS';
-                    form.appendChild(trigger);
-                }
-                trigger.value = 'TERMOGRAFOS';
-                form.submit();
-            }
 
-            function syncTermografosToForm() {
-                var form = document.getElementById('form_reg_dato');
-                if (!form) {
-                    return;
-                }
-                var previous = form.querySelectorAll('input[data-termografo="1"]');
-                previous.forEach(function (input) {
-                    input.remove();
-                });
-
-                var termografoInputs = document.querySelectorAll('input[name="TERMOGRAFO[]"]');
-                termografoInputs.forEach(function (input) {
-                    var row = input.closest('tr');
-                    if (!row) {
-                        return;
-                    }
-                    var descriptors = [
-                        { name: 'IDDESPACHO[]', selector: 'input[name="IDDESPACHO[]"]' },
-                        { name: 'FOLIOEXIEXPORTACIONTERMOGRAFO[]', selector: 'input[name="FOLIOEXIEXPORTACIONTERMOGRAFO[]"]' },
-                        { name: 'IDEXIEXPORTACIONTERMOGRAFO[]', selector: 'input[name="IDEXIEXPORTACIONTERMOGRAFO[]"]' }
-                    ];
-
-                    descriptors.forEach(function (descriptor) {
-                        var source = row.querySelector(descriptor.selector);
-                        if (source) {
-                            var hidden = document.createElement('input');
-                            hidden.type = 'hidden';
-                            hidden.name = descriptor.name;
-                            hidden.value = source.value;
-                            hidden.setAttribute('data-termografo', '1');
-                            form.appendChild(hidden);
-                        }
+                const syncTermografosToMainForm = () => {
+                    mainForm.querySelectorAll('[data-termografo-sync="1"]').forEach((node) => node.remove());
+                    termografoForm.querySelectorAll('input[name="IDDESPACHO[]"], input[name="FOLIOEXIEXPORTACIONTERMOGRAFO[]"], input[name="IDEXIEXPORTACIONTERMOGRAFO[]"], input[name="IDTERMOGRAFO[]"], input[name="TERMOGRAFO[]"]').forEach((input) => {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = input.name;
+                        hidden.value = input.value;
+                        hidden.setAttribute('data-termografo-sync', '1');
+                        mainForm.appendChild(hidden);
                     });
+                };
 
-                    var termHidden = document.createElement('input');
-                    termHidden.type = 'hidden';
-                    termHidden.name = 'TERMOGRAFO[]';
-                    termHidden.value = input.value;
-                    termHidden.setAttribute('data-termografo', '1');
-                    form.appendChild(termHidden);
-                });
-            }
-
-            var formRegistro = document.getElementById('form_reg_dato');
-            if (formRegistro) {
-                formRegistro.addEventListener('submit', function () {
-                    syncTermografosToForm();
-                });
-            }
-
+                mainForm.addEventListener('submit', syncTermografosToMainForm);
+            });
         </script>
         <?php
-        function actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
+        function actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
         {
             if (
-                empty($request['IDEXIEXPORTACIONTERMOGRAFO']) ||
-                empty($request['FOLIOEXIEXPORTACIONTERMOGRAFO']) ||
-                empty($request['TERMOGRAFO']) ||
-                empty($request['IDDESPACHO'])
+                !isset($request['IDDESPACHO'], $request['IDEXIEXPORTACIONTERMOGRAFO'], $request['FOLIOEXIEXPORTACIONTERMOGRAFO'], $request['TERMOGRAFO'], $request['IDTERMOGRAFO'])
+                || !is_array($request['IDTERMOGRAFO'])
             ) {
                 return "";
             }
@@ -2522,33 +2476,33 @@ if (isset($_POST)) {
             $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $request['FOLIOEXIEXPORTACIONTERMOGRAFO'];
             $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
+            $ARRAYIDTERMOGRAFO = $request['IDTERMOGRAFO'];
 
-            foreach ($ARRAYIDEXIEXPORTACIONTERMOGRAFO as $index => $idExiExportacion) :
-                if (!isset($ARRAYIDDESPACHO[$index]) || !isset($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index])) {
+            $mensaje = "";
+
+            foreach ($ARRAYIDTERMOGRAFO as $ID) {
+                $IDTERMOGRAFO = $ID - 1;
+                if (!isset($ARRAYIDDESPACHO[$IDTERMOGRAFO], $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO], $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO], $ARRAYTERMOGRAFO[$IDTERMOGRAFO])) {
                     continue;
                 }
 
-                $TERMOGRAFO = "";
-                if (isset($ARRAYTERMOGRAFO[$index])) {
-                    $TERMOGRAFO = trim($ARRAYTERMOGRAFO[$index]);
-                }
+                $IDDESPACHO = $ARRAYIDDESPACHO[$IDTERMOGRAFO];
+                $IDEXIEXPORTACIONTERMOGRAFO = $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
+                $FOLIOEXIEXPORTACIONTERMOGRAFO = $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
+                $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
 
-                $TERMOGRAFOACTUAL = $EXIEXPORTACION_ADO->obtenerTermografoPorId($idExiExportacion);
-                if ($TERMOGRAFOACTUAL !== null && trim((string)$TERMOGRAFOACTUAL) === $TERMOGRAFO) {
-                    continue;
-                }
-
-                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $ARRAYIDDESPACHO[$index]);
-                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $idExiExportacion);
-                $EXIEXPORTACION->__SET('FOLIO_AUXILIAR_EXIEXPORTACION', $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$index]);
+                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $IDDESPACHO);
+                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDEXIEXPORTACIONTERMOGRAFO);
+                $TERMOGRAFO = trim($TERMOGRAFO);
                 $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO === "" ? null : $TERMOGRAFO);
-                $filasActualizadas = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorFolio($EXIEXPORTACION);
-                if ($filasActualizadas === 0) {
-                    $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografoPorId($EXIEXPORTACION);
-                }
-            endforeach;
+                $respuesta = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
 
-            return "";
+                if ($respuesta !== "") {
+                    $mensaje .= $FOLIOEXIEXPORTACIONTERMOGRAFO . ": " . $respuesta . " ";
+                }
+            }
+
+            return trim($mensaje);
         }
 
         //OPERACION DE REGISTRO DE FILA
@@ -2744,7 +2698,8 @@ if (isset($_POST)) {
             $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
             //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
             $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
-            actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
+
+            actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
 
             $AUSUARIO_ADO->agregarAusuario2($NUMEROVER,1,2,"".$_SESSION["NOMBRE_USUARIO"].", Modificación de Despacho Exportación","fruta_despachoex",$_REQUEST['IDP'],$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'],$_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );
             
@@ -2857,7 +2812,8 @@ if (isset($_POST)) {
                 $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
                 $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
-                actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
+
+                actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
 
                 $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
@@ -2920,12 +2876,7 @@ if (isset($_POST)) {
         }
 
         if (isset($_REQUEST['QUITAR'])) {
-            $IDQUITAR = "";
-            if (isset($_REQUEST['IDQUITAR'])) {
-                $IDQUITAR = $_REQUEST['IDQUITAR'];
-            } else {
-                $IDQUITAR = $_REQUEST['QUITAR'];
-            }
+            $IDQUITAR = $_REQUEST['IDQUITAR'];
             $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDQUITAR);
             // LLAMADA AL METODO DE REGISTRO DEL CONTROLADOR
             $EXIEXPORTACION_ADO->actualizarDeselecionarDespachoExCambiarEstado($EXIEXPORTACION);            
@@ -2963,7 +2914,8 @@ if (isset($_POST)) {
   
 
             if ($SINO == 0) {
-                $MENSAJETERMOGRAFO2 = actualizarTermografosDespacho($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
+
+                $MENSAJETERMOGRAFO2 = actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
                 
                 if($MENSAJETERMOGRAFO2!=""){                
                     echo '
@@ -2985,7 +2937,7 @@ if (isset($_POST)) {
                             Swal.fire({
                                 icon:"success",
                                 title:"Accion realizada",
-                                text:"Termógrafo agregado con éxito.",
+                                text:"Se agregaron los termógrafos correctamente.",
                                 showConfirmButton: true,
                                 confirmButtonText:"Cerrar",
                                 closeOnConfirm:false
