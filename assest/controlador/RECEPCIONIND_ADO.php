@@ -489,7 +489,7 @@ class RECEPCIONIND_ADO
                                                     (ESTADO) AS ESTADO_CIERRE
                                             FROM fruta_recepcionind 
                                             WHERE  ESTADO_REGISTRO = 1 
-                                            AND ESTADO = 1
+                                            AND ESTADO = 0
                                             AND ID_EMPRESA = '" . $EMPRESA . "' 
                                             AND ID_PRODUCTOR = '" . $PRODUCTOR . "'
                                             AND ID_TEMPORADA = '" . $TEMPORADA . "'   
@@ -529,7 +529,7 @@ class RECEPCIONIND_ADO
 
                                             LEFT JOIN fruta_vespecies VES ON FDRECIND.ID_VESPECIES = VES.ID_VESPECIES
                                             WHERE  FRECIND.ESTADO_REGISTRO = 1 
-                                            AND FRECIND.ESTADO = 1
+                                            AND FRECIND.ESTADO = 0
                                             AND FRECIND.ID_EMPRESA = '" . $EMPRESA . "' 
                                             AND FRECIND.ID_PRODUCTOR = '" . $PRODUCTOR . "'
                                             AND FRECIND.ID_TEMPORADA = '" . $TEMPORADA . "'   
