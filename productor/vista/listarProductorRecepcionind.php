@@ -195,7 +195,7 @@ include_once "../../assest/config/datosUrLP.php";
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
                                                     <?php   
                                                             $FECHARECEPCION = date_create($r['FECHA']);
-                                                            if ($FECHARECEPCION === false || $FECHARECEPCION > $FECHALIMITE) {
+                                                            if ($FECHARECEPCION === false || $FECHARECEPCION > $FECHALIMITE || $r['ESTADO_CIERRE'] !== "0") {
                                                                 continue;
                                                             }
                                                             if ($r['TRECEPCION'] == "1") {
