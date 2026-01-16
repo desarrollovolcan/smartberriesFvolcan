@@ -184,6 +184,9 @@ include_once "../../assest/config/datosUrLP.php";
                                                     if ($TEMPORADAS) {
                                                         if (!empty($ESPECIE)) {
                                                             $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBXEst($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS, $ESPECIE);
+                                                            if (!$ARRAYRECEPCION) {
+                                                                $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBX($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS);
+                                                            }
                                                         } else {
                                                             $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBX($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS);
                                                         }
