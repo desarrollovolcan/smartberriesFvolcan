@@ -179,8 +179,16 @@ include_once "../../assest/config/datosUrLP.php";
 
                                             <?php foreach ($ARRAYEMPRESAPRODUCTOR as $a) : ?>
                                                 <?php 
-                                                    if ( $TEMPORADAS) {
-                                                        $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBXEst($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS, $ESPECIE);
+                                                    $ARRAYRECEPCION = array();
+                                                    if ($TEMPORADAS) {
+                                                        if (!empty($ESPECIE)) {
+                                                            $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBXEst($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS, $ESPECIE);
+                                                            if (!$ARRAYRECEPCION) {
+                                                                $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBX($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS);
+                                                            }
+                                                        } else {
+                                                            $ARRAYRECEPCION = $RECEPCIONIND_ADO->listarRecepcionEmpresaProductorTemporadaCBX($a["ID_EMPRESA"], $a["ID_PRODUCTOR"], $TEMPORADAS);
+                                                        }
                                                     }    
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
@@ -201,6 +209,16 @@ include_once "../../assest/config/datosUrLP.php";
                                                                 if ($ARRAYPLANTA2) {
                                                                     $CSGCSPORIGEN=$ARRAYPLANTA2[0]['CODIGO_SAG_PLANTA'];
                                                                     $ORIGEN = $ARRAYPLANTA2[0]['NOMBRE_PLANTA'];
+                                                                } else {
+                                                                    $ORIGEN = "Sin Datos";
+                                                                    $CSGCSPORIGEN="Sin Datos";
+                                                                }
+                                                            } else if ($r['TRECEPCION'] == "3") {
+                                                                $TRECEPCION = "Desde Productor BDH";
+                                                                $ARRAYPRODUCTOR2 = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
+                                                                if ($ARRAYPRODUCTOR2) {
+                                                                    $CSGCSPORIGEN=$ARRAYPRODUCTOR2[0]['CSG_PRODUCTOR'];
+                                                                    $ORIGEN =  $ARRAYPRODUCTOR2[0]['NOMBRE_PRODUCTOR'];
                                                                 } else {
                                                                     $ORIGEN = "Sin Datos";
                                                                     $CSGCSPORIGEN="Sin Datos";
