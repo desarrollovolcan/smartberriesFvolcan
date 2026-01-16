@@ -275,7 +275,12 @@ include_once "../../assest/config/datosUrLP.php";
                                                             </a>
                                                         </td>
                                                         <td>
-                                                            <button type="button" class="btn btn-block btn-danger">Cerrado</button>
+                                                            <?php if ($r['ESTADO_CIERRE'] == "0") { ?>
+                                                                <button type="button" class="btn btn-block btn-danger">Cerrado</button>
+                                                            <?php  }  ?>
+                                                            <?php if ($r['ESTADO_CIERRE'] == "1") { ?>
+                                                                <button type="button" class="btn btn-block btn-success">Abierto</button>
+                                                            <?php  }  ?>
                                                         </td>
                                                         <td class="text-center">
                                                             <form method="post" id="form1">
