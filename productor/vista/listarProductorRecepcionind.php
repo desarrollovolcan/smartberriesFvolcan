@@ -58,6 +58,7 @@ $ARRAYPRODUCTOR = "";
 
 
 $ARRAYEMPRESAPRODUCTOR=$EMPRESAPRODUCTOR_ADO->buscarEmpresaProductorPorUsuarioCBX($IDUSUARIOS);
+$FECHALIMITE = new DateTimeImmutable('yesterday 23:59:59');
 
 
 include_once "../../assest/config/validarDatosUrl.php";
@@ -185,6 +186,10 @@ include_once "../../assest/config/datosUrLP.php";
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
                                                     <?php   
+                                                            $FECHARECEPCION = date_create($r['FECHA']);
+                                                            if ($r['ESTADO'] !== "0" || $FECHARECEPCION === false || $FECHARECEPCION > $FECHALIMITE) {
+                                                                continue;
+                                                            }
                                                             if ($r['TRECEPCION'] == "1") {
                                                                 $TRECEPCION = "Desde Productor ";
                                                                 $ARRAYPRODUCTOR2 = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
@@ -252,12 +257,7 @@ include_once "../../assest/config/datosUrLP.php";
                                                             </a>
                                                         </td>
                                                         <td>
-                                                            <?php if ($r['ESTADO'] == "0") { ?>
-                                                                <button type="button" class="btn btn-block btn-danger">Cerrado</button>
-                                                            <?php  }  ?>
-                                                            <?php if ($r['ESTADO'] == "1") { ?>
-                                                                <button type="button" class="btn btn-block btn-success">Abierto</button>
-                                                            <?php  }  ?>
+                                                            <button type="button" class="btn btn-block btn-danger">Cerrado</button>
                                                         </td>
                                                         <td class="text-center">
                                                             <form method="post" id="form1">
