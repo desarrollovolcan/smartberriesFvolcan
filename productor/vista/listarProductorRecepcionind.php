@@ -58,6 +58,7 @@ $ARRAYPRODUCTOR = "";
 
 
 $ARRAYEMPRESAPRODUCTOR=$EMPRESAPRODUCTOR_ADO->buscarEmpresaProductorPorUsuarioCBX($IDUSUARIOS);
+$FECHALIMITE = new DateTimeImmutable('yesterday 23:59:59');
 
 
 include_once "../../assest/config/validarDatosUrl.php";
@@ -193,6 +194,10 @@ include_once "../../assest/config/datosUrLP.php";
                                                 ?>
                                                 <?php foreach ($ARRAYRECEPCION as $r) : ?>
                                                     <?php   
+                                                            $FECHARECEPCION = date_create($r['FECHA']);
+                                                            if ($r['ESTADO'] !== "0" || $FECHARECEPCION === false || $FECHARECEPCION > $FECHALIMITE) {
+                                                                continue;
+                                                            }
                                                             if ($r['TRECEPCION'] == "1") {
                                                                 $TRECEPCION = "Desde Productor ";
                                                                 $ARRAYPRODUCTOR2 = $PRODUCTOR_ADO->verProductor($r['ID_PRODUCTOR']);
