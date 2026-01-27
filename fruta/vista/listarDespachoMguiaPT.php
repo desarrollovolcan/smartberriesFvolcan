@@ -32,7 +32,7 @@ $IDOP = "";
 $NODATOURL = "";
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
-$ARRAYMGUIAPT = "";
+$ARRAYMGUIAPT = [];
 $ARRAVERYPLANTA = "";
 
 
@@ -143,31 +143,33 @@ include_once "../../assest/config/validarDatosUrlD.php";
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php foreach ($ARRAYMGUIAPT as $r) : ?>
-                                                        <?php
-                                                        $ARRAVERYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA2']);
-                                                        if ($ARRAVERYPLANTA) {
-                                                            $NOMBREPLANTA2 = $ARRAVERYPLANTA[0]['NOMBRE_PLANTA'];
-                                                        } else {
-                                                            $NOMBREPLANTA2 = "Sin Datos";
-                                                        }
-                                                        $ARRAVERYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
-                                                        if ($ARRAVERYPLANTA) {
-                                                            $NOMBREPLANTA = $ARRAVERYPLANTA[0]['NOMBRE_PLANTA'];
-                                                        } else {
-                                                            $NOMBREPLANTA = "Sin Datos";
-                                                        }
-                                                        ?>
-                                                        <tr class="text-center">
-                                                            <td> <?php echo $r['NUMERO_MGUIA']; ?> </td>
-                                                            <td> <?php echo $r['INGRESO']; ?></td>
-                                                            <td> <?php echo $r['NUMERO_DESPACHO']; ?> </td>
-                                                            <td> <?php echo $r['NUMERO_GUIA']; ?> </td>
-                                                            <td> <?php echo $NOMBREPLANTA2; ?> </td>
-                                                            <td> <?php echo $NOMBREPLANTA; ?> </td>
-                                                            <td> <?php echo $r['MOTIVO_MGUIA']; ?> </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
+                                                    <?php if (!empty($ARRAYMGUIAPT) && is_array($ARRAYMGUIAPT)) : ?>
+                                                        <?php foreach ($ARRAYMGUIAPT as $r) : ?>
+                                                            <?php
+                                                            $ARRAVERYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA2']);
+                                                            if ($ARRAVERYPLANTA) {
+                                                                $NOMBREPLANTA2 = $ARRAVERYPLANTA[0]['NOMBRE_PLANTA'];
+                                                            } else {
+                                                                $NOMBREPLANTA2 = "Sin Datos";
+                                                            }
+                                                            $ARRAVERYPLANTA = $PLANTA_ADO->verPlanta($r['ID_PLANTA']);
+                                                            if ($ARRAVERYPLANTA) {
+                                                                $NOMBREPLANTA = $ARRAVERYPLANTA[0]['NOMBRE_PLANTA'];
+                                                            } else {
+                                                                $NOMBREPLANTA = "Sin Datos";
+                                                            }
+                                                            ?>
+                                                            <tr class="text-center">
+                                                                <td> <?php echo $r['NUMERO_MGUIA']; ?> </td>
+                                                                <td> <?php echo $r['INGRESO']; ?></td>
+                                                                <td> <?php echo $r['NUMERO_DESPACHO']; ?> </td>
+                                                                <td> <?php echo $r['NUMERO_GUIA']; ?> </td>
+                                                                <td> <?php echo $NOMBREPLANTA2; ?> </td>
+                                                                <td> <?php echo $NOMBREPLANTA; ?> </td>
+                                                                <td> <?php echo $r['MOTIVO_MGUIA']; ?> </td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
                                                 </tbody>
                                             </table>
                                         </div>

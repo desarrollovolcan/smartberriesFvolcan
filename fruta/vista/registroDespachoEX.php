@@ -17,9 +17,6 @@ include_once '../../assest/controlador/TEMBALAJE_ADO.php';
 
 
 include_once '../../assest/controlador/VESPECIES_ADO.php';
-include_once '../../assest/controlador/TRANSPORTE_ADO.php';
-
-
 include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/ICARGA_ADO.php';
 include_once '../../assest/controlador/CONDUCTOR_ADO.php';
@@ -83,7 +80,6 @@ $DFINAL_ADO =  new DFINAL_ADO();
 $PAIS_ADO =  new PAIS_ADO();
 $MERCADO_ADO =  new MERCADO_ADO();
 
-$TRANSPORTE_ADO =  new TRANSPORTE_ADO();
 $LCARGA_ADO =  new LCARGA_ADO();
 $LDESTINO_ADO =  new LDESTINO_ADO();
 
@@ -2247,12 +2243,6 @@ if (isset($_POST)) {
                                         </form>  
                                         
                                         <div class="col-auto">
-                                                        <button type="submit" form="form" class="btn btn-success btn-block" data-toggle="tooltip" title="Agregar Termografos" name="TERMOGRAFOS" value="TERMOGRAFOS">
-                                                                Agregar Termógrafos
-                                                        </button>
-                                                        </div>
-
-                                        <div class="col-auto">
                                             <label class="sr-only" for=""></label>
                                             <div class="input-group mb-2">
                                                 <div class="input-group-prepend">
@@ -2448,7 +2438,73 @@ if (isset($_POST)) {
     <!- LLAMADA URL DE ARCHIVOS DE DISEÑO Y JQUERY E OTROS -!>
         <?php include_once "../../assest/config/urlBase.php"; ?>
         <script src="../../assest/js/multistepsregistrodespachoex.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const mainForm = document.getElementById('form_reg_dato');
+                const termografoForm = document.getElementById('form');
+
+                if (!mainForm || !termografoForm) {
+                    return;
+                }
+
+                const syncTermografosToMainForm = () => {
+                    mainForm.querySelectorAll('[data-termografo-sync="1"]').forEach((node) => node.remove());
+                    termografoForm.querySelectorAll('input[name="IDDESPACHO[]"], input[name="FOLIOEXIEXPORTACIONTERMOGRAFO[]"], input[name="IDEXIEXPORTACIONTERMOGRAFO[]"], input[name="IDTERMOGRAFO[]"], input[name="TERMOGRAFO[]"]').forEach((input) => {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = input.name;
+                        hidden.value = input.value;
+                        hidden.setAttribute('data-termografo-sync', '1');
+                        mainForm.appendChild(hidden);
+                    });
+                };
+
+                mainForm.addEventListener('submit', syncTermografosToMainForm);
+            });
+        </script>
         <?php
+        function actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $request)
+        {
+            if (
+                !isset($request['IDDESPACHO'], $request['IDEXIEXPORTACIONTERMOGRAFO'], $request['FOLIOEXIEXPORTACIONTERMOGRAFO'], $request['TERMOGRAFO'], $request['IDTERMOGRAFO'])
+                || !is_array($request['IDTERMOGRAFO'])
+            ) {
+                return "";
+            }
+
+            $ARRAYIDDESPACHO = $request['IDDESPACHO'];
+            $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $request['IDEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $request['FOLIOEXIEXPORTACIONTERMOGRAFO'];
+            $ARRAYTERMOGRAFO = $request['TERMOGRAFO'];
+            $ARRAYIDTERMOGRAFO = $request['IDTERMOGRAFO'];
+
+            $mensaje = "";
+
+            foreach ($ARRAYIDTERMOGRAFO as $ID) {
+                $IDTERMOGRAFO = $ID - 1;
+                if (!isset($ARRAYIDDESPACHO[$IDTERMOGRAFO], $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO], $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO], $ARRAYTERMOGRAFO[$IDTERMOGRAFO])) {
+                    continue;
+                }
+
+                $IDDESPACHO = $ARRAYIDDESPACHO[$IDTERMOGRAFO];
+                $IDEXIEXPORTACIONTERMOGRAFO = $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
+                $FOLIOEXIEXPORTACIONTERMOGRAFO = $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
+                $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
+
+                $EXIEXPORTACION->__SET('ID_DESPACHOEX', $IDDESPACHO);
+                $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDEXIEXPORTACIONTERMOGRAFO);
+                $TERMOGRAFO = trim($TERMOGRAFO);
+                $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO === "" ? null : $TERMOGRAFO);
+                $respuesta = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
+
+                if ($respuesta !== "") {
+                    $mensaje .= $FOLIOEXIEXPORTACIONTERMOGRAFO . ": " . $respuesta . " ";
+                }
+            }
+
+            return trim($mensaje);
+        }
+
         //OPERACION DE REGISTRO DE FILA
         if (isset($_REQUEST['CREAR'])) {
             $ARRAYNUMERO = $DESPACHOEX_ADO->obtenerNumero($_REQUEST['EMPRESA'], $_REQUEST['PLANTA'], $_REQUEST['TEMPORADA']);
@@ -2643,6 +2699,8 @@ if (isset($_POST)) {
             //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
             $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
 
+            actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
+
             $AUSUARIO_ADO->agregarAusuario2($NUMEROVER,1,2,"".$_SESSION["NOMBRE_USUARIO"].", Modificación de Despacho Exportación","fruta_despachoex",$_REQUEST['IDP'],$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'],$_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );
             
             if ($accion_dato == "crear") {
@@ -2755,6 +2813,8 @@ if (isset($_POST)) {
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
                 $DESPACHOEX_ADO->actualizarDespachoex($DESPACHOEX);
 
+                actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
+
                 $DESPACHOEX->__SET('ID_DESPACHOEX', $_REQUEST['IDP']);
                 //LLAMADA AL METODO DE EDITAR DEL CONTROLADOR
                 $DESPACHOEX_ADO->cerrado($DESPACHOEX);
@@ -2855,50 +2915,7 @@ if (isset($_POST)) {
 
             if ($SINO == 0) {
 
-                //echo '<script> alert("accede 2");</script>';
-                $ARRAYIDDESPACHO = $_REQUEST['IDDESPACHO'];
-                $ARRAYIDEXIEXPORTACIONTERMOGRAFO = $_REQUEST['IDEXIEXPORTACIONTERMOGRAFO'];
-                $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO = $_REQUEST['FOLIOEXIEXPORTACIONTERMOGRAFO'];
-                $ARRAYTERMOGRAFO = $_REQUEST['TERMOGRAFO'];
-                $ARRAYIDTERMOGRAFO = $_REQUEST['IDTERMOGRAFO'];
-
-                var_dump($ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO);
-                foreach ($ARRAYIDTERMOGRAFO as $ID) :
-                    $IDTERMOGRAFO = $ID - 1;
-           
-                    $IDDESPACHO = $ARRAYIDDESPACHO[$IDTERMOGRAFO];
-                   
-                    $IDEXIEXPORTACIONTERMOGRAFO = $ARRAYIDEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
-                  
-                    $FOLIOEXIEXPORTACIONTERMOGRAFO = $ARRAYFOLIOEXIEXPORTACIONTERMOGRAFO[$IDTERMOGRAFO];
-                   
-                    $TERMOGRAFO = $ARRAYTERMOGRAFO[$IDTERMOGRAFO];
-                
-
-                    //var_dump($TERMOGRAFO);
-
-                    if ($TERMOGRAFO != "") {
-                        $SINOTERMOGRAFO = 0;
-                        $MENSAJETERMOGRAFO2 = $MENSAJETERMOGRAFO2;
-                        //die('trae datos');
-                    } /*else {
-                        //die('no trae datos');
-                        $SINOTERMOGRAFO = 1;
-                        $MENSAJETERMOGRAFO2 = $MENSAJETERMOGRAFO2 . "" . $FOLIOEXIEXPORTACIONTERMOGRAFO . ": SE DEBE INGRESAR UN DATO. ";
-                    }*/
-                    if ($SINOTERMOGRAFO == 0) {
-                        //die('si trae ingresa');
-                        $EXIEXPORTACION->__SET('ID_DESPACHO', $IDDESPACHO);
-                        $EXIEXPORTACION->__SET('ID_EXIEXPORTACION', $IDEXIEXPORTACIONTERMOGRAFO);
-                        $EXIEXPORTACION->__SET('N_TERMOGRAFO', $TERMOGRAFO);
-                        // LLAMADA AL METODO DE REGISTRO DEL CONTROLADOR
-                        $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
-
-                        $MENSAJETERMOGRAFO2 = $EXIEXPORTACION_ADO->actualizarDespachoAgregarTermografo($EXIEXPORTACION);
-
-                        //$AUSUARIO_ADO->agregarAusuario2("NULL",1,2,"".$_SESSION["NOMBRE_USUARIO"].", Se agrego el precio a la Existencia en el despacho de producto terminado.","fruta_exiexportacion", "NULL" ,$_SESSION["ID_USUARIO"],$_SESSION['ID_EMPRESA'], $_SESSION['ID_PLANTA'],$_SESSION['ID_TEMPORADA'] );  
-                    }
-                endforeach;
+                $MENSAJETERMOGRAFO2 = actualizarTermografosPorFolio($EXIEXPORTACION_ADO, $EXIEXPORTACION, $_REQUEST);
                 
                 if($MENSAJETERMOGRAFO2!=""){                
                     echo '

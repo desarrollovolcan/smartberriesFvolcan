@@ -299,10 +299,10 @@ if (isset($_REQUEST['DESHABILITAR'])) {
             "Estado posterior: Deshabilitado\r\n" .
             (empty($MOTIVO) ? "" : "Motivo: " . $MOTIVO . "\r\n");
 
-        $remitente = 'informevolcan@gocreative.cl';
-        $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-        $hostSMTP = 'mail.gocreative.cl';
+        $remitente = 'informes@volcanfoods.cl';
+        $usuarioSMTP = 'informes@volcanfoods.cl';
+        $contrasenaSMTP = '1z=EWfu0026k';
+        $hostSMTP = 'mail.volcanfoods.cl';
         $puertoSMTP = 465;
 
         [$envioCambioOk, $errorEnvioCambio] = enviarCorreoSMTP($destinatariosCambio, $asuntoCambio, $mensajeCambio, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
@@ -348,10 +348,10 @@ if (isset($_REQUEST['SOLICITAR'])) {
             "Código de autorización: " . $CODIGOVERIFICACION . "\r\n\r\n" .
             "Este código es válido por 15 minutos y se envía a María de los Ángeles y Erwin Isla.";
 
-        $remitente = 'informevolcan@gocreative.cl';
-        $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-        $hostSMTP = 'mail.gocreative.cl';
+        $remitente = 'informes@volcanfoods.cl';
+        $usuarioSMTP = 'informes@volcanfoods.cl';
+        $contrasenaSMTP = '1z=EWfu0026k';
+        $hostSMTP = 'mail.volcanfoods.cl';
         $puertoSMTP = 465;
 
         [$envioOk, $errorEnvio] = enviarCorreoSMTP($correoDestino, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
@@ -425,10 +425,10 @@ if (isset($_REQUEST['CAMBIAR'])) {
             "Folio nuevo: " . $FOLION . "\r\n" .
             (empty($MOTIVO) ? "" : "Motivo: " . $MOTIVO . "\r\n");
 
-        $remitente = 'informevolcan@gocreative.cl';
-        $usuarioSMTP = 'informevolcan@gocreative.cl';
-        $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-        $hostSMTP = 'mail.gocreative.cl';
+        $remitente = 'informes@volcanfoods.cl';
+        $usuarioSMTP = 'informes@volcanfoods.cl';
+        $contrasenaSMTP = '1z=EWfu0026k';
+        $hostSMTP = 'mail.volcanfoods.cl';
         $puertoSMTP = 465;
 
         [$envioCambioOk, $errorEnvioCambio] = enviarCorreoSMTP($destinatariosCambio, $asuntoCambio, $mensajeCambio, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);

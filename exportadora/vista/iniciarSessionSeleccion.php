@@ -8,6 +8,7 @@ if (isset($_SESSION["ID_USUARIO"]) && isset($_SESSION["NOMBRE_USUARIO"]) && isse
         header('Location: index.php');
     }
 }
+include_once '../../assest/config/cronPtHelper.php';
 
 include_once '../../assest/controlador/EMPRESA_ADO.php';
 include_once '../../assest/controlador/TEMPORADA_ADO.php';

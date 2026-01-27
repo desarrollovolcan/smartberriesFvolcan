@@ -259,10 +259,10 @@ if ($_POST) {
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
 
-            $remitente = 'informevolcan@gocreative.cl';
-            $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-            $hostSMTP = 'mail.gocreative.cl';
+            $remitente = 'informes@volcanfoods.cl';
+            $usuarioSMTP = 'informes@volcanfoods.cl';
+            $contrasenaSMTP = '1z=EWfu0026k';
+            $hostSMTP = 'mail.volcanfoods.cl';
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
@@ -300,10 +300,10 @@ if ($_POST) {
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado de registro fue desactivado.";
 
-            $remitente = 'informevolcan@gocreative.cl';
-            $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-            $hostSMTP = 'mail.gocreative.cl';
+            $remitente = 'informes@volcanfoods.cl';
+            $usuarioSMTP = 'informes@volcanfoods.cl';
+            $contrasenaSMTP = '1z=EWfu0026k';
+            $hostSMTP = 'mail.volcanfoods.cl';
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
@@ -338,10 +338,10 @@ if ($_POST) {
                 "Código de autorización: " . $codigoAutorizacion . "\r\n\r\n" .
                 "El código tiene validez de 15 minutos.";
 
-            $remitente = 'informevolcan@gocreative.cl';
-            $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-            $hostSMTP = 'mail.gocreative.cl';
+            $remitente = 'informes@volcanfoods.cl';
+            $usuarioSMTP = 'informes@volcanfoods.cl';
+            $contrasenaSMTP = '1z=EWfu0026k';
+            $hostSMTP = 'mail.volcanfoods.cl';
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);
@@ -376,10 +376,10 @@ if ($_POST) {
                 "Confirmado por: " . $NOMBRECOMPLETOUSUARIO . "\r\n\r\n" .
                 "El estado fue marcado como abierto.";
 
-            $remitente = 'informevolcan@gocreative.cl';
-            $usuarioSMTP = 'informevolcan@gocreative.cl';
-            $contrasenaSMTP = 'bOaKXtke6.#5#v[q';
-            $hostSMTP = 'mail.gocreative.cl';
+            $remitente = 'informes@volcanfoods.cl';
+            $usuarioSMTP = 'informes@volcanfoods.cl';
+            $contrasenaSMTP = '1z=EWfu0026k';
+            $hostSMTP = 'mail.volcanfoods.cl';
             $puertoSMTP = 465;
 
             [$envioOk, $errorEnvio] = enviarCorreoSMTP($destinatarios, $asunto, $mensajeCorreo, $remitente, $usuarioSMTP, $contrasenaSMTP, $hostSMTP, $puertoSMTP);

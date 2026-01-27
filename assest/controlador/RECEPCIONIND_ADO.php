@@ -485,12 +485,15 @@ class RECEPCIONIND_ADO
                                                     IFNULL(CANTIDAD_ENVASE_RECEPCION,0)  AS 'ENVASE',
                                                     IFNULL(KILOS_NETO_RECEPCION,0) AS 'NETO',
                                                     IFNULL(KILOS_BRUTO_RECEPCION,0)  AS 'BRUTO',
-                                                    IFNULL(TOTAL_KILOS_GUIA_RECEPCION,0)  AS 'GUIA'
+                                                    IFNULL(TOTAL_KILOS_GUIA_RECEPCION,0)  AS 'GUIA',
+                                                    (ESTADO) AS ESTADO_CIERRE
                                             FROM fruta_recepcionind 
                                             WHERE  ESTADO_REGISTRO = 1 
+                                            AND ESTADO = 0
                                             AND ID_EMPRESA = '" . $EMPRESA . "' 
                                             AND ID_PRODUCTOR = '" . $PRODUCTOR . "'
                                             AND ID_TEMPORADA = '" . $TEMPORADA . "'   
+                                            AND FECHA_RECEPCION < CURRENT_DATE
                                             ;	");
             $datos->execute();
             $resultado = $datos->fetchAll();
@@ -518,17 +521,20 @@ class RECEPCIONIND_ADO
                                                     IFNULL(FRECIND.CANTIDAD_ENVASE_RECEPCION,0)  AS 'ENVASE',
                                                     IFNULL(FRECIND.KILOS_NETO_RECEPCION,0) AS 'NETO',
                                                     IFNULL(FRECIND.KILOS_BRUTO_RECEPCION,0)  AS 'BRUTO',
-                                                    IFNULL(FRECIND.TOTAL_KILOS_GUIA_RECEPCION,0)  AS 'GUIA'
+                                                    IFNULL(FRECIND.TOTAL_KILOS_GUIA_RECEPCION,0)  AS 'GUIA',
+                                                    (FRECIND.ESTADO) AS ESTADO_CIERRE
                                             FROM fruta_recepcionind FRECIND
 																						LEFT JOIN fruta_drecepcionind FDRECIND ON FRECIND.ID_RECEPCION = FDRECIND.ID_RECEPCION
 																						
 
                                             LEFT JOIN fruta_vespecies VES ON FDRECIND.ID_VESPECIES = VES.ID_VESPECIES
                                             WHERE  FRECIND.ESTADO_REGISTRO = 1 
+                                            AND FRECIND.ESTADO = 0
                                             AND FRECIND.ID_EMPRESA = '" . $EMPRESA . "' 
                                             AND FRECIND.ID_PRODUCTOR = '" . $PRODUCTOR . "'
                                             AND FRECIND.ID_TEMPORADA = '" . $TEMPORADA . "'   
                                             AND VES.ID_ESPECIES = '" . $ESPECIE . "' 
+                                            AND FRECIND.FECHA_RECEPCION < CURRENT_DATE 
                                             GROUP BY FRECIND.ID_RECEPCION;	");
             $datos->execute();
             $resultado = $datos->fetchAll();
@@ -712,7 +718,7 @@ class RECEPCIONIND_ADO
     {
         try {
 
-            $datos = $this->conexion->prepare("SELECT *  ,
+            $datos = $this->conexion->prepare("SELECT DISTINCT FRECIND.*  ,
                                                     FRECIND.FECHA_GUIA_RECEPCION AS 'FECHA_GUIA',
                                                     FRECIND.FECHA_RECEPCION AS 'FECHA',   
                                                     WEEK(FRECIND.FECHA_RECEPCION,3) AS 'SEMANA', 

@@ -304,7 +304,7 @@ if ($_POST) {
                 <!-- Main content -->
                 <section class="content">
                     <div class="row">
-                            <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
+                        <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 col-xs-12">
                             <div class="box">
                                 <div class="box-header with-border bg-primary">                                    
                                     <h4 class="box-title">Registro Usuario</h4>                                                

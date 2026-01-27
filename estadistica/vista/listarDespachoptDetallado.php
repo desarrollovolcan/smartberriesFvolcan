@@ -2,6 +2,21 @@
 
 include_once "../../assest/config/validarUsuarioOpera.php";
 
+if (!function_exists('filtrarPorEmpresa')) {
+    function filtrarPorEmpresa($array, $empresa)
+    {
+        if (empty($empresa) || empty($array) || !is_array($array)) {
+            return $array;
+        }
+        return array_values(array_filter($array, static function ($row) use ($empresa) {
+            if (!is_array($row) || !isset($row['ID_EMPRESA'])) {
+                return false;
+            }
+            return (string)$row['ID_EMPRESA'] === (string)$empresa;
+        }));
+    }
+}
+
 
 //LLAMADA ARCHIVOS NECESARIOS PARA LAS OPERACIONES
 include_once '../../assest/controlador/ESPECIES_ADO.php';
@@ -112,6 +127,7 @@ $ARRAYRECEPCIONMPORIGEN2="";
 if ($TEMPORADAS) {
     $ARRAYDESPACHOPT = $DESPACHOPT_ADO->listarDespachoptTemporadaCBX(  $TEMPORADAS); 
 }
+$ARRAYDESPACHOPT = filtrarPorEmpresa($ARRAYDESPACHOPT, $EMPRESAS);
 
 
 
@@ -353,6 +369,11 @@ if ($TEMPORADAS) {
                                                     }
 
                                                     $ARRAYTOMADO = $EXIEXPORTACION_ADO->buscarPordespacho($r['ID_DESPACHO'], $r['ID_EMPRESA']);
+                                                    if ($ARRAYTOMADO) {
+                                                        $ARRAYTOMADO = array_values(array_filter($ARRAYTOMADO, function ($item) {
+                                                            return empty($item['ID_DESPACHOEX']);
+                                                        }));
+                                                    }
                                                     ?>
 
                                                     
@@ -513,7 +534,7 @@ if ($TEMPORADAS) {
                                                         }
                                                         $ARRAYREEMBALAJE = $REEMBALAJE_ADO->verReembalaje2($s['ID_REEMBALAJE']);
                                                         if ($ARRAYREEMBALAJE) {
-                                                            $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                            $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["NUMERO_REEMBALAJE"];
                                                             $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
                                                             $ARRAYTREEMBALAJE = $TREEMBALAJE_ADO->verTreembalaje($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"]);
                                                             if ($ARRAYTREEMBALAJE) {

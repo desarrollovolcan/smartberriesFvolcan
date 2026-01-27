@@ -148,7 +148,7 @@ if ($EMPRESAS) {
 
 //DEFINIR ARREGLOS CON LOS DATOS OBTENIDOS DE LAS FUNCIONES DE LOS CONTROLADORES
 if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
-    $ARRAYEXIEXPORTACION = $EXIEXPORTACION_ADO->listarExiexportacionAgrupadoPorFolioEmpresaPlantaTemporada($EMPRESAS, $PLANTAS, $TEMPORADAS);
+    $ARRAYEXIEXPORTACION = $EXIEXPORTACION_ADO->listarExiexportacionEmpresaPlantaTemporadaDetalle($EMPRESAS, $PLANTAS, $TEMPORADAS);
 }
 
 ?>
@@ -473,10 +473,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php foreach ($ARRAYEXIEXPORTACION as $s) : ?>
-
-                                                        <?php $ARRAYEXISTENCIA=$EXIEXPORTACION_ADO->listarExiexportacionEmpresaPlantaTemporadaPorFolio($EMPRESAS, $PLANTAS, $TEMPORADAS,$s['FOLIO_AUXILIAR_EXIEXPORTACION'] );  ?>
-                                                        <?php foreach ($ARRAYEXISTENCIA as $r) : ?>
+                                                    <?php foreach ($ARRAYEXIEXPORTACION as $r) : ?>
                                                             <?php  $CONTADOR+=1;   ?>
                                                             <?php
                                                             if ($r['ESTADO'] == "0") {
@@ -599,9 +596,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                     }
                                                                 }
                                                             }else if($ARRAYDESPACHO2){                                                                
-                                                                $NUMERORECEPCION = $ARRAYDESPACHO2[0]["NUMERO_DESPACHO"];
-                                                                $FECHARECEPCION = $ARRAYDESPACHO2[0]["FECHA"];                                                                
-                                                                $NUMEROGUIARECEPCION = $ARRAYDESPACHO2[0]["NUMERO_GUIA_DESPACHO"];
+                                                                $NUMERORECEPCION = $ARRAYDESPACHO2[0]["NUMERO_DESPACHO"] ?? "Sin Datos";
+                                                                $FECHARECEPCION = $ARRAYDESPACHO2[0]["FECHA"] ?? "";                                                                
+                                                                $NUMEROGUIARECEPCION = $ARRAYDESPACHO2[0]["NUMERO_GUIA_DESPACHO"] ?? "Sin Datos";
                                                                 $TIPORECEPCION = "Interplanta";
                                                                 $FECHAGUIARECEPCION = "";                                                                
                                                                 $ARRAYPLANTA2 = obtenerDesdeCache($ARRAYDESPACHO2[0]['ID_PLANTA'], $PLANTA_CACHE, function ($id) use ($PLANTA_ADO) {
@@ -694,12 +691,16 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 return $DESPACHOEX_ADO->verDespachoex2($id);
                                                             });
                                                             if ($ARRAYVERDESPACHOPT) {
-                                                                $NUMERODESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_DESPACHO"];
-                                                                $FECHADESPACHO = $ARRAYVERDESPACHOPT[0]["FECHA"];
+                                                                $NUMERODESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_DESPACHO"] ?? "Sin Datos";
+                                                                $FECHADESPACHO = $ARRAYVERDESPACHOPT[0]["FECHA"] ?? "";
+                                                                $NUMEROGUIADESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_GUIA_DESPACHO"] ?? "Sin Datos";
+                                                                $TDESPACHO = "Sin Datos";
+                                                                $DESTINO = "Sin Datos";
+                                                                $CSGCSPDESTINO = "Sin Datos";
+                                                                $TIPODESPACHO = $ARRAYVERDESPACHOPT[0]['TDESPACHO'] ?? null;
 
-                                                                if ($ARRAYVERDESPACHOPT[0]['TDESPACHO'] == "1") {
+                                                                if ($TIPODESPACHO == "1") {
                                                                     $TDESPACHO = "Interplanta";
-                                                                    $NUMEROGUIADESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_GUIA_DESPACHO"];
                                                                     $ARRAYPLANTA2 = obtenerDesdeCache($ARRAYVERDESPACHOPT[0]['ID_PLANTA2'], $PLANTA_CACHE, function ($id) use ($PLANTA_ADO) {
                                                                         return $PLANTA_ADO->verPlanta($id);
                                                                     });
@@ -711,9 +712,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                         $CSGCSPDESTINO="Sin Datos";
                                                                     }
                                                                 }
-                                                                if ($ARRAYVERDESPACHOPT[0]['TDESPACHO'] == "2") {
+                                                                if ($TIPODESPACHO == "2") {
                                                                     $TDESPACHO = "Devolución Productor";
-                                                                    $NUMEROGUIADESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_GUIA_DESPACHO"];
                                                                     $ARRAYPRODUCTOR = obtenerDesdeCache($ARRAYVERDESPACHOPT[0]['ID_PRODUCTOR'], $PRODUCTOR_CACHE, function ($id) use ($PRODUCTOR_ADO) {
                                                                         return $PRODUCTOR_ADO->verProductor($id);
                                                                     });
@@ -725,9 +725,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                         $CSGCSPDESTINO="Sin Datos";
                                                                     }
                                                                 }
-                                                                if ($ARRAYVERDESPACHOPT[0]['TDESPACHO'] == "3") {
+                                                                if ($TIPODESPACHO == "3") {
                                                                     $TDESPACHO = "Venta";
-                                                                    $NUMEROGUIADESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_GUIA_DESPACHO"];
                                                                     $ARRAYCOMPRADOR = obtenerDesdeCache($ARRAYVERDESPACHOPT[0]['ID_COMPRADOR'], $COMPRADOR_CACHE, function ($id) use ($COMPRADOR_ADO) {
                                                                         return $COMPRADOR_ADO->verComprador($id);
                                                                     });
@@ -739,15 +738,14 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                         $CSGCSPDESTINO="Sin Datos";
                                                                     }
                                                                 }
-                                                                if ($ARRAYVERDESPACHOPT[0]['TDESPACHO'] == "4") {
+                                                                if ($TIPODESPACHO == "4") {
                                                                     $TDESPACHO = "Despacho de Decarte";
                                                                     $NUMEROGUIADESPACHO = "No Aplica";
                                                                     $CSGCSPDESTINO="No Aplica";
                                                                     $DESTINO = $ARRAYVERDESPACHOPT[0]['REGALO_DESPACHO'];
                                                                 }
-                                                                if ($ARRAYVERDESPACHOPT[0]['TDESPACHO'] == "5") {
+                                                                if ($TIPODESPACHO == "5") {
                                                                     $TDESPACHO = "Planta Externa";
-                                                                    $NUMEROGUIADESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_GUIA_DESPACHO"];
                                                                     $ARRAYPLANTA2 = obtenerDesdeCache($ARRAYVERDESPACHOPT[0]['ID_PLANTA3'], $PLANTA_CACHE, function ($id) use ($PLANTA_ADO) {
                                                                         return $PLANTA_ADO->verPlanta($id);
                                                                     });
@@ -762,14 +760,19 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             } else if ($ARRYADESPACHOEX) {
                                                                 $TDESPACHO = "Exportación";
                                                                 $CSGCSPDESTINO="No Aplica";
-                                                                $NUMERODESPACHO = $ARRYADESPACHOEX[0]["NUMERO_DESPACHOEX"];
-                                                                $NUMEROGUIADESPACHO = $ARRYADESPACHOEX[0]["NUMERO_GUIA_DESPACHOEX"];
-                                                                $FECHADESPACHO = $ARRYADESPACHOEX[0]["FECHA"];
-                                                                $ARRAYDFINAL = obtenerDesdeCache($ARRYADESPACHOEX[0]['ID_DFINAL'], $DFINAL_CACHE, function ($id) use ($DFINAL_ADO) {
-                                                                    return $DFINAL_ADO->verDfinal($id);
-                                                                });
-                                                                if ($ARRAYDFINAL) {
-                                                                    $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
+                                                                $NUMERODESPACHO = $ARRYADESPACHOEX[0]["NUMERO_DESPACHOEX"] ?? "Sin Datos";
+                                                                $NUMEROGUIADESPACHO = $ARRYADESPACHOEX[0]["NUMERO_GUIA_DESPACHOEX"] ?? "Sin Datos";
+                                                                $FECHADESPACHO = $ARRYADESPACHOEX[0]["FECHA"] ?? "";
+                                                                $IDDFINAL = $ARRYADESPACHOEX[0]['ID_DFINAL'] ?? null;
+                                                                if ($IDDFINAL) {
+                                                                    $ARRAYDFINAL = obtenerDesdeCache($IDDFINAL, $DFINAL_CACHE, function ($id) use ($DFINAL_ADO) {
+                                                                        return $DFINAL_ADO->verDfinal($id);
+                                                                    });
+                                                                    if ($ARRAYDFINAL) {
+                                                                        $DESTINO = $ARRAYDFINAL[0]['NOMBRE_DFINAL'];
+                                                                    } else {
+                                                                        $DESTINO = "Sin Datos";
+                                                                    }
                                                                 } else {
                                                                     $DESTINO = "Sin Datos";
                                                                 }
@@ -1012,7 +1015,6 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 <td><?php echo $r['MODIFICACION']; ?></td>
                                                                 <td><?php echo $NUMEROREFERENCIA; ?></td>
                                                             </tr>                                                       
-                                                        <?php endforeach; ?>        
                                                     <?php endforeach; ?>
                                                 </tbody>
                                                                                                 <tfoot>
