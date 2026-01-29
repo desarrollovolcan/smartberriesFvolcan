@@ -14,6 +14,7 @@ include_once '../../assest/controlador/PROVEEDOR_ADO.php';
 
 include_once '../../assest/controlador/DESPACHOE_ADO.php';
 include_once '../../assest/controlador/RECEPCIONE_ADO.php';
+include_once '../../assest/controlador/RECEPCIONIND_ADO.php';
 include_once '../../assest/controlador/INVENTARIOE_ADO.php';
 include_once '../../assest/controlador/FICHA_ADO.php';
 
@@ -31,6 +32,7 @@ $COMPRADOR_ADO =  new COMPRADOR_ADO();
 
 $DESPACHOE_ADO =  new DESPACHOE_ADO();
 $RECEPCIONE_ADO =  new RECEPCIONE_ADO();
+$RECEPCIONIND_ADO =  new RECEPCIONIND_ADO();
 $INVENTARIOE_ADO =  new INVENTARIOE_ADO();
 $FICHA_ADO =  new FICHA_ADO();
 
@@ -180,7 +182,32 @@ include_once "../../assest/config/reporteUrl.php";
                                                         }else{
                                                             $TIPO="Envase";
                                                         }
-                                                        if ($TOPERACION == "1") {
+                                                        $ARRAYRECEPCIONIND = "";
+                                                        if ($RECEPCIONORIGEN2) {
+                                                            $ARRAYRECEPCIONIND = $RECEPCIONIND_ADO->verRecepcion2($RECEPCIONORIGEN2);
+                                                        }
+                                                        if ($ARRAYRECEPCIONIND) {
+                                                            if ($ARRAYRECEPCIONIND[0]['TRECEPCION'] == "1") {
+                                                                $NOMBREOPERACION = "Recepción Desde Productor ".$TIPO;
+                                                                $ARRAYPRODUCTOR = $PRODUCTOR_ADO->verProductor($ARRAYRECEPCIONIND[0]["ID_PRODUCTOR"]);
+                                                                if($ARRAYPRODUCTOR){
+                                                                    $NOMBREORIGEN = $ARRAYPRODUCTOR[0]["NOMBRE_PRODUCTOR"];
+                                                                } else {
+                                                                    $NOMBREORIGEN = "Sin Datos";
+                                                                }
+                                                            } else if ($ARRAYRECEPCIONIND[0]['TRECEPCION'] == "2") {
+                                                                $NOMBREOPERACION = "Recepción Desde Planta Externa ".$TIPO;
+                                                                $ARRAYPLANTAEXTERNA = $PLANTA_ADO->verPlanta($ARRAYRECEPCIONIND[0]["ID_PLANTA2"]);
+                                                                if($ARRAYPLANTAEXTERNA){
+                                                                    $NOMBREORIGEN = $ARRAYPLANTAEXTERNA[0]["NOMBRE_PLANTA"];
+                                                                } else {
+                                                                    $NOMBREORIGEN = "Sin Datos";
+                                                                }
+                                                            } else {
+                                                                $NOMBREOPERACION = "Sin Datos";
+                                                                $NOMBREORIGEN = "Sin Datos";
+                                                            }
+                                                        } else if ($TOPERACION == "1") {
                                                             $NOMBREOPERACION = "Recepción Desde Proveedor ".$TIPO;
                                                             $ARRAYPROVEEDOR = $PROVEEDOR_ADO->verProveedor($ARRAYRECEPCION[0]["ID_PROVEEDOR"]);
                                                             if($ARRAYPROVEEDOR){
