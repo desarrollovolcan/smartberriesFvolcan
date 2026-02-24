@@ -90,7 +90,7 @@ function generarCodigoAutorizacion()
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
-    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl', 'msanhueza@fvolcan.cl'];
     $correoSolicitante = trim((string) $correoSolicitante);
 
     if ($correoSolicitante !== '') {
