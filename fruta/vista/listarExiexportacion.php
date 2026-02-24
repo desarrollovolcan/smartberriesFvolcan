@@ -153,7 +153,7 @@ if ($CRON_PT_ACTUALIZADO_EN > 0) {
 
 function obtenerDestinatariosAutorizacion($correoSolicitante)
 {
-    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl'];
+    $correosBase = ['maperez@fvolcan.cl', 'eisla@fvolcan.cl', 'msanhueza@fvolcan.cl'];
     $correoSolicitante = trim((string) $correoSolicitante);
 
     if ($correoSolicitante !== '') {
