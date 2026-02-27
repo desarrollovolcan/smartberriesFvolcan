@@ -177,7 +177,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
 
         .detalle-modal .modal-header {
             background: #ffffff;
-            color: #111827;
+            color: #000000;
             border-bottom: 1px solid #d9dee5;
             padding: 12px 16px;
         }
@@ -186,20 +186,20 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             font-weight: 800;
             letter-spacing: 0.1px;
             margin: 0;
-            color: #111827;
+            color: #000000;
             font-size: 16px;
         }
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
             letter-spacing: 0.2px;
-            color: #6b7280;
+            color: #000000;
             margin-bottom: 2px;
             opacity: 0.95;
         }
 
         .detalle-modal .close {
-            color: #6b7280;
+            color: #000000;
             opacity: 1;
             font-weight: 800;
         }
@@ -249,6 +249,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-resumen-table thead th {
             background: #f8fafc;
             color: #374151;
+            color: #000000;
             text-transform: uppercase;
             font-size: 10px;
             letter-spacing: 0.35px;
@@ -277,6 +278,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             font-size: 11px;
             font-weight: 700;
             color: #111827;
+            color: #000000;
             margin: 0;
             letter-spacing: 0.2px;
             text-transform: uppercase;
@@ -290,6 +292,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             border-collapse: collapse;
             font-size: 12px;
             color: #1f2937;
+            color: #000000;
         }
 
         .detalle-card th,
@@ -305,6 +308,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-card th {
             background: #fbfcfd;
             color: #6b7280;
+            color: #000000;
             width: 40%;
             font-weight: 700;
         }
@@ -327,6 +331,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             border-radius: 4px;
             background: #f8fafc;
             color: #374151;
+            color: #000000;
             font-weight: 700;
             border: 1px solid #d7dde5;
         }
@@ -338,16 +343,16 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-modal .btn-primary {
-            background: #374151;
-            border-color: #374151;
-            color: #ffffff;
+            background: #ffffff;
+            border-color: #111111;
+            color: #000000;
             font-weight: 700;
         }
 
         .detalle-modal .btn-secondary {
             background: #ffffff;
-            color: #4b5563;
-            border-color: #d1d5db;
+            color: #000000;
+            border-color: #9ca3af;
             font-weight: 700;
         }
 
@@ -357,7 +362,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .mov-link {
-            color: #374151;
+            color: #000000;
             text-decoration: underline;
             font-weight: 700;
         }
@@ -373,6 +378,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             background: #ffffff;
             border: 1px solid #d9dee5;
             color: #4b5563;
+            color: #000000;
             border-radius: 4px;
             padding: 4px 8px;
             font-size: 11px;
@@ -1031,6 +1037,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             data-tipo-despacho="<?php echo htmlspecialchars($TDESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-num-despacho="<?php echo htmlspecialchars($NUMERODESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-fecha-despacho="<?php echo htmlspecialchars($FECHADESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
+            data-guia-despacho="<?php echo htmlspecialchars($NUMEROGUIADESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-destino="<?php echo htmlspecialchars($DESTINO, ENT_QUOTES, 'UTF-8'); ?>"
             data-csg-destino="<?php echo htmlspecialchars($CSGCSPDESTINO, ENT_QUOTES, 'UTF-8'); ?>"
             data-despachos-relacionados="<?php echo htmlspecialchars($DESPACHOSRELACIONADOSTXT, ENT_QUOTES, 'UTF-8'); ?>"
@@ -1323,6 +1330,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                         <td data-detail="despachos-relacionados"></td>
                                     </tr>
                                     <tr>
+                                        <th>Guía despacho</th>
+                                        <td data-detail="guia-despacho"></td>
+                                    </tr>
+                                    <tr>
                                         <th>Ingreso</th>
                                         <td data-detail="ingreso"></td>
                                     </tr>
@@ -1459,6 +1470,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 }
                 setDetailWithLink(modal, 'despacho', despachoTexto, despachoUrl);
                 modal.find('[data-detail="despachos-relacionados"]').text(button.data('despachos-relacionados'));
+                modal.find('[data-detail="guia-despacho"]').text(button.data('guia-despacho'));
                 var inspeccionTexto = button.data('num-inspeccion') ? '#' + button.data('num-inspeccion') + ' (' + button.data('fecha-inspeccion') + ') ' + button.data('tipo-inspeccion') : 'Sin datos';
                 var inspeccionUrl = button.data('id-inspeccion') ? '../../fruta/vista/registroInpsag.php?op&id=' + encodeURIComponent(button.data('id-inspeccion')) + '&a=ver' : '';
                 setDetailWithLink(modal, 'inspeccion', inspeccionTexto, inspeccionUrl);
