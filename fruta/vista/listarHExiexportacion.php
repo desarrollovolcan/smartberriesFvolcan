@@ -117,7 +117,9 @@ $VESPECIES_CACHE = [];
 $ESPECIES_CACHE = [];
 $ESTANDAR_CACHE = [];
 $RECEPCION_CACHE = [];
-$DESPACHO_CACHE = [];
+$DESPACHO_INTERPLANTA_CACHE = [];
+$DESPACHOPT_CACHE = [];
+$DESPACHOEX_CACHE = [];
 $PLANTA_CACHE = [];
 $EMPRESA_CACHE = [];
 $TEMPORADA_CACHE = [];
@@ -561,7 +563,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             $ARRAYRECEPCION = obtenerDesdeCache($r['ID_RECEPCION'], $RECEPCION_CACHE, function ($id) use ($RECEPCIONPT_ADO) {
                                                                 return $RECEPCIONPT_ADO->verRecepcion2($id);
                                                             });
-                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_INTERPLANTA_CACHE, function ($id) use ($DESPACHOPT_ADO) {
                                                                 return $DESPACHOPT_ADO->verDespachopt($id);
                                                             });
                                                             if ($ARRAYRECEPCION) {
@@ -641,7 +643,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 return $REEMBALAJE_ADO->verReembalaje2($id);
                                                             });
                                                             if ($ARRAYREEMBALAJE) {
-                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["NUMERO_REEMBALAJE"] ?? "Sin datos";
                                                                 $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
                                                                 $ARRAYTREEMBALAJE = obtenerDesdeCache($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"], $TREEMBALAJE_CACHE, function ($id) use ($TREEMBALAJE_ADO) {
                                                                     return $TREEMBALAJE_ADO->verTreembalaje($id);
@@ -684,10 +686,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $NUMEROINPSAG = "Sin Datos";
                                                                 $NOMBRETINPSAG = "Sin Datos";
                                                             }
-                                                            $ARRAYVERDESPACHOPT = obtenerDesdeCache($r['ID_DESPACHO'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                            $ARRAYVERDESPACHOPT = obtenerDesdeCache($r['ID_DESPACHO'], $DESPACHOPT_CACHE, function ($id) use ($DESPACHOPT_ADO) {
                                                                 return $DESPACHOPT_ADO->verDespachopt2($id);
                                                             });
-                                                            $ARRYADESPACHOEX = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHO_CACHE, function ($id) use ($DESPACHOEX_ADO) {
+                                                            $ARRYADESPACHOEX = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHOEX_CACHE, function ($id) use ($DESPACHOEX_ADO) {
                                                                 return $DESPACHOEX_ADO->verDespachoex2($id);
                                                             });
                                                             if ($ARRAYVERDESPACHOPT) {
@@ -813,7 +815,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $ARRAYVERESPECIESID = obtenerDesdeCache($ARRAYVERVESPECIESID[0]['ID_ESPECIES'], $ESPECIES_CACHE, function ($id) use ($ESPECIES_ADO) {
                                                                     return $ESPECIES_ADO->verEspecies($id);
                                                                 });
-                                                                if ($ARRAYVERVESPECIESID) {
+                                                                if ($ARRAYVERESPECIESID) {
                                                                     $NOMBRESPECIES = $ARRAYVERESPECIESID[0]['NOMBRE_ESPECIES'];
                                                                 } else {
                                                                     $NOMBRESPECIES = "Sin Datos";
@@ -953,7 +955,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             data-modificacion="<?php echo htmlspecialchars($r['MODIFICACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-referencia="<?php echo htmlspecialchars($NUMEROREFERENCIA, ENT_QUOTES, 'UTF-8'); ?>"
             data-id-recepcion="<?php echo htmlspecialchars($r['ID_RECEPCION'], ENT_QUOTES, 'UTF-8'); ?>"
-            data-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? $r['ID_DESPACHO2'] : $r['ID_DESPACHOEX'], ENT_QUOTES, 'UTF-8'); ?>">
+            data-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? $r['ID_DESPACHO2'] : $r['ID_DESPACHOEX'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-tipo-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? 'PT' : ($r['ID_DESPACHOEX'] ? 'EX' : ''), ENT_QUOTES, 'UTF-8'); ?>">
             <i class="mdi mdi-eye"></i> Trazabilidad
         </button>
     </td>
@@ -1359,7 +1362,14 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 var reembalajeTexto = button.data('num-reembalaje') ? button.data('tipo-reembalaje') + ' #' + button.data('num-reembalaje') + (button.data('fecha-reembalaje') ? ' (' + button.data('fecha-reembalaje') + ')' : '') : 'Sin datos';
                 modal.find('[data-detail="reembalaje"]').text(reembalajeTexto);
                 var despachoTexto = button.data('tipo-despacho') + ' #' + button.data('num-despacho') + ' (' + button.data('fecha-despacho') + ') ' + button.data('destino') + ' [' + button.data('csg-destino') + ']';
-                var despachoUrl = button.data('id-despacho') ? '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver' : '';
+                var despachoUrl = '';
+                if (button.data('id-despacho')) {
+                    if (button.data('tipo-id-despacho') === 'EX') {
+                        despachoUrl = '../../fruta/vista/registroDespachoEX.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    } else {
+                        despachoUrl = '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    }
+                }
                 setDetailWithLink(modal, 'despacho', despachoTexto, despachoUrl);
                 var inspeccionTexto = button.data('num-inspeccion') ? '#' + button.data('num-inspeccion') + ' (' + button.data('fecha-inspeccion') + ') ' + button.data('tipo-inspeccion') : 'Sin datos';
                 var inspeccionUrl = button.data('id-inspeccion') ? '../../fruta/vista/registroInpsag.php?op&id=' + encodeURIComponent(button.data('id-inspeccion')) + '&a=ver' : '';
