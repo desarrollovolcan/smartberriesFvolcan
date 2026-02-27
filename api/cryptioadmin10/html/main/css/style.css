@@ -15725,15 +15725,15 @@ ul.panel-actions > li {
 .dataTables_info, .dataTables_length, .dt-buttons {
   display: inline-block; }
 
-dt-buttons {
+.dt-buttons {
   margin-bottom: 10px; }
-  dt-buttons .dt-button {
+  .dt-buttons .dt-button {
     padding: 5px 15px;
     border-radius: 0;
     color: #ffffff;
     margin-right: 3px;
     display: inline-block; }
-    dt-buttons .dt-button:hover {
+    .dt-buttons .dt-button:hover {
       background: #475f7b; }
 
 .dataTables_filter {
