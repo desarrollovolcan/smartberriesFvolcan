@@ -117,7 +117,9 @@ $VESPECIES_CACHE = [];
 $ESPECIES_CACHE = [];
 $ESTANDAR_CACHE = [];
 $RECEPCION_CACHE = [];
-$DESPACHO_CACHE = [];
+$DESPACHO_INTERPLANTA_CACHE = [];
+$DESPACHOPT_CACHE = [];
+$DESPACHOEX_CACHE = [];
 $PLANTA_CACHE = [];
 $EMPRESA_CACHE = [];
 $TEMPORADA_CACHE = [];
@@ -167,16 +169,16 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <?php include_once "../../assest/config/urlHead.php"; ?>
     <style>
         .detalle-modal .modal-content {
-            border: 1px solid #c7d6eb;
-            box-shadow: 0 12px 30px rgba(5, 43, 92, 0.15);
+            border: 1px solid #dfe4ea;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
             border-radius: 12px;
             overflow: hidden;
         }
 
         .detalle-modal .modal-header {
-            background: linear-gradient(120deg, #0b559f 0%, #0c3972 100%);
-            color: #f6f9ff;
-            border: none;
+            background: #f7f8fa;
+            color: #1f2937;
+            border-bottom: 1px solid #e5e7eb;
             padding: 14px 18px;
         }
 
@@ -184,45 +186,45 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             font-weight: 800;
             letter-spacing: 0.25px;
             margin: 0;
-            color: #f6f9ff;
+            color: #111827;
         }
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
             letter-spacing: 0.5px;
-            color: #d6e4f9;
+            color: #6b7280;
             margin-bottom: 2px;
             opacity: 0.95;
         }
 
         .detalle-modal .close {
-            color: #f2f6fb;
+            color: #6b7280;
             opacity: 1;
             font-weight: 800;
         }
 
         .detalle-hero {
-            margin: 0 -12px 14px;
-            background: #e8f0fb;
-            border-bottom: 1px solid #d7e4f5;
+            margin: 0 -12px 12px;
+            background: #f9fafb;
+            border-bottom: 1px solid #eceff3;
             padding: 0;
         }
 
         .detalle-hero .brand-banner {
             width: 100%;
             overflow: hidden;
-            border-bottom: 1px solid #d7e4f5;
+            border-bottom: 1px solid #eceff3;
         }
 
         .detalle-hero .brand-banner img {
             width: 100%;
-            height: 180px;
+            height: 120px;
             object-fit: cover;
             display: block;
         }
 
         .detalle-modal .modal-body {
-            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 28%, #ffffff 100%);
+            background: #fcfcfd;
             padding: 12px 14px 8px;
         }
 
@@ -243,8 +245,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-resumen-table thead th {
-            background: #0c3972;
-            color: #f2f6fb;
+            background: #f3f4f6;
+            color: #374151;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.4px;
@@ -254,15 +256,15 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-resumen-table tbody td {
             font-size: 14px;
             font-weight: 800;
-            background: #f9fbff;
+            background: #ffffff;
         }
 
         .detalle-card {
             background: #fff;
-            border: 1px solid #d3deef;
+            border: 1px solid #e5e7eb;
             border-radius: 10px;
             padding: 0;
-            box-shadow: 0 10px 18px rgba(12, 57, 114, 0.08);
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -271,25 +273,25 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         .detalle-card h5 {
             font-size: 12px;
             font-weight: 700;
-            color: #0c3972;
+            color: #111827;
             margin: 0;
             letter-spacing: 0.3px;
             padding: 10px 12px;
-            background: linear-gradient(90deg, #eef3fb 0%, #dfe9f7 100%);
-            border-bottom: 1px solid #d6e1f3;
+            background: #f7f8fa;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .detalle-card table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
-            color: #1f3a56;
+            color: #1f2937;
         }
 
         .detalle-card th,
         .detalle-card td {
             padding: 7px 12px;
-            border-bottom: 1px solid #eef2f7;
+            border-bottom: 1px solid #edf0f3;
             vertical-align: top;
             word-wrap: break-word;
             word-break: break-word;
@@ -297,8 +299,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-card th {
-            background: #fafbfc;
-            color: #4d637d;
+            background: #fafafa;
+            color: #6b7280;
             width: 42%;
             font-weight: 700;
         }
@@ -319,29 +321,29 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             min-width: 90px;
             padding: 6px 10px;
             border-radius: 10px;
-            background: #d8e8ff;
-            color: #0b2f57;
+            background: #f3f4f6;
+            color: #374151;
             font-weight: 800;
-            border: 1px solid #b7c9e6;
+            border: 1px solid #d1d5db;
         }
 
         .detalle-modal .modal-footer {
             padding: 12px 14px;
-            border-top: 1px solid #d3deef;
-            background: #e8f0fb;
+            border-top: 1px solid #e5e7eb;
+            background: #f7f8fa;
         }
 
         .detalle-modal .btn-primary {
-            background: #0b559f;
-            border-color: #0b559f;
+            background: #374151;
+            border-color: #374151;
             color: #ffffff;
             font-weight: 800;
         }
 
         .detalle-modal .btn-secondary {
             background: #ffffff;
-            color: #0c3972;
-            border-color: #0c3972;
+            color: #4b5563;
+            border-color: #d1d5db;
             font-weight: 800;
         }
 
@@ -351,8 +353,25 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .mov-link {
-            color: #0f4a7a;
+            color: #374151;
             text-decoration: underline;
+            font-weight: 700;
+        }
+
+        .detalle-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 10px;
+        }
+
+        .detalle-meta .meta-pill {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
             font-weight: 700;
         }
     </style>
@@ -561,7 +580,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             $ARRAYRECEPCION = obtenerDesdeCache($r['ID_RECEPCION'], $RECEPCION_CACHE, function ($id) use ($RECEPCIONPT_ADO) {
                                                                 return $RECEPCIONPT_ADO->verRecepcion2($id);
                                                             });
-                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_INTERPLANTA_CACHE, function ($id) use ($DESPACHOPT_ADO) {
                                                                 return $DESPACHOPT_ADO->verDespachopt($id);
                                                             });
                                                             if ($ARRAYRECEPCION) {
@@ -641,7 +660,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 return $REEMBALAJE_ADO->verReembalaje2($id);
                                                             });
                                                             if ($ARRAYREEMBALAJE) {
-                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["NUMERO_REEMBALAJE"] ?? "Sin datos";
                                                                 $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
                                                                 $ARRAYTREEMBALAJE = obtenerDesdeCache($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"], $TREEMBALAJE_CACHE, function ($id) use ($TREEMBALAJE_ADO) {
                                                                     return $TREEMBALAJE_ADO->verTreembalaje($id);
@@ -684,10 +703,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $NUMEROINPSAG = "Sin Datos";
                                                                 $NOMBRETINPSAG = "Sin Datos";
                                                             }
-                                                            $ARRAYVERDESPACHOPT = obtenerDesdeCache($r['ID_DESPACHO'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                            $ARRAYVERDESPACHOPT = obtenerDesdeCache($r['ID_DESPACHO'], $DESPACHOPT_CACHE, function ($id) use ($DESPACHOPT_ADO) {
                                                                 return $DESPACHOPT_ADO->verDespachopt2($id);
                                                             });
-                                                            $ARRYADESPACHOEX = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHO_CACHE, function ($id) use ($DESPACHOEX_ADO) {
+                                                            $ARRYADESPACHOEX = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHOEX_CACHE, function ($id) use ($DESPACHOEX_ADO) {
                                                                 return $DESPACHOEX_ADO->verDespachoex2($id);
                                                             });
                                                             if ($ARRAYVERDESPACHOPT) {
@@ -813,7 +832,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $ARRAYVERESPECIESID = obtenerDesdeCache($ARRAYVERVESPECIESID[0]['ID_ESPECIES'], $ESPECIES_CACHE, function ($id) use ($ESPECIES_ADO) {
                                                                     return $ESPECIES_ADO->verEspecies($id);
                                                                 });
-                                                                if ($ARRAYVERVESPECIESID) {
+                                                                if ($ARRAYVERESPECIESID) {
                                                                     $NOMBRESPECIES = $ARRAYVERESPECIESID[0]['NOMBRE_ESPECIES'];
                                                                 } else {
                                                                     $NOMBRESPECIES = "Sin Datos";
@@ -905,6 +924,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <button type="button" class="btn btn-sm btn-outline-info btn-block" data-toggle="modal" data-target="#detalleExistenciaModal"
             data-folio="<?php echo htmlspecialchars($r['FOLIO_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-folio-aux="<?php echo htmlspecialchars($r['FOLIO_AUXILIAR_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-empresa="<?php echo htmlspecialchars($NOMBREEMPRESA, ENT_QUOTES, 'UTF-8'); ?>"
+            data-planta="<?php echo htmlspecialchars($NOMBREPLANTA, ENT_QUOTES, 'UTF-8'); ?>"
+            data-temporada="<?php echo htmlspecialchars($NOMBRETEMPORADA, ENT_QUOTES, 'UTF-8'); ?>"
             data-estado="<?php echo htmlspecialchars($ESTADO, ENT_QUOTES, 'UTF-8'); ?>"
             data-estado-calidad="<?php echo htmlspecialchars($ESTADOCALIDAD, ENT_QUOTES, 'UTF-8'); ?>"
             data-estandar="<?php echo htmlspecialchars($CODIGOESTANDAR . ' - ' . $NOMBREESTANDAR, ENT_QUOTES, 'UTF-8'); ?>"
@@ -953,7 +975,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             data-modificacion="<?php echo htmlspecialchars($r['MODIFICACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-referencia="<?php echo htmlspecialchars($NUMEROREFERENCIA, ENT_QUOTES, 'UTF-8'); ?>"
             data-id-recepcion="<?php echo htmlspecialchars($r['ID_RECEPCION'], ENT_QUOTES, 'UTF-8'); ?>"
-            data-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? $r['ID_DESPACHO2'] : $r['ID_DESPACHOEX'], ENT_QUOTES, 'UTF-8'); ?>">
+            data-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? $r['ID_DESPACHO2'] : $r['ID_DESPACHOEX'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-tipo-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? 'PT' : ($r['ID_DESPACHOEX'] ? 'EX' : ''), ENT_QUOTES, 'UTF-8'); ?>">
             <i class="mdi mdi-eye"></i> Trazabilidad
         </button>
     </td>
@@ -1107,6 +1130,11 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                 </div>
                             </div>
                         <?php endif; ?>
+                        <div class="detalle-meta">
+                            <span class="meta-pill">Empresa: <span data-detail="empresa"></span></span>
+                            <span class="meta-pill">Planta: <span data-detail="planta"></span></span>
+                            <span class="meta-pill">Temporada: <span data-detail="temporada"></span></span>
+                        </div>
                         <div class="detalle-resumen-table">
                             <table class="detalle-table resumen-table">
                                 <thead>
@@ -1183,24 +1211,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                         <td data-detail="embolsado"></td>
                                     </tr>
                                     <tr>
-                                        <th>Embolsado</th>
-                                        <td data-detail="embolsado"></td>
-                                    </tr>
-                                    <tr>
                                         <th>Condición</th>
                                         <td data-detail="condicion"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Estado calidad</th>
-                                        <td data-detail="estado-calidad"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Inspección</th>
-                                        <td data-detail="inspeccion"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Embolsado</th>
-                                        <td data-detail="embolsado"></td>
                                     </tr>
                                     <tr>
                                         <th>Gasificación</th>
@@ -1268,6 +1280,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                         <th>Referencia</th>
                                         <td data-detail="referencia"></td>
                                     </tr>
+                                    <tr>
+                                        <th>Manejo</th>
+                                        <td data-detail="tmanejo"></td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
@@ -1334,6 +1350,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 var modal = $(this);
                 modal.find('[data-detail="folio"]').text(button.data('folio'));
                 modal.find('[data-detail="folio-aux"]').text(button.data('folio-aux'));
+                modal.find('[data-detail="empresa"]').text(button.data('empresa'));
+                modal.find('[data-detail="planta"]').text(button.data('planta'));
+                modal.find('[data-detail="temporada"]').text(button.data('temporada'));
                 modal.find('[data-detail="estado"]').text(button.data('estado'));
                 modal.find('[data-detail="condicion"]').text(button.data('condicion'));
                 modal.find('[data-detail="estado-calidad"]').text(button.data('estado-calidad'));
@@ -1359,7 +1378,14 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 var reembalajeTexto = button.data('num-reembalaje') ? button.data('tipo-reembalaje') + ' #' + button.data('num-reembalaje') + (button.data('fecha-reembalaje') ? ' (' + button.data('fecha-reembalaje') + ')' : '') : 'Sin datos';
                 modal.find('[data-detail="reembalaje"]').text(reembalajeTexto);
                 var despachoTexto = button.data('tipo-despacho') + ' #' + button.data('num-despacho') + ' (' + button.data('fecha-despacho') + ') ' + button.data('destino') + ' [' + button.data('csg-destino') + ']';
-                var despachoUrl = button.data('id-despacho') ? '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver' : '';
+                var despachoUrl = '';
+                if (button.data('id-despacho')) {
+                    if (button.data('tipo-id-despacho') === 'EX') {
+                        despachoUrl = '../../fruta/vista/registroDespachoEX.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    } else {
+                        despachoUrl = '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    }
+                }
                 setDetailWithLink(modal, 'despacho', despachoTexto, despachoUrl);
                 var inspeccionTexto = button.data('num-inspeccion') ? '#' + button.data('num-inspeccion') + ' (' + button.data('fecha-inspeccion') + ') ' + button.data('tipo-inspeccion') : 'Sin datos';
                 var inspeccionUrl = button.data('id-inspeccion') ? '../../fruta/vista/registroInpsag.php?op&id=' + encodeURIComponent(button.data('id-inspeccion')) + '&a=ver' : '';
