@@ -117,7 +117,9 @@ $VESPECIES_CACHE = [];
 $ESPECIES_CACHE = [];
 $ESTANDAR_CACHE = [];
 $RECEPCION_CACHE = [];
-$DESPACHO_CACHE = [];
+$DESPACHO_INTERPLANTA_CACHE = [];
+$DESPACHOPT_CACHE = [];
+$DESPACHOEX_CACHE = [];
 $PLANTA_CACHE = [];
 $EMPRESA_CACHE = [];
 $TEMPORADA_CACHE = [];
@@ -167,75 +169,77 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <?php include_once "../../assest/config/urlHead.php"; ?>
     <style>
         .detalle-modal .modal-content {
-            border: 1px solid #c7d6eb;
-            box-shadow: 0 12px 30px rgba(5, 43, 92, 0.15);
-            border-radius: 12px;
+            border: 1px solid #d9dee5;
+            box-shadow: none;
+            border-radius: 6px;
             overflow: hidden;
         }
 
         .detalle-modal .modal-header {
-            background: linear-gradient(120deg, #0b559f 0%, #0c3972 100%);
-            color: #f6f9ff;
-            border: none;
-            padding: 14px 18px;
+            background: #ffffff;
+            color: #000000;
+            border-bottom: 1px solid #d9dee5;
+            padding: 12px 16px;
         }
 
         .detalle-modal .modal-title {
             font-weight: 800;
-            letter-spacing: 0.25px;
+            letter-spacing: 0.1px;
             margin: 0;
-            color: #f6f9ff;
+            color: #000000;
+            font-size: 16px;
         }
 
         .detalle-modal .modal-subtitle {
             font-size: 11px;
-            letter-spacing: 0.5px;
-            color: #d6e4f9;
+            letter-spacing: 0.2px;
+            color: #000000;
             margin-bottom: 2px;
             opacity: 0.95;
         }
 
         .detalle-modal .close {
-            color: #f2f6fb;
+            color: #000000;
             opacity: 1;
             font-weight: 800;
         }
 
         .detalle-hero {
-            margin: 0 -12px 14px;
-            background: #e8f0fb;
-            border-bottom: 1px solid #d7e4f5;
+            margin: 0 0 10px;
+            background: #ffffff;
+            border-bottom: 1px solid #eef2f6;
             padding: 0;
         }
 
         .detalle-hero .brand-banner {
             width: 100%;
             overflow: hidden;
-            border-bottom: 1px solid #d7e4f5;
+            border-bottom: 1px solid #eef2f6;
         }
 
         .detalle-hero .brand-banner img {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            height: 68px;
+            object-fit: contain;
             display: block;
+            background: #ffffff;
         }
 
         .detalle-modal .modal-body {
-            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 28%, #ffffff 100%);
-            padding: 12px 14px 8px;
+            background: #ffffff;
+            padding: 14px 16px 10px;
         }
 
         .detalle-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 10px;
+            gap: 12px;
             align-items: stretch;
             grid-auto-rows: 1fr;
         }
 
         .detalle-resumen-table {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .detalle-resumen-table .detalle-table {
@@ -243,53 +247,58 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-resumen-table thead th {
-            background: #0c3972;
-            color: #f2f6fb;
+            background: #f8fafc;
+            color: #374151;
+            color: #000000;
             text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.4px;
+            font-size: 10px;
+            letter-spacing: 0.35px;
             font-weight: 800;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .detalle-resumen-table tbody td {
-            font-size: 14px;
-            font-weight: 800;
-            background: #f9fbff;
+            font-size: 13px;
+            font-weight: 700;
+            background: #ffffff;
         }
 
         .detalle-card {
             background: #fff;
-            border: 1px solid #d3deef;
-            border-radius: 10px;
+            border: 1px solid #e1e6ec;
+            border-radius: 6px;
             padding: 0;
-            box-shadow: 0 10px 18px rgba(12, 57, 114, 0.08);
+            box-shadow: none;
             display: flex;
             flex-direction: column;
             height: 100%;
         }
 
         .detalle-card h5 {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            color: #0c3972;
+            color: #111827;
+            color: #000000;
             margin: 0;
-            letter-spacing: 0.3px;
-            padding: 10px 12px;
-            background: linear-gradient(90deg, #eef3fb 0%, #dfe9f7 100%);
-            border-bottom: 1px solid #d6e1f3;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e1e6ec;
         }
 
         .detalle-card table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
-            color: #1f3a56;
+            color: #1f2937;
+            color: #000000;
         }
 
         .detalle-card th,
         .detalle-card td {
-            padding: 7px 12px;
-            border-bottom: 1px solid #eef2f7;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eef2f6;
             vertical-align: top;
             word-wrap: break-word;
             word-break: break-word;
@@ -297,9 +306,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         }
 
         .detalle-card th {
-            background: #fafbfc;
-            color: #4d637d;
-            width: 42%;
+            background: #fbfcfd;
+            color: #6b7280;
+            color: #000000;
+            width: 40%;
             font-weight: 700;
         }
 
@@ -316,44 +326,63 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 90px;
-            padding: 6px 10px;
-            border-radius: 10px;
-            background: #d8e8ff;
-            color: #0b2f57;
-            font-weight: 800;
-            border: 1px solid #b7c9e6;
+            min-width: 78px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: #374151;
+            color: #000000;
+            font-weight: 700;
+            border: 1px solid #d7dde5;
         }
 
         .detalle-modal .modal-footer {
-            padding: 12px 14px;
-            border-top: 1px solid #d3deef;
-            background: #e8f0fb;
+            padding: 10px 16px;
+            border-top: 1px solid #d9dee5;
+            background: #ffffff;
         }
 
         .detalle-modal .btn-primary {
-            background: #0b559f;
-            border-color: #0b559f;
-            color: #ffffff;
-            font-weight: 800;
+            background: #ffffff;
+            border-color: #111111;
+            color: #000000;
+            font-weight: 700;
         }
 
         .detalle-modal .btn-secondary {
             background: #ffffff;
-            color: #0c3972;
-            border-color: #0c3972;
-            font-weight: 800;
+            color: #000000;
+            border-color: #9ca3af;
+            font-weight: 700;
         }
 
         .detalle-modal .btn {
             min-width: 170px;
-            border-radius: 10px;
+            border-radius: 4px;
         }
 
         .mov-link {
-            color: #0f4a7a;
+            color: #000000;
             text-decoration: underline;
             font-weight: 700;
+        }
+
+        .detalle-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 0 0 12px;
+        }
+
+        .detalle-meta .meta-pill {
+            background: #ffffff;
+            border: 1px solid #d9dee5;
+            color: #4b5563;
+            color: #000000;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
         }
     </style>
         <!- FUNCIONES BASES -!>
@@ -561,7 +590,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                             $ARRAYRECEPCION = obtenerDesdeCache($r['ID_RECEPCION'], $RECEPCION_CACHE, function ($id) use ($RECEPCIONPT_ADO) {
                                                                 return $RECEPCIONPT_ADO->verRecepcion2($id);
                                                             });
-                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                            $ARRAYDESPACHO2 = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHO_INTERPLANTA_CACHE, function ($id) use ($DESPACHOPT_ADO) {
                                                                 return $DESPACHOPT_ADO->verDespachopt($id);
                                                             });
                                                             if ($ARRAYRECEPCION) {
@@ -641,7 +670,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 return $REEMBALAJE_ADO->verReembalaje2($id);
                                                             });
                                                             if ($ARRAYREEMBALAJE) {
-                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"];
+                                                                $NUMEROREEMBALEJE = $ARRAYREEMBALAJE[0]["NUMERO_REEMBALAJE"] ?? "Sin datos";
                                                                 $FECHAREEMBALEJE = $ARRAYREEMBALAJE[0]["FECHA"];
                                                                 $ARRAYTREEMBALAJE = obtenerDesdeCache($ARRAYREEMBALAJE[0]["ID_TREEMBALAJE"], $TREEMBALAJE_CACHE, function ($id) use ($TREEMBALAJE_ADO) {
                                                                     return $TREEMBALAJE_ADO->verTreembalaje($id);
@@ -684,12 +713,31 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $NUMEROINPSAG = "Sin Datos";
                                                                 $NOMBRETINPSAG = "Sin Datos";
                                                             }
-                                                            $ARRAYVERDESPACHOPT = obtenerDesdeCache($r['ID_DESPACHO'], $DESPACHO_CACHE, function ($id) use ($DESPACHOPT_ADO) {
-                                                                return $DESPACHOPT_ADO->verDespachopt2($id);
-                                                            });
-                                                            $ARRYADESPACHOEX = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHO_CACHE, function ($id) use ($DESPACHOEX_ADO) {
-                                                                return $DESPACHOEX_ADO->verDespachoex2($id);
-                                                            });
+                                                            $IDDESPACHOMODAL = null;
+                                                            $TIPOIDDESPACHOMODAL = '';
+                                                            if (!empty($r['ID_DESPACHOEX'])) {
+                                                                $IDDESPACHOMODAL = $r['ID_DESPACHOEX'];
+                                                                $TIPOIDDESPACHOMODAL = 'EX';
+                                                            } else if (!empty($r['ID_DESPACHO2'])) {
+                                                                $IDDESPACHOMODAL = $r['ID_DESPACHO2'];
+                                                                $TIPOIDDESPACHOMODAL = 'PT';
+                                                            } else if (!empty($r['ID_DESPACHO'])) {
+                                                                // Respaldo para registros históricos donde solo existe ID_DESPACHO.
+                                                                $IDDESPACHOMODAL = $r['ID_DESPACHO'];
+                                                                $TIPOIDDESPACHOMODAL = 'PT';
+                                                            }
+
+                                                            $ARRAYVERDESPACHOPT = null;
+                                                            $ARRYADESPACHOEX = null;
+                                                            if ($TIPOIDDESPACHOMODAL == 'PT') {
+                                                                $ARRAYVERDESPACHOPT = obtenerDesdeCache($IDDESPACHOMODAL, $DESPACHOPT_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                                    return $DESPACHOPT_ADO->verDespachopt2($id);
+                                                                });
+                                                            } else if ($TIPOIDDESPACHOMODAL == 'EX') {
+                                                                $ARRYADESPACHOEX = obtenerDesdeCache($IDDESPACHOMODAL, $DESPACHOEX_CACHE, function ($id) use ($DESPACHOEX_ADO) {
+                                                                    return $DESPACHOEX_ADO->verDespachoex2($id);
+                                                                });
+                                                            }
                                                             if ($ARRAYVERDESPACHOPT) {
                                                                 $NUMERODESPACHO = $ARRAYVERDESPACHOPT[0]["NUMERO_DESPACHO"] ?? "Sin Datos";
                                                                 $FECHADESPACHO = $ARRAYVERDESPACHOPT[0]["FECHA"] ?? "";
@@ -784,6 +832,49 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $NUMEROGUIADESPACHO = "Sin Datos";
                                                                 $CSGCSPDESTINO="Sin Datos";
                                                             }
+
+                                                            // Resumen adicional cuando existieron más despachos en la cadena (ej: interplanta + exportación).
+                                                            $DESPACHOSRELACIONADOS = [];
+                                                            $agregarMarcaOtraPlanta = function ($idPlantaDespacho) use ($r, $PLANTA_ADO, &$PLANTA_CACHE) {
+                                                                if (!$idPlantaDespacho || !$r['ID_PLANTA'] || $idPlantaDespacho == $r['ID_PLANTA']) {
+                                                                    return '';
+                                                                }
+                                                                $plantaDespacho = obtenerDesdeCache($idPlantaDespacho, $PLANTA_CACHE, function ($id) use ($PLANTA_ADO) {
+                                                                    return $PLANTA_ADO->verPlanta($id);
+                                                                });
+                                                                if ($plantaDespacho) {
+                                                                    return ' [Otra planta: ' . $plantaDespacho[0]['NOMBRE_PLANTA'] . ']';
+                                                                }
+                                                                return ' [Otra planta]';
+                                                            };
+
+                                                            if (!empty($r['ID_DESPACHO2'])) {
+                                                                $arrayDespachoInter = obtenerDesdeCache($r['ID_DESPACHO2'], $DESPACHOPT_CACHE, function ($id) use ($DESPACHOPT_ADO) {
+                                                                    return $DESPACHOPT_ADO->verDespachopt2($id);
+                                                                });
+                                                                if ($arrayDespachoInter) {
+                                                                    $despInter = $arrayDespachoInter[0];
+                                                                    $tipoInter = $despInter['TDESPACHO'] == "1" ? 'Interplanta' : 'Despacho PT';
+                                                                    $marcaOtra = $agregarMarcaOtraPlanta($despInter['ID_PLANTA'] ?? null);
+                                                                    $DESPACHOSRELACIONADOS[] = $tipoInter . ' #' . ($despInter['NUMERO_DESPACHO'] ?? 'Sin Datos') . ' (' . ($despInter['FECHA'] ?? '') . ')' . $marcaOtra;
+                                                                }
+                                                            }
+
+                                                            if (!empty($r['ID_DESPACHOEX'])) {
+                                                                $arrayDespachoExRel = obtenerDesdeCache($r['ID_DESPACHOEX'], $DESPACHOEX_CACHE, function ($id) use ($DESPACHOEX_ADO) {
+                                                                    return $DESPACHOEX_ADO->verDespachoex2($id);
+                                                                });
+                                                                if ($arrayDespachoExRel) {
+                                                                    $despExRel = $arrayDespachoExRel[0];
+                                                                    $marcaOtra = $agregarMarcaOtraPlanta($despExRel['ID_PLANTA'] ?? null);
+                                                                    $DESPACHOSRELACIONADOS[] = 'Exportación #' . ($despExRel['NUMERO_DESPACHOEX'] ?? 'Sin Datos') . ' (' . ($despExRel['FECHA'] ?? '') . ')' . $marcaOtra;
+                                                                }
+                                                            }
+
+                                                            if (empty($DESPACHOSRELACIONADOS)) {
+                                                                $DESPACHOSRELACIONADOS[] = $TDESPACHO . ' #' . $NUMERODESPACHO . ' (' . $FECHADESPACHO . ')';
+                                                            }
+                                                            $DESPACHOSRELACIONADOSTXT = implode(' | ', $DESPACHOSRELACIONADOS);
                                                             $ARRAYVERPRODUCTORID = obtenerDesdeCache($r['ID_PRODUCTOR'], $PRODUCTOR_CACHE, function ($id) use ($PRODUCTOR_ADO) {
                                                                 return $PRODUCTOR_ADO->verProductor($id);
                                                             });
@@ -813,7 +904,7 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                                                 $ARRAYVERESPECIESID = obtenerDesdeCache($ARRAYVERVESPECIESID[0]['ID_ESPECIES'], $ESPECIES_CACHE, function ($id) use ($ESPECIES_ADO) {
                                                                     return $ESPECIES_ADO->verEspecies($id);
                                                                 });
-                                                                if ($ARRAYVERVESPECIESID) {
+                                                                if ($ARRAYVERESPECIESID) {
                                                                     $NOMBRESPECIES = $ARRAYVERESPECIESID[0]['NOMBRE_ESPECIES'];
                                                                 } else {
                                                                     $NOMBRESPECIES = "Sin Datos";
@@ -905,6 +996,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
         <button type="button" class="btn btn-sm btn-outline-info btn-block" data-toggle="modal" data-target="#detalleExistenciaModal"
             data-folio="<?php echo htmlspecialchars($r['FOLIO_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-folio-aux="<?php echo htmlspecialchars($r['FOLIO_AUXILIAR_EXIEXPORTACION'], ENT_QUOTES, 'UTF-8'); ?>"
+            data-empresa="<?php echo htmlspecialchars($NOMBREEMPRESA, ENT_QUOTES, 'UTF-8'); ?>"
+            data-planta="<?php echo htmlspecialchars($NOMBREPLANTA, ENT_QUOTES, 'UTF-8'); ?>"
+            data-temporada="<?php echo htmlspecialchars($NOMBRETEMPORADA, ENT_QUOTES, 'UTF-8'); ?>"
             data-estado="<?php echo htmlspecialchars($ESTADO, ENT_QUOTES, 'UTF-8'); ?>"
             data-estado-calidad="<?php echo htmlspecialchars($ESTADOCALIDAD, ENT_QUOTES, 'UTF-8'); ?>"
             data-estandar="<?php echo htmlspecialchars($CODIGOESTANDAR . ' - ' . $NOMBREESTANDAR, ENT_QUOTES, 'UTF-8'); ?>"
@@ -943,8 +1037,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             data-tipo-despacho="<?php echo htmlspecialchars($TDESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-num-despacho="<?php echo htmlspecialchars($NUMERODESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-fecha-despacho="<?php echo htmlspecialchars($FECHADESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
+            data-guia-despacho="<?php echo htmlspecialchars($NUMEROGUIADESPACHO, ENT_QUOTES, 'UTF-8'); ?>"
             data-destino="<?php echo htmlspecialchars($DESTINO, ENT_QUOTES, 'UTF-8'); ?>"
             data-csg-destino="<?php echo htmlspecialchars($CSGCSPDESTINO, ENT_QUOTES, 'UTF-8'); ?>"
+            data-despachos-relacionados="<?php echo htmlspecialchars($DESPACHOSRELACIONADOSTXT, ENT_QUOTES, 'UTF-8'); ?>"
             data-num-inspeccion="<?php echo htmlspecialchars($NUMEROINPSAG, ENT_QUOTES, 'UTF-8'); ?>"
             data-fecha-inspeccion="<?php echo htmlspecialchars($FECHAINPSAG, ENT_QUOTES, 'UTF-8'); ?>"
             data-tipo-inspeccion="<?php echo htmlspecialchars($NOMBRETINPSAG, ENT_QUOTES, 'UTF-8'); ?>"
@@ -953,7 +1049,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
             data-modificacion="<?php echo htmlspecialchars($r['MODIFICACION'], ENT_QUOTES, 'UTF-8'); ?>"
             data-referencia="<?php echo htmlspecialchars($NUMEROREFERENCIA, ENT_QUOTES, 'UTF-8'); ?>"
             data-id-recepcion="<?php echo htmlspecialchars($r['ID_RECEPCION'], ENT_QUOTES, 'UTF-8'); ?>"
-            data-id-despacho="<?php echo htmlspecialchars($r['ID_DESPACHO2'] ? $r['ID_DESPACHO2'] : $r['ID_DESPACHOEX'], ENT_QUOTES, 'UTF-8'); ?>">
+            data-id-despacho="<?php echo htmlspecialchars($IDDESPACHOMODAL, ENT_QUOTES, 'UTF-8'); ?>"
+            data-tipo-id-despacho="<?php echo htmlspecialchars($TIPOIDDESPACHOMODAL, ENT_QUOTES, 'UTF-8'); ?>">
             <i class="mdi mdi-eye"></i> Trazabilidad
         </button>
     </td>
@@ -1107,6 +1204,11 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                 </div>
                             </div>
                         <?php endif; ?>
+                        <div class="detalle-meta">
+                            <span class="meta-pill">Empresa: <span data-detail="empresa"></span></span>
+                            <span class="meta-pill">Planta: <span data-detail="planta"></span></span>
+                            <span class="meta-pill">Temporada: <span data-detail="temporada"></span></span>
+                        </div>
                         <div class="detalle-resumen-table">
                             <table class="detalle-table resumen-table">
                                 <thead>
@@ -1183,24 +1285,8 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                         <td data-detail="embolsado"></td>
                                     </tr>
                                     <tr>
-                                        <th>Embolsado</th>
-                                        <td data-detail="embolsado"></td>
-                                    </tr>
-                                    <tr>
                                         <th>Condición</th>
                                         <td data-detail="condicion"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Estado calidad</th>
-                                        <td data-detail="estado-calidad"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Inspección</th>
-                                        <td data-detail="inspeccion"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Embolsado</th>
-                                        <td data-detail="embolsado"></td>
                                     </tr>
                                     <tr>
                                         <th>Gasificación</th>
@@ -1240,6 +1326,14 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                         <td data-detail="despacho"></td>
                                     </tr>
                                     <tr>
+                                        <th>Despachos relacionados</th>
+                                        <td data-detail="despachos-relacionados"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Guía despacho</th>
+                                        <td data-detail="guia-despacho"></td>
+                                    </tr>
+                                    <tr>
                                         <th>Ingreso</th>
                                         <td data-detail="ingreso"></td>
                                     </tr>
@@ -1267,6 +1361,10 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                                     <tr>
                                         <th>Referencia</th>
                                         <td data-detail="referencia"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Manejo</th>
+                                        <td data-detail="tmanejo"></td>
                                     </tr>
                                 </table>
                             </div>
@@ -1334,6 +1432,9 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 var modal = $(this);
                 modal.find('[data-detail="folio"]').text(button.data('folio'));
                 modal.find('[data-detail="folio-aux"]').text(button.data('folio-aux'));
+                modal.find('[data-detail="empresa"]').text(button.data('empresa'));
+                modal.find('[data-detail="planta"]').text(button.data('planta'));
+                modal.find('[data-detail="temporada"]').text(button.data('temporada'));
                 modal.find('[data-detail="estado"]').text(button.data('estado'));
                 modal.find('[data-detail="condicion"]').text(button.data('condicion'));
                 modal.find('[data-detail="estado-calidad"]').text(button.data('estado-calidad'));
@@ -1359,8 +1460,17 @@ if ($EMPRESAS && $PLANTAS && $TEMPORADAS) {
                 var reembalajeTexto = button.data('num-reembalaje') ? button.data('tipo-reembalaje') + ' #' + button.data('num-reembalaje') + (button.data('fecha-reembalaje') ? ' (' + button.data('fecha-reembalaje') + ')' : '') : 'Sin datos';
                 modal.find('[data-detail="reembalaje"]').text(reembalajeTexto);
                 var despachoTexto = button.data('tipo-despacho') + ' #' + button.data('num-despacho') + ' (' + button.data('fecha-despacho') + ') ' + button.data('destino') + ' [' + button.data('csg-destino') + ']';
-                var despachoUrl = button.data('id-despacho') ? '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver' : '';
+                var despachoUrl = '';
+                if (button.data('id-despacho')) {
+                    if (button.data('tipo-id-despacho') === 'EX') {
+                        despachoUrl = '../../fruta/vista/registroDespachoEX.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    } else {
+                        despachoUrl = '../../fruta/vista/registroDespachopt.php?op&id=' + encodeURIComponent(button.data('id-despacho')) + '&a=ver';
+                    }
+                }
                 setDetailWithLink(modal, 'despacho', despachoTexto, despachoUrl);
+                modal.find('[data-detail="despachos-relacionados"]').text(button.data('despachos-relacionados'));
+                modal.find('[data-detail="guia-despacho"]').text(button.data('guia-despacho'));
                 var inspeccionTexto = button.data('num-inspeccion') ? '#' + button.data('num-inspeccion') + ' (' + button.data('fecha-inspeccion') + ') ' + button.data('tipo-inspeccion') : 'Sin datos';
                 var inspeccionUrl = button.data('id-inspeccion') ? '../../fruta/vista/registroInpsag.php?op&id=' + encodeURIComponent(button.data('id-inspeccion')) + '&a=ver' : '';
                 setDetailWithLink(modal, 'inspeccion', inspeccionTexto, inspeccionUrl);
