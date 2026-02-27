@@ -435,6 +435,14 @@ if ( $TEMPORADAS) {
                                                             $NOMBRESPECIES = "Sin Datos";
                                                         }
 
+                                                        $ARRAYTCALIBREIND = $TCALIBREIND_ADO->verCalibreInd($r['ID_TCALIBRE']);
+                                                        if ($ARRAYTCALIBREIND) {
+                                                            $CALIBREIND = $ARRAYTCALIBREIND[0]['NOMBRE_TCALIBREIND'];
+                                                            $NUM_CALIBREIND = $ARRAYTCALIBREIND[0]['NUMERO_TCALIBREIND'];
+                                                        } else {
+                                                            $CALIBREIND = "Sin Datos";
+                                                            $NUM_CALIBREIND = "Sin Datos";
+                                                        }
 
                                                         $ARRAYRECEPCION = $RECEPCIONIND_ADO->verRecepcion2($r['ID_RECEPCION']);
                                                         if ($ARRAYRECEPCION) {
@@ -534,6 +542,8 @@ if ( $TEMPORADAS) {
                                                             <td><?php echo $r['DIAS']; ?></td>
                                                             <td><?php echo $CODIGOESTANDAR; ?></td>
                                                             <td><?php echo $NOMBREESTANDAR; ?></td>
+                                                            <td><?php echo $NUM_CALIBREIND; ?></td>
+                                                            <td><?php echo $CALIBREIND; ?></td>
                                                             <td><?php echo $CSGPRODUCTOR; ?></td>
                                                             <td><?php echo $NOMBREPRODUCTOR; ?></td>
                                                             <td><?php echo $NOMBRESPECIES; ?></td>
