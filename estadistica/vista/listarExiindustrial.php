@@ -155,7 +155,7 @@ if ( $TEMPORADAS) {
                                                         <th>CSG/CSP Recepción</th>
                                                         <th>Origen Recepción </th>
                                                         <th>Número Guía Recepción </th>
-                                                        <th>Fecha Guía Recepción
+                                                        <th>Fecha Guía Recepción </th>
                                                         <th>Número Proceso </th>
                                                         <th>Fecha Proceso </th>
                                                         <th>Tipo Proceso </th>
