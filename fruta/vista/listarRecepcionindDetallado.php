@@ -10,6 +10,7 @@ include_once '../../assest/controlador/PRODUCTOR_ADO.php';
 include_once '../../assest/controlador/TMANEJO_ADO.php';
 include_once '../../assest/controlador/TCALIBRE_ADO.php';
 include_once '../../assest/controlador/TEMBALAJE_ADO.php';
+include_once '../../assest/controlador/TTRATAMIENTO2_ADO.php';
 
 
 include_once '../../assest/controlador/TRANSPORTE_ADO.php';
@@ -35,6 +36,7 @@ $PRODUCTOR_ADO = new PRODUCTOR_ADO();
 $TMANEJO_ADO =  new TMANEJO_ADO();
 $TCALIBRE_ADO =  new TCALIBRE_ADO();
 $TEMBALAJE_ADO =  new TEMBALAJE_ADO();
+$TTRATAMIENTO2_ADO =  new TTRATAMIENTO2_ADO();
 
 
 
@@ -204,6 +206,7 @@ include_once "../../assest/config/datosUrLP.php";
                                                     <th>Empresa</th>
                                                     <th>Planta</th>
                                                     <th>Temporada</th>
+                                                    <th>Cuartel</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -305,6 +308,13 @@ include_once "../../assest/config/datosUrLP.php";
                                                             $NOMBREESTANDAR = "Sin Datos";
                                                         }
 
+                                                        $ARRAYTRATAMIENTO2 = $TTRATAMIENTO2_ADO->verTtratamiento($s['ID_TTRATAMIENTO2']);
+                                                        if ($ARRAYTRATAMIENTO2) {
+                                                            $NOMBRETTRATAMIENTO2 = $ARRAYTRATAMIENTO2[0]['NOMBRE_TTRATAMIENTO'];
+                                                        } else {
+                                                            $NOMBRETTRATAMIENTO2 = "Sin Datos";
+                                                        }
+
                                                         ?>
                                                         <tr class="text-center">
                                                             <td><?php echo $s['FOLIO_DRECEPCION']; ?></td>
@@ -334,6 +344,7 @@ include_once "../../assest/config/datosUrLP.php";
                                                             <td><?php echo $NOMBREEMPRESA; ?></td>
                                                             <td><?php echo $NOMBREPLANTA; ?></td>
                                                             <td><?php echo $NOMBRETEMPORADA; ?></td>
+                                                            <td><?php echo $NOMBRETTRATAMIENTO2; ?></td>
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 <?php endforeach; ?>
