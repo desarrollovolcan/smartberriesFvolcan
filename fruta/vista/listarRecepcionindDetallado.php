@@ -308,9 +308,13 @@ include_once "../../assest/config/datosUrLP.php";
                                                             $NOMBREESTANDAR = "Sin Datos";
                                                         }
 
-                                                        $ARRAYTRATAMIENTO2 = $TTRATAMIENTO2_ADO->verTtratamiento($s['ID_TTRATAMIENTO2']);
-                                                        if ($ARRAYTRATAMIENTO2) {
-                                                            $NOMBRETTRATAMIENTO2 = $ARRAYTRATAMIENTO2[0]['NOMBRE_TTRATAMIENTO'];
+                                                        if (!empty($s['ID_TTRATAMIENTO2'])) {
+                                                            $ARRAYTRATAMIENTO2 = $TTRATAMIENTO2_ADO->verTtratamiento($s['ID_TTRATAMIENTO2']);
+                                                            if ($ARRAYTRATAMIENTO2) {
+                                                                $NOMBRETTRATAMIENTO2 = $ARRAYTRATAMIENTO2[0]['NOMBRE_TTRATAMIENTO'];
+                                                            } else {
+                                                                $NOMBRETTRATAMIENTO2 = "Sin Datos";
+                                                            }
                                                         } else {
                                                             $NOMBRETTRATAMIENTO2 = "Sin Datos";
                                                         }
