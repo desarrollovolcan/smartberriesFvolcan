@@ -213,6 +213,7 @@ if ( $TEMPORADAS) {
                                                     <th>Empresa</th>
                                                     <th>Planta</th>
                                                     <th>Temporada</th>
+                                                    <th>Cuartel</th>
                                                 </tr>
                                             </thead>
                                             <tbody>                                                
@@ -333,6 +334,16 @@ if ( $TEMPORADAS) {
                                                         }else{
                                                             $NOMBRETTRATAMIENTO1="Sin Datos";
                                                         }
+                                                        if (!empty($s['ID_TTRATAMIENTO2'])) {
+                                                            $ARRAYTRATAMIENTO2 = $TTRATAMIENTO2_ADO->verTtratamiento($s['ID_TTRATAMIENTO2']);
+                                                            if ($ARRAYTRATAMIENTO2) {
+                                                                $NOMBRETTRATAMIENTO2 = $ARRAYTRATAMIENTO2[0]['NOMBRE_TTRATAMIENTO'];
+                                                            } else {
+                                                                $NOMBRETTRATAMIENTO2 = "Sin Datos";
+                                                            }
+                                                        } else {
+                                                            $NOMBRETTRATAMIENTO2 = "Sin Datos";
+                                                        }
                                                         ?>
                                                         <tr class="text-center">
                                                             <td><?php echo $s['FOLIO_DRECEPCION']; ?></td>
@@ -366,6 +377,7 @@ if ( $TEMPORADAS) {
                                                             <td><?php echo $NOMBREEMPRESA; ?></td>
                                                             <td><?php echo $NOMBREPLANTA; ?></td>
                                                             <td><?php echo $NOMBRETEMPORADA; ?></td>
+                                                            <td><?php echo $NOMBRETTRATAMIENTO2; ?></td>
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 <?php endforeach; ?>
